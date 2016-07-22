@@ -61,13 +61,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\ChangeVolume.cs" />
-    <Compile Include="Assets\GetTeamLogo.cs" />
-    <Compile Include="Assets\PopulateDraftPlayers.cs" />
     <Compile Include="Assets\Scripts\ChangeScene.cs" />
+    <Compile Include="Assets\Scripts\ChangeVolume.cs" />
     <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
+    <Compile Include="Assets\Scripts\GetTeamLogo.cs" />
     <Compile Include="Assets\Scripts\MenuMusic.cs" />
     <Compile Include="Assets\Scripts\MuteControl.cs" />
+    <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
     <Compile Include="Assets\Scripts\TeamInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
