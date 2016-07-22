@@ -68,7 +68,11 @@
     <Compile Include="Assets\Scripts\MenuMusic.cs" />
     <Compile Include="Assets\Scripts\MuteControl.cs" />
     <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
+    <Compile Include="Assets\Scripts\Stats.cs" />
     <Compile Include="Assets\Scripts\TeamInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Fonts\SIL Open Font License.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />
 </Project>
