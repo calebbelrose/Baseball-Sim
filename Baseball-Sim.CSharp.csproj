@@ -70,6 +70,8 @@
     <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
     <Compile Include="Assets\Scripts\Stats.cs" />
     <Compile Include="Assets\Scripts\TeamInfo.cs" />
+    <Compile Include="Assets\SetStatHeaders.cs" />
+    <Compile Include="Assets\SortPlayers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Fonts\SIL Open Font License.txt" />
