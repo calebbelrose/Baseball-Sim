@@ -1,0 +1,11 @@
+First Name
+Last Name
+Position
+Overall
+Potential
+Age
+Batting
+Catching
+Throwing
+Speed
+Endurance

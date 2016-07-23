@@ -7,21 +7,25 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        int numStats = 8;
+        string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
+        int numStats;
         string[,] playerStats;
-        string[] players, player, firstNames, lastNames;
+        string[] firstNames, lastNames, stats;
         //players = File.ReadAllLines("players.csv");
-        firstNames = File.ReadAllLines("firstNames.txt");
-        lastNames = File.ReadAllLines("lastNames.txt");
+        firstNames = File.ReadAllLines("FirstNames.txt");
+        lastNames = File.ReadAllLines("LastNames.txt");
+        stats = File.ReadAllLines("Stats.txt");
+        numStats = stats.Length;
         //playerStats = new string [players.Length,numStats];
-        int longestFirstName = 0, longestLastName = 0;
+        int longestFirstName = 0, longestLastName = 0, statHeaderLength = 0;
 
         //int numPlayers = (int)(Random.value * 5.0f) + 10;
-        int numPlayers = 20;
+        int numPlayers = 5;
         playerStats = new string[numPlayers, numStats];
 
         for (int i = 0; i < numPlayers; i++)
         {
+            int totalStats = 0, age;
             playerStats[i,0] = firstNames[(int)(Random.value * firstNames.Length)];
             playerStats[i,1] = lastNames[(int)(Random.value * lastNames.Length)];
 
@@ -31,16 +35,66 @@ public class PopulateDraftPlayers : MonoBehaviour {
             if (playerStats[i, 1].Length > longestLastName)
                 longestLastName = playerStats[i, 1].Length;
 
-            for (int j = 2; j < numStats; j++)
+            playerStats[i, 2] = positions[(int)(Random.value * positions.Length)];
+
+            age = (int)(Random.value * 27) + 18;
+            playerStats[i, 5] = age.ToString();
+
+            for (int j = 6; j < numStats; j++)
             {
-                playerStats[i, j] = ((int)(Random.value * 75) + 25).ToString();
+                int currStat = (int)(Random.value * age) + 55;
+                playerStats[i, j] = currStat.ToString();
+                totalStats += currStat;
             }
+
+            int potential = (int)(Random.value * 25 + (43 - age) * 3) ;
+            if (potential < 0)
+                potential = 0;
+            playerStats[i, 4] = potential.ToString();
+
+            playerStats[i, 3] = ((int)(totalStats / (numStats - 6))).ToString();
         }
 
         GameObject draftList = GameObject.Find("DraftList");
         draftList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * numPlayers - draftList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
-        draftList.GetComponent<RectTransform>().offsetMax = new Vector2((int)(48.25 * (numStats - 2)), 0);
+
+        for(int i = 2; i < stats.Length; i++)
+        {
+            statHeaderLength += stats[i].Length + 1;
+        }
+
+        draftList.GetComponent<RectTransform>().offsetMax = new Vector2((int)(8.04 * (statHeaderLength + 1)), 0);
         Object playerButton = Resources.Load("Button", typeof(GameObject));
+
+        GameObject statHeaders = Instantiate(playerButton) as GameObject;
+        statHeaders.name = "statHeaders";
+        statHeaders.transform.SetParent(draftList.transform);
+        string statHeaderText = "";
+
+        statHeaderText = stats[0];
+
+        if (longestFirstName < 10)
+            longestFirstName = 10;
+
+        for (int i = stats[0].Length; i < longestFirstName; i++)
+            statHeaderText += " ";
+
+        statHeaderText += " " + stats[1];
+
+        if (longestLastName < 9)
+            longestLastName = 9;
+
+        for (int i = stats[1].Length; i < longestLastName; i++)
+            statHeaderText += " ";
+
+        for (int i = 2; i < numStats; i++)
+        {
+            statHeaderText += " " + stats[i];
+        }
+
+        statHeaders.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        statHeaders.transform.GetChild(0).gameObject.GetComponent<Text>().text = statHeaderText;
+        statHeaders.GetComponent<Button>().interactable = false;
 
         for (int i = 0; i < numPlayers; i++)
         {
@@ -61,7 +115,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
             {
                 playerListing += " " + playerStats[i, j];
 
-                for (int k = playerStats[i, j].Length; k < 5; k++)
+                for (int k = playerStats[i, j].Length; k < stats[j].Length; k++)
                     playerListing += " ";
             }
 
