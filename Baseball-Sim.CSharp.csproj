@@ -61,6 +61,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Manager.cs" />
+    <Compile Include="Assets\Scripts\AllTeams.cs" />
     <Compile Include="Assets\Scripts\ChangeScene.cs" />
     <Compile Include="Assets\Scripts\ChangeVolume.cs" />
     <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
@@ -68,10 +70,10 @@
     <Compile Include="Assets\Scripts\MenuMusic.cs" />
     <Compile Include="Assets\Scripts\MuteControl.cs" />
     <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
+    <Compile Include="Assets\Scripts\SortPlayers.cs" />
     <Compile Include="Assets\Scripts\Stats.cs" />
     <Compile Include="Assets\Scripts\TeamInfo.cs" />
-    <Compile Include="Assets\SetStatHeaders.cs" />
-    <Compile Include="Assets\SortPlayers.cs" />
+    <Compile Include="Assets\ViewPlayers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Fonts\SIL Open Font License.txt" />

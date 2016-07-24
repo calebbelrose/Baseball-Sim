@@ -2,63 +2,72 @@
 using UnityEngine.UI;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PopulateDraftPlayers : MonoBehaviour {
 
-    string[,] playerStats;
-    int numStats;
-    int numPlayers = 5;
-    GameObject draftList;
-    int longestFirstName = 0, longestLastName = 0;
+    List<string[]> playerStats = new List<string[]>();
+    int numPlayers = 250;
+    GameObject draftList, manager;
+    RectTransform draftListRect, draftListParentRect;
+    AllTeams allTeams;
+    int longestFirstName = 10, longestLastName = 9;
     string[] stats;
     int currSortedStat = 3;
     char order = 'd';
+    int currTeam = 0;
+    int numTeams;
+    float newWidth = 0.0f;
 
     // Use this for initialization
     void Start () {
         string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
         string[] firstNames, lastNames;
-        //players = File.ReadAllLines("players.csv");
-        firstNames = File.ReadAllLines("FirstNames.txt");
-        lastNames = File.ReadAllLines("LastNames.txt");
-        stats = File.ReadAllLines("Stats.txt");
-        numStats = stats.Length;
-        //playerStats = new string [players.Length,numStats];
         int statHeaderLength = 0;
+        manager = GameObject.Find("_Manager");
+        draftList = GameObject.Find("DraftList");
+        allTeams = manager.GetComponent<AllTeams>();
+        draftListRect = draftList.GetComponent<RectTransform>();
+        draftListParentRect = draftList.transform.parent.gameObject.GetComponent<RectTransform>();
+        numTeams = manager.GetComponent<AllTeams>().GetNumTeams();
+        stats = manager.GetComponent<Stats>().statList;
+        firstNames = manager.GetComponent<Stats>().firstNames;
+        lastNames = manager.GetComponent<Stats>().lastNames;
 
         //int numPlayers = (int)(Random.value * 5.0f) + 10;
-        
-        playerStats = new string[numPlayers, numStats];
+
         for (int i = 0; i < numPlayers; i++)
         {
+            string[] newPlayer = new string[stats.Length];
             int totalStats = 0, age;
-            playerStats[i,0] = firstNames[(int)(Random.value * firstNames.Length)];
-            playerStats[i,1] = lastNames[(int)(Random.value * lastNames.Length)];
+            newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
+            newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
 
-            if (playerStats[i, 0].Length > longestFirstName)
-                longestFirstName = playerStats[i, 0].Length;
+            if (newPlayer[0].Length > longestFirstName)
+                longestFirstName = newPlayer[0].Length;
 
-            if (playerStats[i, 1].Length > longestLastName)
-                longestLastName = playerStats[i, 1].Length;
+            if (newPlayer[1].Length > longestLastName)
+                longestLastName = newPlayer[1].Length;
 
-            playerStats[i, 2] = positions[(int)(Random.value * positions.Length)];
+            newPlayer[2] = positions[(int)(Random.value * positions.Length)];
 
             age = (int)(Random.value * 27) + 18;
-            playerStats[i, 5] = age.ToString();
+            newPlayer[5] = age.ToString();
 
-            for (int j = 6; j < numStats; j++)
+            for (int j = 6; j < stats.Length; j++)
             {
                 int currStat = (int)(Random.value * age) + 55;
-                playerStats[i, j] = currStat.ToString();
+                newPlayer[j] = currStat.ToString();
                 totalStats += currStat;
             }
 
             int potential = (int)(Random.value * 25 + (43 - age) * 3) ;
             if (potential < 0)
                 potential = 0;
-            playerStats[i, 4] = potential.ToString();
+            newPlayer[4] = potential.ToString();
 
-            playerStats[i, 3] = ((int)(totalStats / (numStats - 6))).ToString();
+            newPlayer[3] = ((int)(totalStats / (stats.Length - 6))).ToString();
+            playerStats.Add(newPlayer);
         }
         GameObject draftListHeader = GameObject.Find("DraftListHeader");
 
@@ -68,14 +77,11 @@ public class PopulateDraftPlayers : MonoBehaviour {
         }
 
         Object header = Resources.Load("Header", typeof(GameObject));
-        draftList = GameObject.Find("DraftList");
-        float prevWidth = 5.0f, newWidth = 0.0f;
+        float prevWidth = 5.0f;
         float totalWidth = (8.04f * (statHeaderLength + 1.0f));
-        draftList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * numPlayers - draftList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
-        draftList.GetComponent<RectTransform>().offsetMax = new Vector2(totalWidth - 160.0f, 0);
         totalWidth /= -2.0f;
 
-        for (int i = 0; i < numStats; i++)
+        for (int i = 0; i < stats.Length; i++)
         {
             GameObject statHeader = Instantiate(header) as GameObject;
             statHeader.name = "header" + i.ToString();
@@ -92,13 +98,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
             statHeader.GetComponent<RectTransform>().transform.localPosition = new Vector3(totalWidth, 0.0f, 0.0f);
         }
 
-        draftList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
-
-        if (longestFirstName < 10)
-            longestFirstName = 10;
-
-        if (longestLastName < 9)
-            longestLastName = 9;
+        newWidth -= draftList.transform.parent.gameObject.GetComponent<RectTransform>().rect.width;
 
         Sort(3, 0, numPlayers - 1);
         DisplayPlayers();
@@ -108,7 +108,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
     {
         int statNum = int.Parse(other.name.Remove(0, 6));
         int left = 0, right = numPlayers - 1;
-        string pivot = playerStats[(int)(left + (right - left) / 2), statNum];
+        string pivot = playerStats[(int)(left + (right - left) / 2)][statNum];
         int test;
         bool notString = int.TryParse(pivot, out test);
 
@@ -130,35 +130,33 @@ public class PopulateDraftPlayers : MonoBehaviour {
     void Sort(int statNum, int left, int right)
     {
         int i = left, j = right;
-        string pivot = playerStats[(int)(left + (right - left) / 2), statNum];
-
-        Debug.Log(order);
+        string pivot = playerStats[(int)(left + (right - left) / 2)][statNum];
 
         if(order == 'a')
             while (i <= j)
             {
-                while (string.Compare(playerStats[i, statNum], pivot) < 0)
+                while (string.Compare(playerStats[i][statNum], pivot) < 0)
                 {
                     i++;
                 }
 
-                while (string.Compare(playerStats[j, statNum], pivot) > 0)
+                while (string.Compare(playerStats[j][statNum], pivot) > 0)
                 {
                     j--;
                 }
 
                 if (i <= j)
                 {
-                    string[] temp = new string[numStats];
+                    string[] temp = new string[stats.Length];
 
-                    for (int k = 0; k < numStats; k++)
-                        temp[k] = playerStats[i, k];
+                    for (int k = 0; k < stats.Length; k++)
+                        temp[k] = playerStats[i][k];
 
-                    for (int k = 0; k < numStats; k++)
-                        playerStats[i, k] = playerStats[j, k];
+                    for (int k = 0; k < stats.Length; k++)
+                        playerStats[i][k] = playerStats[j][k];
 
-                    for (int k = 0; k < numStats; k++)
-                        playerStats[j, k] = temp[k];
+                    for (int k = 0; k < stats.Length; k++)
+                        playerStats[j][k] = temp[k];
 
                     i++;
                     j--;
@@ -167,28 +165,28 @@ public class PopulateDraftPlayers : MonoBehaviour {
         else
             while (i <= j)
             {
-                while (string.Compare(playerStats[i, statNum], pivot) > 0)
+                while (string.Compare(playerStats[i][statNum], pivot) > 0)
                 {
                     i++;
                 }
 
-                while (string.Compare(playerStats[j, statNum], pivot) < 0)
+                while (string.Compare(playerStats[j][statNum], pivot) < 0)
                 {
                     j--;
                 }
 
                 if (i <= j)
                 {
-                    string[] temp = new string[numStats];
+                    string[] temp = new string[stats.Length];
 
-                    for (int k = 0; k < numStats; k++)
-                        temp[k] = playerStats[i, k];
+                    for (int k = 0; k < stats.Length; k++)
+                        temp[k] = playerStats[i][k];
 
-                    for (int k = 0; k < numStats; k++)
-                        playerStats[i, k] = playerStats[j, k];
+                    for (int k = 0; k < stats.Length; k++)
+                        playerStats[i][k] = playerStats[j][k];
 
-                    for (int k = 0; k < numStats; k++)
-                        playerStats[j, k] = temp[k];
+                    for (int k = 0; k < stats.Length; k++)
+                        playerStats[j][k] = temp[k];
 
                     i++;
                     j--;
@@ -218,28 +216,59 @@ public class PopulateDraftPlayers : MonoBehaviour {
             GameObject newPlayer = Instantiate(playerButton) as GameObject;
             newPlayer.name = "player" + i.ToString();
             newPlayer.transform.SetParent(draftList.transform);
-            string playerListing = playerStats[i, 0];
+            string playerListing = playerStats[i][0];
 
-            for (int j = playerStats[i, 0].Length; j < longestFirstName; j++)
+            for (int j = playerStats[i][0].Length; j < longestFirstName; j++)
                 playerListing += " ";
 
-            playerListing += " " + playerStats[i, 1];
+            playerListing += " " + playerStats[i][1];
 
-            for (int j = playerStats[i, 1].Length; j < longestLastName; j++)
+            for (int j = playerStats[i][1].Length; j < longestLastName; j++)
                 playerListing += " ";
 
-            for (int j = 2; j < numStats - 1; j++)
+            for (int j = 2; j < stats.Length - 1; j++)
             {
-                playerListing += " " + playerStats[i, j];
+                playerListing += " " + playerStats[i][j];
 
-                for (int k = playerStats[i, j].Length; k < stats[j].Length; k++)
+                for (int k = playerStats[i][j].Length; k < stats[j].Length; k++)
                     playerListing += " ";
             }
 
-            playerListing += " " + playerStats[i, numStats - 1];
+            playerListing += " " + playerStats[i][stats.Length - 1];
 
             newPlayer.transform.GetChild(0).gameObject.GetComponent<Text>().text = playerListing;
             newPlayer.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+            newPlayer.GetComponent<Button>().onClick.AddListener(() => PlayerDraft(newPlayer, playerListing));
         }
+
+        draftListRect.offsetMin = new Vector2(0, -(20 * (numPlayers + 1) - draftListParentRect.rect.height));
+        draftListRect.offsetMax = new Vector2(newWidth, 0);
+    }
+
+    public void PlayerDraft(GameObject player, string playerListing)
+    {
+        Draft(player, player.name.Remove(0, 6));
+
+        int count = numPlayers;
+        if (numPlayers > 30)
+            count = 30;
+
+        for(int i = 1; i < count; i++)
+        {
+            Draft(GameObject.Find("player" + i), "0");
+        }
+        DisplayPlayers();
+    }
+
+    public void Draft(GameObject player, string name)
+    {
+        int playerNum = int.Parse(name);
+        allTeams.teams[currTeam].Add(playerStats[playerNum]);
+        numPlayers--;
+        if (numPlayers == 0)
+            GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);
+        currTeam = (currTeam + 1) % 30;
+        Destroy(player);
+        playerStats.RemoveAt(playerNum);
     }
 }
