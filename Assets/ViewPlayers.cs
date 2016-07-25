@@ -32,7 +32,6 @@ public class ViewPlayers : MonoBehaviour {
         }
 
         Object header = Resources.Load("Header", typeof(GameObject));
-        teamList = GameObject.Find("TeamList");
         float prevWidth = 5.0f, newWidth = 0.0f;
         float totalWidth = (8.04f * (statHeaderLength + 1.0f));
         teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (playerList.teams[0].Count+ 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
@@ -68,7 +67,6 @@ public class ViewPlayers : MonoBehaviour {
 
         for(int i = 0; i < playerList.teams[0].Count; i++)
         {
-            Debug.Log(i);
             if (playerList.teams[0][i][0].Length > longestFirstName)
                 longestFirstName = playerList.teams[0][i][0].Length;
 

@@ -61,7 +61,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Close.cs" />
+    <Compile Include="Assets\GetTeamOverall.cs" />
     <Compile Include="Assets\Manager.cs" />
+    <Compile Include="Assets\Play.cs" />
     <Compile Include="Assets\Scripts\AllTeams.cs" />
     <Compile Include="Assets\Scripts\ChangeScene.cs" />
     <Compile Include="Assets\Scripts\ChangeVolume.cs" />

@@ -4,8 +4,10 @@ Position
 Overall
 Potential
 Age
-Batting
+Power
+Contact
+Eye
+Speed
 Catching
 Throwing
-Speed
 Endurance

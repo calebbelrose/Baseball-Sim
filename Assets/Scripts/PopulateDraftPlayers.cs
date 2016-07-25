@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class PopulateDraftPlayers : MonoBehaviour {
 
@@ -16,7 +17,6 @@ public class PopulateDraftPlayers : MonoBehaviour {
     int currSortedStat = 3;
     char order = 'd';
     int currTeam = 0;
-    int numTeams;
     float newWidth = 0.0f;
 
     // Use this for initialization
@@ -29,7 +29,6 @@ public class PopulateDraftPlayers : MonoBehaviour {
         allTeams = manager.GetComponent<AllTeams>();
         draftListRect = draftList.GetComponent<RectTransform>();
         draftListParentRect = draftList.transform.parent.gameObject.GetComponent<RectTransform>();
-        numTeams = manager.GetComponent<AllTeams>().GetNumTeams();
         stats = manager.GetComponent<Stats>().statList;
         firstNames = manager.GetComponent<Stats>().firstNames;
         lastNames = manager.GetComponent<Stats>().lastNames;
@@ -39,7 +38,8 @@ public class PopulateDraftPlayers : MonoBehaviour {
         for (int i = 0; i < numPlayers; i++)
         {
             string[] newPlayer = new string[stats.Length];
-            int totalStats = 0, age;
+            float totalStats = 0;
+            int age;
             newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
             newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
 
@@ -66,7 +66,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
                 potential = 0;
             newPlayer[4] = potential.ToString();
 
-            newPlayer[3] = ((int)(totalStats / (stats.Length - 6))).ToString();
+            newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
             playerStats.Add(newPlayer);
         }
         GameObject draftListHeader = GameObject.Find("DraftListHeader");
@@ -266,7 +266,52 @@ public class PopulateDraftPlayers : MonoBehaviour {
         allTeams.teams[currTeam].Add(playerStats[playerNum]);
         numPlayers--;
         if (numPlayers == 0)
+        {
+            int numTeams = allTeams.GetNumTeams();
+            string[][] players;
+            for (int i = 0; i < numTeams; i++)
+            {
+                float totalBestPlayers = 0.0f, offenseBestPlayers = 0.0f, defenseBestPlayers = 0.0f;
+                
+                List<string[]> playerList = allTeams.teams[0];
+                string currPos;
+                int currPlayer = 0, numSP = 0, numRP = 0;
+                players = new string[playerList.Count][];
+                playerList.CopyTo(players);
+                var result = playerList.OrderBy(playerX => playerX[2]).ThenByDescending(playerX => playerX[3]).ToArray<string[]>();
+                currPos = "";
+                while (currPlayer < (result.Length - 1))
+                {
+                    if (result[currPlayer][2] == "SP" && numSP < 5)
+                    {
+                        totalBestPlayers += float.Parse(result[currPlayer][3]);
+                        offenseBestPlayers += float.Parse(result[currPlayer][6]) + float.Parse(result[currPlayer][7]) + float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]);
+                        defenseBestPlayers += float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]);
+                        numSP++;
+                    }
+                    else if (result[currPlayer][2] == "RP" && numRP < 3)
+                    {
+                        totalBestPlayers += float.Parse(result[currPlayer][3]);
+                        offenseBestPlayers += float.Parse(result[currPlayer][6]) + float.Parse(result[currPlayer][7]) + float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]);
+                        defenseBestPlayers += float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]);
+                        numRP++;
+                    }
+                    else if (result[currPlayer][2] != currPos)
+                    {
+                        totalBestPlayers += float.Parse(result[currPlayer][3]);
+                        offenseBestPlayers += float.Parse(result[currPlayer][6]) + float.Parse(result[currPlayer][7]) + float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]);
+                        defenseBestPlayers += float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]);
+                    }
+
+                    currPos = result[currPlayer][2];
+                    currPlayer++;
+                }
+                allTeams.overalls[i][0] = totalBestPlayers / 18.0f;
+                allTeams.overalls[i][1] = offenseBestPlayers / 18.0f;
+                allTeams.overalls[i][2] = defenseBestPlayers / 18.0f;
+            }
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);
+        }
         currTeam = (currTeam + 1) % 30;
         Destroy(player);
         playerStats.RemoveAt(playerNum);
