@@ -6,7 +6,7 @@ public class ViewPlayers : MonoBehaviour {
 
     GameObject teamList;
     GameObject manager;
-    AllTeams playerList;
+    AllTeams allTeams;
     string[] stats;
     int currSortedStat = 3;
     char order = 'd';
@@ -15,7 +15,7 @@ public class ViewPlayers : MonoBehaviour {
     {
         teamList = GameObject.Find("TeamList");
         manager = GameObject.Find("_Manager");
-        playerList = manager.GetComponent<AllTeams>();
+        allTeams = manager.GetComponent<AllTeams>();
         stats = manager.GetComponent<Stats>().statList;
         DisplayHeader();
         DisplayPlayers();        
@@ -34,7 +34,7 @@ public class ViewPlayers : MonoBehaviour {
         Object header = Resources.Load("Header", typeof(GameObject));
         float prevWidth = 5.0f, newWidth = 0.0f;
         float totalWidth = (8.04f * (statHeaderLength + 1.0f));
-        teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (playerList.teams[0].Count+ 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
+        teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (allTeams.teams[0].players.Count + 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
         teamList.GetComponent<RectTransform>().offsetMax = new Vector2(totalWidth - 160.0f, 0);
         totalWidth /= -2.0f;
 
@@ -65,42 +65,42 @@ public class ViewPlayers : MonoBehaviour {
         for (int i = 0; i < currPlayers.Length; i++)
             Destroy(currPlayers[i]);
 
-        for(int i = 0; i < playerList.teams[0].Count; i++)
+        for(int i = 0; i < allTeams.teams[0].players.Count; i++)
         {
-            if (playerList.teams[0][i][0].Length > longestFirstName)
-                longestFirstName = playerList.teams[0][i][0].Length;
+            if (allTeams.teams[0].players[i][0].Length > longestFirstName)
+                longestFirstName = allTeams.teams[0].players[i][0].Length;
 
-            if (playerList.teams[0][i][1].Length > longestLastName)
-                longestLastName = playerList.teams[0][i][1].Length;
+            if (allTeams.teams[0].players[i][1].Length > longestLastName)
+                longestLastName = allTeams.teams[0].players[i][1].Length;
         }
 
-        for (int i = 0; i < playerList.teams[0].Count; i++)
+        for (int i = 0; i < allTeams.teams[0].players.Count; i++)
         {
-            Object playerButton = Resources.Load("Button", typeof(GameObject));
+            Object playerButton = Resources.Load("Player", typeof(GameObject));
             GameObject newPlayer = Instantiate(playerButton) as GameObject;
             newPlayer.name = "player" + i.ToString();
             newPlayer.transform.SetParent(teamList.transform);
-            string playerListing = playerList.teams[0][i][0];
+            string allTeamsing = allTeams.teams[0].players[i][0];
 
-            for (int j = playerList.teams[0][i][0].Length; j < longestFirstName; j++)
-                playerListing += " ";
+            for (int j = allTeams.teams[0].players[i][0].Length; j < longestFirstName; j++)
+                allTeamsing += " ";
 
-            playerListing += " " + playerList.teams[0][i][1];
+            allTeamsing += " " + allTeams.teams[0].players[i][1];
 
-            for (int j = playerList.teams[0][i][1].Length; j < longestLastName; j++)
-                playerListing += " ";
+            for (int j = allTeams.teams[0].players[i][1].Length; j < longestLastName; j++)
+                allTeamsing += " ";
 
             for (int j = 2; j < stats.Length - 1; j++)
             {
-                playerListing += " " + playerList.teams[0][i][j];
+                allTeamsing += " " + allTeams.teams[0].players[i][j];
 
-                for (int k = playerList.teams[0][i][j].Length; k < stats[j].Length; k++)
-                    playerListing += " ";
+                for (int k = allTeams.teams[0].players[i][j].Length; k < stats[j].Length; k++)
+                    allTeamsing += " ";
             }
 
-            playerListing += " " + playerList.teams[0][i][stats.Length - 1];
+            allTeamsing += " " + allTeams.teams[0].players[i][stats.Length - 1];
 
-            newPlayer.transform.GetChild(0).gameObject.GetComponent<Text>().text = playerListing;
+            newPlayer.transform.GetChild(0).gameObject.GetComponent<Text>().text = allTeamsing;
             newPlayer.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             newPlayer.GetComponent<Button>().interactable = false;
         }
@@ -109,8 +109,8 @@ public class ViewPlayers : MonoBehaviour {
     public void StartSorting(GameObject other)
     {
         int statNum = int.Parse(other.name.Remove(0, 6));
-        int left = 0, right = playerList.teams[0].Count- 1;
-        string pivot = playerList.teams[0][(int)(left + (right - left) / 2)][statNum];
+        int left = 0, right = allTeams.teams[0].players.Count- 1;
+        string pivot = allTeams.teams[0].players[(int)(left + (right - left) / 2)][statNum];
         int test;
         bool notString = int.TryParse(pivot, out test);
 
@@ -132,17 +132,17 @@ public class ViewPlayers : MonoBehaviour {
     void Sort(int statNum, int left, int right)
     {
         int i = left, j = right;
-        string pivot = playerList.teams[0][(int)(left + (right - left) / 2)][statNum];
+        string pivot = allTeams.teams[0].players[(int)(left + (right - left) / 2)][statNum];
 
         if (order == 'a')
             while (i <= j)
             {
-                while (string.Compare(playerList.teams[0][i][statNum], pivot) < 0)
+                while (string.Compare(allTeams.teams[0].players[i][statNum], pivot) < 0)
                 {
                     i++;
                 }
 
-                while (string.Compare(playerList.teams[0][j][statNum], pivot) > 0)
+                while (string.Compare(allTeams.teams[0].players[j][statNum], pivot) > 0)
                 {
                     j--;
                 }
@@ -152,13 +152,13 @@ public class ViewPlayers : MonoBehaviour {
                     string[] temp = new string[stats.Length];
 
                     for (int k = 0; k < stats.Length; k++)
-                        temp[k] = playerList.teams[0][i][k];
+                        temp[k] = allTeams.teams[0].players[i][k];
 
                     for (int k = 0; k < stats.Length; k++)
-                        playerList.teams[0][i][k] = playerList.teams[0][j][k];
+                        allTeams.teams[0].players[i][k] = allTeams.teams[0].players[j][k];
 
                     for (int k = 0; k < stats.Length; k++)
-                        playerList.teams[0][j][k] = temp[k];
+                        allTeams.teams[0].players[j][k] = temp[k];
 
                     i++;
                     j--;
@@ -167,12 +167,12 @@ public class ViewPlayers : MonoBehaviour {
         else
             while (i <= j)
             {
-                while (string.Compare(playerList.teams[0][i][statNum], pivot) > 0)
+                while (string.Compare(allTeams.teams[0].players[i][statNum], pivot) > 0)
                 {
                     i++;
                 }
 
-                while (string.Compare(playerList.teams[0][j][statNum], pivot) < 0)
+                while (string.Compare(allTeams.teams[0].players[j][statNum], pivot) < 0)
                 {
                     j--;
                 }
@@ -182,13 +182,13 @@ public class ViewPlayers : MonoBehaviour {
                     string[] temp = new string[stats.Length];
 
                     for (int k = 0; k < stats.Length; k++)
-                        temp[k] = playerList.teams[0][i][k];
+                        temp[k] = allTeams.teams[0].players[i][k];
 
                     for (int k = 0; k < stats.Length; k++)
-                        playerList.teams[0][i][k] = playerList.teams[0][j][k];
+                        allTeams.teams[0].players[i][k] = allTeams.teams[0].players[j][k];
 
                     for (int k = 0; k < stats.Length; k++)
-                        playerList.teams[0][j][k] = temp[k];
+                        allTeams.teams[0].players[j][k] = temp[k];
 
                     i++;
                     j--;

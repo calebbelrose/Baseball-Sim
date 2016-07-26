@@ -8,7 +8,7 @@ using System.Linq;
 public class PopulateDraftPlayers : MonoBehaviour {
 
     List<string[]> playerStats = new List<string[]>();
-    int numPlayers = 250;
+    int numPlayers = 1;
     GameObject draftList, manager;
     RectTransform draftListRect, draftListParentRect;
     AllTeams allTeams;
@@ -212,7 +212,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
         for (int i = 0; i < numPlayers; i++)
         {
-            Object playerButton = Resources.Load("Button", typeof(GameObject));
+            Object playerButton = Resources.Load("Player", typeof(GameObject));
             GameObject newPlayer = Instantiate(playerButton) as GameObject;
             newPlayer.name = "player" + i.ToString();
             newPlayer.transform.SetParent(draftList.transform);
@@ -263,22 +263,18 @@ public class PopulateDraftPlayers : MonoBehaviour {
     public void Draft(GameObject player, string name)
     {
         int playerNum = int.Parse(name);
-        allTeams.teams[currTeam].Add(playerStats[playerNum]);
+        allTeams.teams[currTeam].players.Add(playerStats[playerNum]);
         numPlayers--;
         if (numPlayers == 0)
         {
             int numTeams = allTeams.GetNumTeams();
-            string[][] players;
             for (int i = 0; i < numTeams; i++)
             {
                 float totalBestPlayers = 0.0f, offenseBestPlayers = 0.0f, defenseBestPlayers = 0.0f;
                 
-                List<string[]> playerList = allTeams.teams[0];
                 string currPos;
                 int currPlayer = 0, numSP = 0, numRP = 0;
-                players = new string[playerList.Count][];
-                playerList.CopyTo(players);
-                var result = playerList.OrderBy(playerX => playerX[2]).ThenByDescending(playerX => playerX[3]).ToArray<string[]>();
+                var result = allTeams.teams[i].players.OrderBy(playerX => playerX[2]).ThenByDescending(playerX => playerX[3]).ToArray<string[]>();
                 currPos = "";
                 while (currPlayer < (result.Length - 1))
                 {
@@ -306,9 +302,9 @@ public class PopulateDraftPlayers : MonoBehaviour {
                     currPos = result[currPlayer][2];
                     currPlayer++;
                 }
-                allTeams.overalls[i][0] = totalBestPlayers / 18.0f;
-                allTeams.overalls[i][1] = offenseBestPlayers / 18.0f;
-                allTeams.overalls[i][2] = defenseBestPlayers / 18.0f;
+                allTeams.teams[i].overalls[0] = totalBestPlayers / 18.0f;
+                allTeams.teams[i].overalls[1] = offenseBestPlayers / 18.0f;
+                allTeams.teams[i].overalls[2] = defenseBestPlayers / 18.0f;
             }
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);
         }

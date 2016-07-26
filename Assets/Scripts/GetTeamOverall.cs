@@ -16,7 +16,7 @@ public class GetTeamOverall : MonoBehaviour
         float totalBestPlayers = 0.0f;
         manager = GameObject.Find("_Manager");
         AllTeams allTeams = manager.GetComponent<AllTeams>();
-        List<string[]> playerList = allTeams.teams[0];
+        List<string[]> playerList = allTeams.teams[0].players;
         string currPos;
         int currPlayer = 0, numSP = 0, numRP = 0;
         players = new string[playerList.Count][];

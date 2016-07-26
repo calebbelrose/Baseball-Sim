@@ -6,10 +6,8 @@ using System.IO;
 public class AllTeams : MonoBehaviour {
 
     static int numTeams = 30;
-    public List<string[]>[] teams = new List<string[]>[numTeams];
-    public int[][] wlt = new int[numTeams][];
-    public int[] nextTeam = new int[numTeams];
-    public float[][] overalls = new float[numTeams][];
+    public Team[] teams = new Team[numTeams];
+    public int[,] schedule = new int[numTeams / 2, 2];
 
     // Use this for initialization
     void Start () {
@@ -25,24 +23,15 @@ public class AllTeams : MonoBehaviour {
     {
         for (int i = 0; i < teams.Length; i++)
         {
-            teams[i] = new List<string[]>();
+            teams[i] = new Team();
             string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
-            string[] stats, firstNames, lastNames;
+            string[] stats, firstNames, lastNames, cityNames, teamNames;
             stats = File.ReadAllLines("Stats.txt");
             firstNames = File.ReadAllLines("FirstNames.txt");
             lastNames = File.ReadAllLines("LastNames.txt");
-            wlt[i] = new int[3];
-            overalls[i] = new float[3];
-
-            for (int j = 0; j < wlt[i].Length; j++)
-            {
-                wlt[i][j] = 0;
-            }
-
-            if (i % 2 == 0)
-                nextTeam[i] = (i + 1) % numTeams;
-            else
-                nextTeam[i] = (i - 1) % numTeams;
+            cityNames = File.ReadAllLines("CityNames.txt");
+            teamNames = File.ReadAllLines("TeamNames.txt");
+            teams[i].teamName = cityNames[(int)(Random.value * cityNames.Length)] + " " + teamNames[(int)(Random.value * teamNames.Length)];
 
             for (int j = 0; j < positions.Length; j++)
             {
@@ -51,7 +40,6 @@ public class AllTeams : MonoBehaviour {
                 int age;
                 newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
                 newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
-
                 newPlayer[2] = positions[j];
 
                 age = (int)(Random.value * 27) + 18;
@@ -59,18 +47,18 @@ public class AllTeams : MonoBehaviour {
 
                 for (int k = 6; k < stats.Length; k++)
                 {
-                    int currStat = (int)(Random.value * age) + 55;
+                    int currStat = (int)(Random.value * age + 1) + 55;
                     newPlayer[k] = currStat.ToString();
                     totalStats += currStat;
                 }
 
-                int potential = (int)(Random.value * 25 + (43 - age) * 3);
+                int potential = (int)(Random.value * 25 + (43 - age) * 3 + 1);
                 if (potential < 0)
                     potential = 0;
                 newPlayer[4] = potential.ToString();
 
                 newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
-                teams[i].Add(newPlayer);
+                teams[i].players.Add(newPlayer);
             }
 
             for(int j = 0; j < 4; j++)
@@ -99,7 +87,7 @@ public class AllTeams : MonoBehaviour {
                 newPlayer[4] = potential.ToString();
 
                 newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
-                teams[i].Add(newPlayer);
+                teams[i].players.Add(newPlayer);
             }
 
             for (int j = 0; j < 2; j++)
@@ -128,8 +116,13 @@ public class AllTeams : MonoBehaviour {
                 newPlayer[4] = potential.ToString();
 
                 newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
-                teams[i].Add(newPlayer);
+                teams[i].players.Add(newPlayer);
             }
+        }
+
+        for(int i = 0; i < numTeams; i++)
+        {
+            schedule[i / 2, i % 2] = i;
         }
     }
 }

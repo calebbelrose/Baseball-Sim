@@ -1,0 +1,31 @@
+Baltimore
+St. Louis
+Milwaukee
+Boston
+Chicago
+Cleveland
+Detroit
+Kansas City
+Los Angeles
+Anaheim
+California
+Minnesota
+Washington
+New York
+Oakland
+Philadelphia
+Seattle
+Tampa Bay
+Texas
+Toronto
+Arizona
+Atlanta
+Cincinnati
+Colorado
+Florida
+Houston
+Brooklyn
+Pittsburgh
+San Diego
+San Francisco
+Montreal
