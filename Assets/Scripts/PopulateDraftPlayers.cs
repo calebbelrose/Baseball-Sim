@@ -8,7 +8,7 @@ using System.Linq;
 public class PopulateDraftPlayers : MonoBehaviour {
 
     List<string[]> playerStats = new List<string[]>();
-    int numPlayers = 1;
+    int numPlayers = 250;
     GameObject draftList, manager;
     RectTransform draftListRect, draftListParentRect;
     AllTeams allTeams;
@@ -243,6 +243,8 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
         draftListRect.offsetMin = new Vector2(0, -(20 * (numPlayers + 1) - draftListParentRect.rect.height));
         draftListRect.offsetMax = new Vector2(newWidth, 0);
+
+        GameObject.Find("txtOverall").GetComponent<GetTeamOverall>().GetOverall();
     }
 
     public void PlayerDraft(GameObject player, string playerListing)
@@ -305,6 +307,8 @@ public class PopulateDraftPlayers : MonoBehaviour {
                 allTeams.teams[i].overalls[0] = totalBestPlayers / 18.0f;
                 allTeams.teams[i].overalls[1] = offenseBestPlayers / 18.0f;
                 allTeams.teams[i].overalls[2] = defenseBestPlayers / 18.0f;
+                if(i == 0)
+                Debug.Log(allTeams.teams[0].overalls[0]);
             }
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);
         }

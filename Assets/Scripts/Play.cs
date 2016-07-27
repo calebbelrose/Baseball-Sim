@@ -19,56 +19,64 @@ public class Play : MonoBehaviour {
             float goal1 = allTeams.teams[thisTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[1] + allTeams.teams[otherTeam].overalls[2]),
                     goal2 = allTeams.teams[otherTeam].overalls[1] / (allTeams.teams[otherTeam].overalls[1] + allTeams.teams[thisTeam].overalls[2]);
             if(thisTeam == 0)
-                Debug.Log((allTeams.teams[thisTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[1] + allTeams.teams[otherTeam].overalls[2]))/
-                (allTeams.teams[otherTeam].overalls[1] / (allTeams.teams[otherTeam].overalls[1] + allTeams.teams[thisTeam].overalls[2]) + (allTeams.teams[thisTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[1] + allTeams.teams[otherTeam].overalls[2]))));
+                //Debug.Log((allTeams.teams[thisTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[1] + allTeams.teams[otherTeam].overalls[2]))/
+                //(allTeams.teams[otherTeam].overalls[1] / (allTeams.teams[otherTeam].overalls[1] + allTeams.teams[thisTeam].overalls[2]) + (allTeams.teams[thisTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[1] + allTeams.teams[otherTeam].overalls[2]))));
             for (int k = 0; k < 9; k++)
             {
                 float team1 = Random.value, team2 = Random.value;
-                if (team1 > goal1)
+                if (team1 < goal1)
                     score1++;
-                if (team2 > goal2)
+                if (team2 < goal2)
                     score2++;
             }
-            
-            if(i == 0)
+
+            if (i == 0)
             {
                 you = score1;
                 them = score2;
                 if (score1 > score2)
                 {
-                    allTeams.teams[thisTeam].wlt[0]++;
-                    allTeams.teams[otherTeam].wlt[1]++;
+                    allTeams.teams[thisTeam].pwlt[1]++;
+                    allTeams.teams[thisTeam].pwlt[0] += 2;
+                    allTeams.teams[otherTeam].pwlt[2]++;
                     result = "Win";
                 }
                 else if (score2 > score1)
                 {
-                    allTeams.teams[thisTeam].wlt[1]++;
-                    allTeams.teams[otherTeam].wlt[0]++;
+                    allTeams.teams[thisTeam].pwlt[2]++;
+                    allTeams.teams[otherTeam].pwlt[1]++;
+                    allTeams.teams[otherTeam].pwlt[0] += 2;
                     result = "Loss";
                 }
                 else
                 {
-                    allTeams.teams[thisTeam].wlt[2]++;
-                    allTeams.teams[otherTeam].wlt[2]++;
+                    allTeams.teams[thisTeam].pwlt[3]++;
+                    allTeams.teams[thisTeam].pwlt[0]++;
+                    allTeams.teams[otherTeam].pwlt[3]++;
+                    allTeams.teams[otherTeam].pwlt[0]++;
                     result = "Tie";
                 }
             }
             else
                 if (score1 > score2)
-                {
-                    allTeams.teams[thisTeam].wlt[0]++;
-                    allTeams.teams[otherTeam].wlt[1]++;
-                }
-                else if (score2 > score1)
-                {
-                    allTeams.teams[thisTeam].wlt[1]++;
-                    allTeams.teams[otherTeam].wlt[0]++;
-                }
-                else
-                {
-                    allTeams.teams[thisTeam].wlt[2]++;
-                    allTeams.teams[otherTeam].wlt[2]++;
-                }
+            {
+                allTeams.teams[thisTeam].pwlt[1]++;
+                allTeams.teams[thisTeam].pwlt[0] += 2;
+                allTeams.teams[otherTeam].pwlt[2]++;
+            }
+            else if (score2 > score1)
+            {
+                allTeams.teams[thisTeam].pwlt[2]++;
+                allTeams.teams[otherTeam].pwlt[1]++;
+                allTeams.teams[otherTeam].pwlt[0] += 2;
+            }
+            else
+            {
+                allTeams.teams[thisTeam].pwlt[3]++;
+                allTeams.teams[thisTeam].pwlt[0]++;
+                allTeams.teams[otherTeam].pwlt[3]++;
+                allTeams.teams[otherTeam].pwlt[0]++;
+            }
         }
         GameObject.Find("txtYourScore").GetComponent<Text>().text = "You: " + you;
         Text txtResult = GameObject.Find("txtResult").GetComponent<Text>();
@@ -103,7 +111,10 @@ public class Play : MonoBehaviour {
         }
         
         numPlays++;
-        if (numPlays == allTeams.GetNumTeams() - 1)
+        Debug.Log(numPlays.ToString() + " " + (allTeams.GetNumTeams() - 1).ToString());
+        if (numPlays == 1)
+        {
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(6);
+        }
     }
 }

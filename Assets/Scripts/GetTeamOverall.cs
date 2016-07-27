@@ -13,6 +13,11 @@ public class GetTeamOverall : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        
+    }
+
+    public void GetOverall()
+    {
         float totalBestPlayers = 0.0f;
         manager = GameObject.Find("_Manager");
         AllTeams allTeams = manager.GetComponent<AllTeams>();

@@ -7,7 +7,7 @@ public class GetStandings : MonoBehaviour {
     GameObject teamList;
     GameObject manager;
     AllTeams allTeams;
-    string[] headers = new string[] { "Team Name", "Wins", "Losses", "Ties" };
+    string[] headers = new string[] { "Team Name", "Points", "Wins", "Losses", "Ties" };
     int currSortedStat = 3;
     char order = 'd';
     int longestTeamName = 0;
@@ -103,6 +103,13 @@ public class GetStandings : MonoBehaviour {
             newTeam.transform.GetChild(0).gameObject.GetComponent<Text>().text = teamListing;
             newTeam.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             newTeam.GetComponent<Button>().interactable = false;
+            if (teams[i].teamName == allTeams.teams[0].teamName)
+            {
+                Button b = newTeam.GetComponent<Button>();
+                ColorBlock c = b.colors;
+                c.disabledColor = new Color(1.0f, 1.0f, 0.0f);
+                b.colors = c;
+            }
         }
     }
 
@@ -123,7 +130,6 @@ public class GetStandings : MonoBehaviour {
             order = 'd';
         else
             order = 'a';
-        Debug.Log(statNum);
         Sort(statNum, left, right);
         currSortedStat = statNum;
         DisplayTeams();
