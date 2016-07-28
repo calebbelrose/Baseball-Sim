@@ -8,6 +8,8 @@ public class Team {
     public int[] pwlt;
     public float[] overalls;
     public string teamName;
+    public int id;
+    public int pick;
     string[] stats;
 
     public Team()

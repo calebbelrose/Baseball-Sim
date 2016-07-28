@@ -8,6 +8,7 @@ public class AllTeams : MonoBehaviour {
     static int numTeams = 30;
     public Team[] teams = new Team[numTeams];
     public int[,] schedule = new int[numTeams / 2, 2];
+    public int year;
 
     // Use this for initialization
     void Start () {
@@ -21,6 +22,13 @@ public class AllTeams : MonoBehaviour {
 
     public void Restart()
     {
+        List<int> picksLeft = new List<int>();
+
+        year = System.DateTime.Now.Year;
+
+        for (int i = 0; i < teams.Length; i++)
+            picksLeft.Add(i);
+
         for (int i = 0; i < teams.Length; i++)
         {
             teams[i] = new Team();
@@ -32,6 +40,8 @@ public class AllTeams : MonoBehaviour {
             cityNames = File.ReadAllLines("CityNames.txt");
             teamNames = File.ReadAllLines("TeamNames.txt");
             teams[i].teamName = cityNames[(int)(Random.value * cityNames.Length)] + " " + teamNames[(int)(Random.value * teamNames.Length)];
+            teams[i].id = i;
+            teams[i].pick = picksLeft[(int)(Random.value * picksLeft.Count)];
 
             for (int j = 0; j < positions.Length; j++)
             {

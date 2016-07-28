@@ -64,8 +64,6 @@
     <Compile Include="Assets\Scripts\AllTeams.cs" />
     <Compile Include="Assets\Scripts\ChangeScene.cs" />
     <Compile Include="Assets\Scripts\ChangeVolume.cs" />
-    <Compile Include="Assets\Scripts\Close.cs" />
-    <Compile Include="Assets\Scripts\FillBracket.cs" />
     <Compile Include="Assets\Scripts\GetAverage.cs" />
     <Compile Include="Assets\Scripts\GetStandings.cs" />
     <Compile Include="Assets\Scripts\GetTeamInfo.cs" />

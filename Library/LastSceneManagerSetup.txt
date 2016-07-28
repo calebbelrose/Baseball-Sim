@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Draft.unity
+- path: Assets/Scenes/Team.unity
   isLoaded: 1
   isActive: 1
