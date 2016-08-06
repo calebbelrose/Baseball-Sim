@@ -7,7 +7,7 @@ public class GetStandings : MonoBehaviour {
     GameObject teamList;
     GameObject manager;
     AllTeams allTeams;
-    string[] headers = new string[] { "Team Name", "Points", "Wins", "Losses", "Ties" };
+    string[] headers = new string[] { "Team Name", "Points", "Wins", "Losses" };
     int currSortedStat = 3;
     char order = 'd';
     int longestTeamName = 0;

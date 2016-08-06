@@ -12,10 +12,11 @@ public class Top8 : MonoBehaviour {
     bool[] winners = new bool[4];
     int numWinners = 0, round = 1;
     GameObject championPanel;
+    AllTeams allTeams;
 
     void Start()
     {
-        AllTeams allTeams = GameObject.Find("_Manager").GetComponent<AllTeams>();
+        allTeams = GameObject.Find("_Manager").GetComponent<AllTeams>();
         teams = new Team[allTeams.GetNumTeams()];
         allTeams.teams.CopyTo(teams, 0);
         Sort(0, allTeams.GetNumTeams() - 1);
@@ -23,13 +24,16 @@ public class Top8 : MonoBehaviour {
         championPanel.SetActive(false);
 
         teams[0].id = 0;
-        
+
+        for(int i = 0; i < allTeams.teams.Length; i++)
+            teams[i].pick = i;
+
         for (int i = 0; i < top8.Length; i++)
         {
             top8[i] = teams[i];
             GameObject.Find("txtTeam" + i).GetComponent<Text>().text = top8[i].teamName;
             schedule[i] = 7 - i;
-            top8[i].pwlt[1] = 0;
+            top8[i].pwl[1] = 0;
         }
     }
 
@@ -83,12 +87,9 @@ public class Top8 : MonoBehaviour {
         {
             int otherTeam, thisTeam, j = 0;
             otherTeam = schedule[i];
-            Debug.Log(i);
-            Debug.Log(otherTeam);
             thisTeam = schedule[schedule.Length - i - 1];
-            Debug.Log(thisTeam);
 
-            if (top8[thisTeam].pwlt[1] < 4 && top8[otherTeam].pwlt[1] < 4)
+            if (top8[thisTeam].pwl[1] < 4 && top8[otherTeam].pwl[1] < 4)
             {
                 int score1 = 0, score2 = 0, you = 0, them = 0; ;
                 float goal1, goal2;
@@ -108,8 +109,8 @@ public class Top8 : MonoBehaviour {
 
                 if (score1 > score2)
                 {
-                    top8[thisTeam].pwlt[1]++;
-                    GameObject.Find("txtWins" + thisTeam).GetComponent<Text>().text = top8[thisTeam].pwlt[1].ToString();
+                    top8[thisTeam].pwl[1]++;
+                    GameObject.Find("txtWins" + thisTeam).GetComponent<Text>().text = top8[thisTeam].pwl[1].ToString();
 
                     if (top8[thisTeam].id == 0)
                     {
@@ -117,7 +118,7 @@ public class Top8 : MonoBehaviour {
                         player = true;
                         you = score1;
                         them = score2;
-                        DisplayResult(result, you, them, top8[thisTeam].pwlt[1], top8[otherTeam].pwlt[1]);
+                        DisplayResult(result, you, them, top8[thisTeam].pwl[1], top8[otherTeam].pwl[1]);
                     }
                     else if (top8[otherTeam].id == 0)
                     {
@@ -125,13 +126,13 @@ public class Top8 : MonoBehaviour {
                         player = true;
                         you = score2;
                         them = score1;
-                        DisplayResult(result, you, them, top8[otherTeam].pwlt[1], top8[thisTeam].pwlt[1]);
+                        DisplayResult(result, you, them, top8[otherTeam].pwl[1], top8[thisTeam].pwl[1]);
                     }
                 }
                 else if (score2 > score1)
                 {
-                    top8[otherTeam].pwlt[1]++;
-                    GameObject.Find("txtWins" + otherTeam).GetComponent<Text>().text = top8[otherTeam].pwlt[1].ToString();
+                    top8[otherTeam].pwl[1]++;
+                    GameObject.Find("txtWins" + otherTeam).GetComponent<Text>().text = top8[otherTeam].pwl[1].ToString();
 
                     if (top8[thisTeam].id == 0)
                     {
@@ -139,7 +140,7 @@ public class Top8 : MonoBehaviour {
                         player = true;
                         you = score1;
                         them = score2;
-                        DisplayResult(result, you, them, top8[thisTeam].pwlt[1], top8[otherTeam].pwlt[1]);
+                        DisplayResult(result, you, them, top8[thisTeam].pwl[1], top8[otherTeam].pwl[1]);
                     }
                     else if (top8[otherTeam].id == 0)
                     {
@@ -147,7 +148,7 @@ public class Top8 : MonoBehaviour {
                         player = true;
                         you = score2;
                         them = score1;
-                        DisplayResult(result, you, them, top8[otherTeam].pwlt[1], top8[thisTeam].pwlt[1]);
+                        DisplayResult(result, you, them, top8[otherTeam].pwl[1], top8[thisTeam].pwl[1]);
                     }
                 }
             }
@@ -155,7 +156,7 @@ public class Top8 : MonoBehaviour {
             {
                 if (!winners[i])
                 {
-                    if (top8[thisTeam].pwlt[1] == 4)
+                    if (top8[thisTeam].pwl[1] == 4)
                         newRound[i] = thisTeam;
                     else
                         newRound[i] = otherTeam;
@@ -170,12 +171,11 @@ public class Top8 : MonoBehaviour {
                         newRound = new int[newRound.Length / 2];
                         numWinners = 0;
                         winners = new bool[newRound.Length];
-                        Debug.Log(schedule.Length);
                         round++;
 
                         for (int k = 0; k < schedule.Length; k++)
                         {
-                            top8[schedule[k]].pwlt[1] = 0;
+                            top8[schedule[k]].pwl[1] = 0;
                             GameObject.Find("txtTeam" + schedule[k]).GetComponent<Text>().name = "txtWinner";
                             Text text = GameObject.Find("txt" + round.ToString() + k.ToString()).GetComponent<Text>();
                             text.name = "txtTeam" + schedule[k];
@@ -188,6 +188,8 @@ public class Top8 : MonoBehaviour {
                     {
                         championPanel.SetActive(true);
                         GameObject.Find("txtChampion").GetComponent<Text>().text = top8[newRound[i]].teamName;
+                        allTeams.noDraft = true;
+                        allTeams.year++;
                     }
                 }
             }

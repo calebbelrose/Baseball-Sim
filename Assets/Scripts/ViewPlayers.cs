@@ -99,7 +99,6 @@ public class ViewPlayers : MonoBehaviour {
             }
 
             allTeamsing += " " + allTeams.teams[0].players[i][stats.Length - 1];
-
             newPlayer.transform.GetChild(0).gameObject.GetComponent<Text>().text = allTeamsing;
             newPlayer.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             newPlayer.GetComponent<Button>().interactable = false;

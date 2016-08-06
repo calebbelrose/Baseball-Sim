@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class Team {
 
     public List<string[]> players;
-    public int[] pwlt;
+    public int[] pwl;
     public float[] overalls;
     public string teamName;
     public int id;
@@ -20,20 +20,19 @@ public class Team {
     void Reset()
     {
         players = new List<string[]>();
-        pwlt = new int[4];
+        pwl = new int[3];
         overalls = new float[3];
-        for (int j = 0; j < pwlt.Length; j++)
-            pwlt[j] = 0;
-        stats = new string[5];
+        for (int i = 0; i < pwl.Length; i++)
+            pwl[i] = 0;
+        stats = new string[pwl.Length + 1];
     }
     
     public void SetStats()
     {
         stats[0] = teamName;
-        stats[1] = pwlt[0].ToString();
-        stats[2] = pwlt[1].ToString();
-        stats[3] = pwlt[2].ToString();
-        stats[4] = pwlt[3].ToString();
+        stats[1] = pwl[0].ToString();
+        stats[2] = pwl[1].ToString();
+        stats[3] = pwl[2].ToString();
     }
 
     public string[] GetStats()
