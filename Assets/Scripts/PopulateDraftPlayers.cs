@@ -22,7 +22,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
     void Awake()
     {
-        if(allTeams.noDraft)
+        if(allTeams != null && allTeams.needDraft)
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);
     }
 
@@ -298,8 +298,6 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
         draftListRect.offsetMin = new Vector2(0, -(20 * (numPlayers + 1) - draftListParentRect.rect.height));
         draftListRect.offsetMax = new Vector2(newWidth, 0);
-
-        GameObject.Find("txtOverall").GetComponent<GetTeamOverall>().GetOverall();
     }
 
     public void PlayerDraft(GameObject player, string playerListing)
@@ -350,8 +348,13 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
                     newPlayers[i].RemoveAt(0);
 
-                    PlayerPrefs.SetString("Player" + i + "-" + allTeams.teams[i].players.Count, playerString);
+                    PlayerPrefs.SetString("Player" + i + "-" + (allTeams.teams[i].players.Count - 1), playerString);
                 }
+
+                PlayerPrefs.SetInt("NumPlayers" + i, allTeams.teams[i].players.Count);
+
+                allTeams.needDraft = false;
+                PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
 
                 while (currPlayer < (result.Length - 1))
                 {
@@ -382,6 +385,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
                 allTeams.teams[i].overalls[0] = totalBestPlayers / 18.0f;
                 allTeams.teams[i].overalls[1] = offenseBestPlayers / 18.0f;
                 allTeams.teams[i].overalls[2] = defenseBestPlayers / 18.0f;
+                PlayerPrefs.SetString("Overalls" + allTeams.teams[i].id, allTeams.teams[i].overalls[0] + "," + allTeams.teams[i].overalls[1] + "," + allTeams.teams[i].overalls[2]);
                 PlayerPrefs.Save();
             }
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);

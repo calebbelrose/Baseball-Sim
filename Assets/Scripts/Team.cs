@@ -7,9 +7,8 @@ public class Team {
     public List<string[]> players;
     public int[] pwl;
     public float[] overalls;
-    public string teamName;
-    public int id;
-    public int pick;
+    public string cityName, teamName;
+    public int id, pick;
     string[] stats;
 
     public Team()
@@ -29,7 +28,7 @@ public class Team {
     
     public void SetStats()
     {
-        stats[0] = teamName;
+        stats[0] = cityName + " " + teamName;
         stats[1] = pwl[0].ToString();
         stats[2] = pwl[1].ToString();
         stats[3] = pwl[2].ToString();

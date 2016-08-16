@@ -6,6 +6,6 @@ public class GetAverage : MonoBehaviour {
 
     void Start()
     {
-        GetComponent<Text>().text = GameObject.Find("_Manager").GetComponent<AllTeams>().teams[0].overalls[0].ToString();
+        GetComponent<Text>().text = "Overall: " + System.Math.Round(GameObject.Find("_Manager").GetComponent<AllTeams>().teams[0].overalls[0], 2).ToString();
     }
 }

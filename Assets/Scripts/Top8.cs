@@ -22,8 +22,9 @@ public class Top8 : MonoBehaviour {
         Sort(0, allTeams.GetNumTeams() - 1);
         championPanel = GameObject.Find("pnlChampion");
         championPanel.SetActive(false);
-
-        teams[0].id = 0;
+        allTeams.inFinals = true;
+        PlayerPrefs.SetString("InFinals", allTeams.inFinals.ToString());
+        PlayerPrefs.Save();
 
         for(int i = 0; i < allTeams.teams.Length; i++)
             teams[i].pick = i;
@@ -188,7 +189,8 @@ public class Top8 : MonoBehaviour {
                     {
                         championPanel.SetActive(true);
                         GameObject.Find("txtChampion").GetComponent<Text>().text = top8[newRound[i]].teamName;
-                        allTeams.noDraft = true;
+                        allTeams.needDraft = true;
+                        PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
                         allTeams.year++;
                     }
                 }
@@ -212,7 +214,7 @@ public class Top8 : MonoBehaviour {
         else
             txtResult.color = Color.white;
 
-        GameObject.Find("txtWL").GetComponent<Text>().text = "(" + yourWins + "-" + theirWins + ")";
+        GameObject.Find("txtWL").GetComponent<Text>().text = "W/L: " + allTeams.teams[0].pwl[1] + "/" + allTeams.teams[0].pwl[2];
         GameObject.Find("txtTheirScore").GetComponent<Text>().text = "Them: " + them;
     }
 }

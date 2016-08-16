@@ -101,6 +101,9 @@ public class Play : MonoBehaviour {
             txtResult.color = Color.white;
 
         GameObject.Find("txtTheirScore").GetComponent<Text>().text = "Them: " + them;
+        double bottom = allTeams.teams[0].pwl[1] + allTeams.teams[0].pwl[2];
+        double ratio = System.Math.Round(allTeams.teams[0].pwl[1] / bottom, 3);
+        GameObject.Find("txtWL").GetComponent<Text>().text = "W/L: " + allTeams.teams[0].pwl[1] + "/" + allTeams.teams[0].pwl[2] + " (" + ratio + ")";
         temp = new int[allTeams.GetNumTeams() / 2, 2];
         System.Array.Copy(allTeams.schedule, 0, temp, 0, allTeams.schedule.Length);
         numRows = ((temp.Length + 1)/ 2) - 1;

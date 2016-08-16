@@ -62,19 +62,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\GetLogo.cs" />
+    <Compile Include="Assets\GetYear.cs" />
     <Compile Include="Assets\Scripts\AllTeams.cs" />
     <Compile Include="Assets\Scripts\ChangeScene.cs" />
     <Compile Include="Assets\Scripts\ChangeVolume.cs" />
     <Compile Include="Assets\Scripts\GetAverage.cs" />
     <Compile Include="Assets\Scripts\GetStandings.cs" />
     <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
-    <Compile Include="Assets\Scripts\GetTeamOverall.cs" />
     <Compile Include="Assets\Scripts\Manager.cs" />
     <Compile Include="Assets\Scripts\MenuMusic.cs" />
     <Compile Include="Assets\Scripts\MuteControl.cs" />
     <Compile Include="Assets\Scripts\Play.cs" />
     <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
     <Compile Include="Assets\Scripts\SortPlayers.cs" />
+    <Compile Include="Assets\Scripts\StartGame.cs" />
     <Compile Include="Assets\Scripts\Stats.cs" />
     <Compile Include="Assets\Scripts\Team.cs" />
     <Compile Include="Assets\Scripts\TeamInfo.cs" />

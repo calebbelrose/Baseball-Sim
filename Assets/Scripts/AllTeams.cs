@@ -9,11 +9,57 @@ public class AllTeams : MonoBehaviour {
     public Team[] teams = new Team[numTeams];
     public int[,] schedule = new int[numTeams / 2, 2];
     public int year;
-    public bool noDraft;
+    public bool needDraft;
+    public bool inFinals;
+    string[] stats = File.ReadAllLines("Stats.txt");
 
     // Use this for initialization
     void Start () {
-        Restart();
+        if (PlayerPrefs.HasKey("Year"))
+        {
+            year = int.Parse(PlayerPrefs.GetString("Year"));
+            needDraft = bool.Parse(PlayerPrefs.GetString("NeedDraft"));
+            inFinals = bool.Parse(PlayerPrefs.GetString("InFinals"));
+
+            for (int i = 0; i < numTeams; i++)
+            {
+                teams[i] = new Team();
+                int numPlayers = PlayerPrefs.GetInt("NumPlayers" + i);
+                string teamInfo = PlayerPrefs.GetString("Team" + i);
+                string teamOveralls = PlayerPrefs.GetString("Overalls" + i);
+                string[] teamInfoSplit = teamInfo.Split(',');
+                string[] teamOverallsSplit = teamOveralls.Split(',');
+                string[] pwl;
+
+                for (int j = 0; j < numPlayers; j++)
+                {
+                    string player = PlayerPrefs.GetString("Player" + i + "-" + j);
+                    string[] newPlayer = player.Split(',');
+                    teams[i].players.Add(newPlayer);
+                }
+
+                teams[i].id = i;
+                teams[i].cityName = teamInfoSplit[0];
+                teams[i].teamName = teamInfoSplit[1];
+                teams[i].pick = int.Parse(teamInfoSplit[2]);
+                teams[i].overalls[0] = float.Parse(teamOverallsSplit[0]);
+                teams[i].overalls[1] = float.Parse(teamOverallsSplit[1]);
+                teams[i].overalls[2] = float.Parse(teamOverallsSplit[2]);
+                
+                pwl = PlayerPrefs.GetString("PWL" + i).Split(',');
+                for(int j = 0; j < pwl.Length; j++)
+                    teams[i].pwl[j] = int.Parse(pwl[j]);
+            }
+            
+            string fullSchedule = PlayerPrefs.GetString("Schedule");
+            string[] tempSchedule = fullSchedule.Split(',');
+            for (int i = 0; i < tempSchedule.Length; i++)
+            {
+                schedule[i / 2, i % 2] = int.Parse(tempSchedule[i]);
+            }
+        }
+        else
+            Restart();
     }
 	
 	public int GetNumTeams()
@@ -28,8 +74,10 @@ public class AllTeams : MonoBehaviour {
 
         year = System.DateTime.Now.Year;
         PlayerPrefs.SetString("Year", year.ToString());
-        noDraft = true;
-        PlayerPrefs.SetString("NoDraft", noDraft.ToString());
+        needDraft = true;
+        PlayerPrefs.SetString("NeedDraft", needDraft.ToString());
+        inFinals = false;
+        PlayerPrefs.SetString("InFinals", inFinals.ToString());
 
         for (int i = 0; i < teams.Length; i++)
             picksLeft.Add(i);
@@ -38,14 +86,14 @@ public class AllTeams : MonoBehaviour {
         {
             teams[i] = new Team();
             string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
-            string[] stats, firstNames, lastNames, cityNames, teamNames;
+            string[] firstNames, lastNames, cityNames, teamNames;
 
-            stats = File.ReadAllLines("Stats.txt");
             firstNames = File.ReadAllLines("FirstNames.txt");
             lastNames = File.ReadAllLines("LastNames.txt");
             cityNames = File.ReadAllLines("CityNames.txt");
             teamNames = File.ReadAllLines("TeamNames.txt");
-            teams[i].teamName = cityNames[(int)(Random.value * cityNames.Length)] + " " + teamNames[(int)(Random.value * teamNames.Length)];
+            teams[i].cityName = cityNames[(int)(Random.value * cityNames.Length)];
+            teams[i].teamName = teamNames[(int)(Random.value * teamNames.Length)];
             teams[i].id = i;
             teams[i].pick = picksLeft[(int)(Random.value * picksLeft.Count)];
 
@@ -118,7 +166,7 @@ public class AllTeams : MonoBehaviour {
                     playerString += newPlayer[k] + ",";
                 playerString += newPlayer[newPlayer.Length - 1];
 
-                PlayerPrefs.SetString("player" + i + "-" + teams[i].players.Count, playerString);
+                PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
                 teams[i].players.Add(newPlayer);
             }
 
@@ -154,12 +202,14 @@ public class AllTeams : MonoBehaviour {
                     playerString += newPlayer[k] + ",";
                 playerString += newPlayer[newPlayer.Length - 1];
 
-                PlayerPrefs.SetString("player" + i + "-" + teams[i].players.Count, playerString);
+                PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
                 teams[i].players.Add(newPlayer);
             }
 
-            PlayerPrefs.SetString("Team" + teams[i].id.ToString(), teams[i].id + "," + teams[i].teamName + "," + teams[i].pick + "," + teams[i].overalls[0] + "," + teams[i].overalls[1] + "," + teams[i].overalls[2]);
+            PlayerPrefs.SetString("Team" + teams[i].id, teams[i].id + "," + teams[i].cityName + " " + teams[i].teamName + "," + teams[i].pick);
+            PlayerPrefs.SetString("Overalls" + teams[i].id, teams[i].overalls[0] + "," + teams[i].overalls[1] + "," + teams[i].overalls[2]);
             PlayerPrefs.SetString("PWL" + teams[i].id.ToString(), "0,0,0");
+            PlayerPrefs.SetInt("NumPlayers" + i, teams[i].players.Count);
         }
 
 
@@ -171,5 +221,6 @@ public class AllTeams : MonoBehaviour {
 
         strSchedule = strSchedule.Remove(strSchedule.Length - 1, 1);
         PlayerPrefs.SetString("Schedule", strSchedule);
+        PlayerPrefs.Save();
     }
 }

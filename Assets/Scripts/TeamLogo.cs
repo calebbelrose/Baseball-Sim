@@ -21,5 +21,7 @@ public class TeamLogo : MonoBehaviour
     public void SetTeamLogo(Slider slider)
     {
         teamInfo.teamLogo = Resources.Load<Sprite>("team" + slider.value);
+        PlayerPrefs.SetString("Logo", slider.value.ToString());
+        PlayerPrefs.Save();
     }
 }

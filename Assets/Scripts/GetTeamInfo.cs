@@ -9,6 +9,8 @@ public class GetTeamInfo : MonoBehaviour {
     {
         GameObject manager = GameObject.Find("_Manager");
         AllTeams allTeams = manager.GetComponent<AllTeams>();
-        GetComponent<Text>().text = TeamInfo.yourName + "'s " + allTeams.teams[0].teamName;
+        Team team = allTeams.teams[0];
+
+        GetComponent<Text>().text = manager.GetComponent<TeamInfo>().yourName + "'s " + team.cityName + " " + team.teamName;
     }
 }
