@@ -71,7 +71,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
             for (int i = 0; i < numPlayers; i++)
             {
                 string[] newPlayer = new string[stats.Length];
-                float totalStats = 0;
+                float totalStats = 0, totalOffense = 0, totalDefense = 0;
                 int age;
                 string playerString = "";
 
@@ -87,21 +87,33 @@ public class PopulateDraftPlayers : MonoBehaviour {
                 newPlayer[2] = positions[(int)(Random.value * positions.Length)];
 
                 age = (int)(Random.value * 27) + 18;
-                newPlayer[5] = age.ToString();
+                newPlayer[7] = age.ToString();
 
-                for (int j = 6; j < stats.Length; j++)
+                for (int j = 8; j < stats.Length; j++)
                 {
                     int currStat = (int)(Random.value * age) + 55;
                     newPlayer[j] = currStat.ToString();
                     totalStats += currStat;
+                    if (j < 11)
+                        totalOffense += currStat;
+                    else if (j > 11)
+                        totalDefense += currStat;
+                    else
+                    {
+                        totalOffense += currStat;
+                        totalDefense += currStat;
+                    }
                 }
 
                 int potential = (int)(Random.value * 25 + (43 - age) * 3);
                 if (potential < 0)
                     potential = 0;
-                newPlayer[4] = potential.ToString();
+                newPlayer[6] = potential.ToString();
 
-                newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
+                newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
+                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
+                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
+
                 playerStats.Add(newPlayer);
 
                 for (int j = 0; j < stats.Length - 1; j++)
@@ -361,22 +373,28 @@ public class PopulateDraftPlayers : MonoBehaviour {
                     if (result[currPlayer][2] == "SP" && numSP < 5)
                     {
                         totalBestPlayers += float.Parse(result[currPlayer][3]);
-                        offenseBestPlayers += float.Parse(result[currPlayer][6]) + float.Parse(result[currPlayer][7]) + float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]);
-                        defenseBestPlayers += float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]);
+                        offenseBestPlayers += float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]);
+                        defenseBestPlayers += float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]) + float.Parse(result[currPlayer][13]) + float.Parse(result[currPlayer][14]);
                         numSP++;
+                        allTeams.teams[i].SP.Add(currPlayer);
                     }
                     else if (result[currPlayer][2] == "RP" && numRP < 3)
                     {
                         totalBestPlayers += float.Parse(result[currPlayer][3]);
-                        offenseBestPlayers += float.Parse(result[currPlayer][6]) + float.Parse(result[currPlayer][7]) + float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]);
-                        defenseBestPlayers += float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]);
+                        offenseBestPlayers += float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]);
+                        defenseBestPlayers += float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]) + float.Parse(result[currPlayer][13]) + float.Parse(result[currPlayer][14]);
                         numRP++;
+                        allTeams.teams[i].RP.Add(currPlayer);
                     }
                     else if (result[currPlayer][2] != currPos)
                     {
                         totalBestPlayers += float.Parse(result[currPlayer][3]);
-                        offenseBestPlayers += float.Parse(result[currPlayer][6]) + float.Parse(result[currPlayer][7]) + float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]);
-                        defenseBestPlayers += float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]);
+                        offenseBestPlayers += float.Parse(result[currPlayer][8]) + float.Parse(result[currPlayer][9]) + float.Parse(result[currPlayer][10]) + float.Parse(result[currPlayer][11]);
+                        defenseBestPlayers += float.Parse(result[currPlayer][11]) + float.Parse(result[currPlayer][12]) + float.Parse(result[currPlayer][13]) + float.Parse(result[currPlayer][14]);
+                        if (result[currPlayer][2] == "CP")
+                            allTeams.teams[i].CP.Add(currPlayer);
+                        else
+                            allTeams.teams[i].Batters.Add(currPlayer);
                     }
 
                     currPos = result[currPlayer][2];

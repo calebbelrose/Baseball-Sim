@@ -4,32 +4,20 @@ using System.Collections;
 
 public class Play : MonoBehaviour {
 
-    int numPlays, maxPlays = 29;
-
-    void Start()
-    {
-        if (!int.TryParse(PlayerPrefs.GetString("NumPlays"), out numPlays))
-            numPlays = 0;
-    }
-
-    void Awake()
-    {
-        if (numPlays == maxPlays)
-            GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(6);
-    }
+    int maxPlays = 29;
 
     public void PlayGame()
     {
         GameObject manager = GameObject.Find("_Manager");
         AllTeams allTeams = manager.GetComponent<AllTeams>();
         Text txtResult;
-        int you = 0, them = 0, points = 1, numRows;
+        int you = 0, them = 0, numRows;
         int[,] temp;
         string result = "", strSchedule = "";
 
         for (int i = 0; i < allTeams.GetNumTeams() / 2; i++)
         {
-            int score1 = 0, score2 = 0, otherTeam, thisTeam, j = 0;
+            int score1 = 0, score2 = 0, otherTeam, thisTeam, j = 0, points = 1;
             thisTeam = allTeams.schedule[i, 0];
             otherTeam = allTeams.schedule[i, 1];
             float goal1, goal2;
@@ -47,7 +35,7 @@ public class Play : MonoBehaviour {
                 j++;
             }
 
-            if (j > 9)
+            if (j <= 9)
                 points++;
 
             if (i == 0)
@@ -74,14 +62,14 @@ public class Play : MonoBehaviour {
                 if (score1 > score2)
                 {
                     allTeams.teams[thisTeam].pwl[1]++;
-                    allTeams.teams[thisTeam].pwl[0] += 2;
+                    allTeams.teams[thisTeam].pwl[0] += points;
                     allTeams.teams[otherTeam].pwl[2]++;
                 }
                 else
                 {
                     allTeams.teams[thisTeam].pwl[2]++;
                     allTeams.teams[otherTeam].pwl[1]++;
-                    allTeams.teams[otherTeam].pwl[0] += 2;
+                    allTeams.teams[otherTeam].pwl[0] += points;
                 }
             }
             PlayerPrefs.SetString("PWL" + allTeams.teams[thisTeam].id.ToString(), allTeams.teams[thisTeam].pwl[0] + "," + allTeams.teams[thisTeam].pwl[1] + "," + allTeams.teams[thisTeam].pwl[2]);
@@ -127,9 +115,11 @@ public class Play : MonoBehaviour {
 
         strSchedule = strSchedule.Remove(strSchedule.Length - 1, 1);
         PlayerPrefs.SetString("Schedule", strSchedule);
-        numPlays++;
+        allTeams.numPlays++;
 
-        if (numPlays == maxPlays)
+        if (allTeams.numPlays >= maxPlays)
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(6);
+
+        PlayerPrefs.SetInt("NumPlays", allTeams.numPlays);
     }
 }

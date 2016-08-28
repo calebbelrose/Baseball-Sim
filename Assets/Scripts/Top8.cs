@@ -10,7 +10,7 @@ public class Top8 : MonoBehaviour {
     int[] schedule = new int[8];
     int[] newRound = new int[4];
     bool[] winners = new bool[4];
-    int numWinners = 0, round = 1;
+    int numWinners = 0, round;
     GameObject championPanel;
     AllTeams allTeams;
 
@@ -26,13 +26,27 @@ public class Top8 : MonoBehaviour {
         PlayerPrefs.SetString("InFinals", allTeams.inFinals.ToString());
         PlayerPrefs.Save();
 
-        for(int i = 0; i < allTeams.teams.Length; i++)
+        if (PlayerPrefs.HasKey("Finals Round"))
+        {
+            round = PlayerPrefs.GetInt("Finals Round");
+            int numTeams = top8.Length;
+            for (int i = 0; i < round; i++)
+            {
+                for (int j = 0; j < numTeams; j++)
+                    GameObject.Find("txtWins" + round.ToString() + numTeams).GetComponent<Text>().text = PlayerPrefs.GetInt("txtWins" + round.ToString() + numTeams).ToString();
+                numTeams /= 2;
+            }
+        }
+        else
+            round = 1;
+
+        for (int i = 0; i < allTeams.teams.Length; i++)
             teams[i].pick = i;
 
         for (int i = 0; i < top8.Length; i++)
         {
             top8[i] = teams[i];
-            GameObject.Find("txtTeam" + i).GetComponent<Text>().text = top8[i].teamName;
+            GameObject.Find("txtTeam" + i).GetComponent<Text>().text = top8[i].cityName + " " + top8[i].teamName;
             schedule[i] = 7 - i;
             top8[i].pwl[1] = 0;
         }
@@ -41,16 +55,16 @@ public class Top8 : MonoBehaviour {
     void Sort(int left, int right)
     {
         int i = left, j = right;
-        string pivot = teams[(int)(left + (right - left) / 2)].GetStats()[0];
+        string pivot = teams[(int)(left + (right - left) / 2)].pwl[0].ToString();
 
         while (i <= j)
         {
-            while (string.Compare(teams[i].GetStats()[0], pivot) > 0)
+            while (string.Compare(teams[i].pwl[0].ToString(), pivot) > 0)
             {
                 i++;
             }
 
-            while (string.Compare(teams[j].GetStats()[0], pivot) < 0)
+            while (string.Compare(teams[j].pwl[0].ToString(), pivot) < 0)
             {
                 j--;
             }
@@ -108,10 +122,13 @@ public class Top8 : MonoBehaviour {
                     j++;
                 }
 
+                Debug.Log(thisTeam + " " + top8[thisTeam].teamName + " " + otherTeam + " " + top8[otherTeam].teamName);
+
                 if (score1 > score2)
                 {
                     top8[thisTeam].pwl[1]++;
-                    GameObject.Find("txtWins" + thisTeam).GetComponent<Text>().text = top8[thisTeam].pwl[1].ToString();
+                    GameObject.Find("txtWins" + round.ToString() + thisTeam).GetComponent<Text>().text = top8[thisTeam].pwl[1].ToString();
+                    PlayerPrefs.SetInt("txtWins" + round.ToString() + otherTeam, top8[thisTeam].pwl[1]);
 
                     if (top8[thisTeam].id == 0)
                     {
@@ -133,7 +150,8 @@ public class Top8 : MonoBehaviour {
                 else if (score2 > score1)
                 {
                     top8[otherTeam].pwl[1]++;
-                    GameObject.Find("txtWins" + otherTeam).GetComponent<Text>().text = top8[otherTeam].pwl[1].ToString();
+                    GameObject.Find("txtWins" + round.ToString() + otherTeam).GetComponent<Text>().text = top8[otherTeam].pwl[1].ToString();
+                    PlayerPrefs.SetInt("txtWins" + round.ToString() + otherTeam, top8[otherTeam].pwl[1]);
 
                     if (top8[thisTeam].id == 0)
                     {
@@ -152,6 +170,7 @@ public class Top8 : MonoBehaviour {
                         DisplayResult(result, you, them, top8[otherTeam].pwl[1], top8[thisTeam].pwl[1]);
                     }
                 }
+                PlayerPrefs.Save();
             }
             else
             {
@@ -180,9 +199,8 @@ public class Top8 : MonoBehaviour {
                             GameObject.Find("txtTeam" + schedule[k]).GetComponent<Text>().name = "txtWinner";
                             Text text = GameObject.Find("txt" + round.ToString() + k.ToString()).GetComponent<Text>();
                             text.name = "txtTeam" + schedule[k];
-                            text.text = top8[schedule[k]].teamName;
-                            GameObject.Find("txtWins" + schedule[k]).GetComponent<Text>().name = "txtWinsWinner";
-                            GameObject.Find("txtWins" + round.ToString() + k.ToString()).GetComponent<Text>().name = "txtWins" + schedule[k];
+                            text.text = top8[schedule[k]].cityName + " " + top8[schedule[k]].teamName;
+                            GameObject.Find("txtWins" + round.ToString() + k.ToString()).GetComponent<Text>().name = "txtWins" + round.ToString() + schedule[k];
                         }
                     }
                     else
@@ -191,7 +209,46 @@ public class Top8 : MonoBehaviour {
                         GameObject.Find("txtChampion").GetComponent<Text>().text = top8[newRound[i]].teamName;
                         allTeams.needDraft = true;
                         PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
+                        allTeams.inFinals = false;
+                        PlayerPrefs.SetString("InFinals", allTeams.inFinals.ToString());
                         allTeams.year++;
+                        PlayerPrefs.SetString("Year", allTeams.year.ToString());
+                        allTeams.numPlays = 0;
+                        PlayerPrefs.SetInt("NumPlays", 0);
+                        
+                        for (int k = 0; k < allTeams.teams.Length; k++)
+                        {
+                            allTeams.teams[k].pwl[0] = 0;
+                            allTeams.teams[k].pwl[1] = 0;
+                            allTeams.teams[k].pwl[2] = 0;
+                            PlayerPrefs.SetString("PWL" + teams[i].id.ToString(), "0,0,0");
+
+                            for(int l = 0; l < allTeams.teams[k].players.Count; l++)
+                            {
+                                int increase;
+                                string playerString ="";
+
+                                if (int.Parse(allTeams.teams[k].players[l][4]) <= 0)
+                                    allTeams.teams[k].players[l][4] = (int.Parse(allTeams.teams[k].players[l][4]) - (int)(Random.value * 10)).ToString();
+
+                                increase = (int)Mathf.Ceil(int.Parse(allTeams.teams[k].players[l][4]) * 4 / 27 * 27 / 22);                                    
+                                allTeams.teams[k].players[l][4] = (int.Parse(allTeams.teams[k].players[l][4]) - increase).ToString();
+
+                                for (int m = 0; m < increase; m++)
+                                {
+                                    int currStat = (int)(Random.value * (allTeams.numStats - 6) + 6);
+                                    allTeams.teams[k].players[l][currStat] = (int.Parse(allTeams.teams[k].players[l][currStat]) + 1).ToString();
+                                }
+
+                                for (int m = 0; m < allTeams.teams[k].players[l].Length - 1; m++)
+                                    playerString += allTeams.teams[k].players[l][m] + ",";
+                                playerString += allTeams.teams[k].players[l][allTeams.teams[k].players[l].Length - 1];
+
+                                PlayerPrefs.SetString("Player" + k + "-" + l, playerString);
+                            }
+                        }
+
+                        PlayerPrefs.Save();
                     }
                 }
             }

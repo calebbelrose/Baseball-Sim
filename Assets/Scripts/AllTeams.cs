@@ -8,19 +8,20 @@ public class AllTeams : MonoBehaviour {
     static int numTeams = 30;
     public Team[] teams = new Team[numTeams];
     public int[,] schedule = new int[numTeams / 2, 2];
-    public int year;
-    public bool needDraft;
-    public bool inFinals;
+    public int year, numPlays, numStats;
+    public bool needDraft, inFinals;
     string[] stats = File.ReadAllLines("Stats.txt");
 
     // Use this for initialization
     void Start () {
+        numStats = stats.Length;
         if (PlayerPrefs.HasKey("Year"))
         {
             year = int.Parse(PlayerPrefs.GetString("Year"));
+            numPlays = PlayerPrefs.GetInt("NumPlays");
             needDraft = bool.Parse(PlayerPrefs.GetString("NeedDraft"));
             inFinals = bool.Parse(PlayerPrefs.GetString("InFinals"));
-
+            
             for (int i = 0; i < numTeams; i++)
             {
                 teams[i] = new Team();
@@ -38,10 +39,10 @@ public class AllTeams : MonoBehaviour {
                     teams[i].players.Add(newPlayer);
                 }
 
-                teams[i].id = i;
-                teams[i].cityName = teamInfoSplit[0];
-                teams[i].teamName = teamInfoSplit[1];
-                teams[i].pick = int.Parse(teamInfoSplit[2]);
+                teams[i].id = int.Parse(teamInfoSplit[0]);
+                teams[i].cityName = teamInfoSplit[1];
+                teams[i].teamName = teamInfoSplit[2];
+                teams[i].pick = int.Parse(teamInfoSplit[3]);
                 teams[i].overalls[0] = float.Parse(teamOverallsSplit[0]);
                 teams[i].overalls[1] = float.Parse(teamOverallsSplit[1]);
                 teams[i].overalls[2] = float.Parse(teamOverallsSplit[2]);
@@ -101,7 +102,7 @@ public class AllTeams : MonoBehaviour {
             {
                 string[] newPlayer = new string[stats.Length];
                 string playerString = "";
-                float totalStats = 0;
+                float totalStats = 0, totalOffense = 0, totalDefense = 0;
                 int age;
 
                 newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
@@ -109,21 +110,32 @@ public class AllTeams : MonoBehaviour {
                 newPlayer[2] = positions[j];
 
                 age = (int)(Random.value * 27) + 18;
-                newPlayer[5] = age.ToString();
+                newPlayer[7] = age.ToString();
 
-                for (int k = 6; k < stats.Length; k++)
+                for (int k = 8; k < stats.Length; k++)
                 {
-                    int currStat = (int)(Random.value * age + 1) + 55;
+                    int currStat = (int)(Random.value * age) + 55;
                     newPlayer[k] = currStat.ToString();
                     totalStats += currStat;
+                    if (k < 11)
+                        totalOffense += currStat;
+                    else if (k > 11)
+                        totalDefense += currStat;
+                    else
+                    {
+                        totalOffense += currStat;
+                        totalDefense += currStat;
+                    }
                 }
 
-                int potential = (int)(Random.value * 25 + (43 - age) * 3 + 1);
+                int potential = (int)(Random.value * 25 + (43 - age) * 3);
                 if (potential < 0)
                     potential = 0;
-                newPlayer[4] = potential.ToString();
+                newPlayer[6] = potential.ToString();
 
-                newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
+                newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
+                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
+                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
 
                 for (int k = 0; k < newPlayer.Length - 1; k++)
                     playerString += newPlayer[k] + ",";
@@ -174,7 +186,7 @@ public class AllTeams : MonoBehaviour {
             {
                 string[] newPlayer = new string[stats.Length];
                 string playerString = "";
-                float totalStats = 0;
+                float totalStats = 0, totalOffense = 0, totalDefense = 0;
                 int age;
                 newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
                 newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
@@ -184,7 +196,7 @@ public class AllTeams : MonoBehaviour {
                 age = (int)(Random.value * 27) + 18;
                 newPlayer[5] = age.ToString();
 
-                for (int k = 6; k < stats.Length; k++)
+                for (int k = 8; k < stats.Length; k++)
                 {
                     int currStat = (int)(Random.value * age) + 55;
                     newPlayer[k] = currStat.ToString();
@@ -197,6 +209,8 @@ public class AllTeams : MonoBehaviour {
                 newPlayer[4] = potential.ToString();
 
                 newPlayer[3] = ((totalStats / (stats.Length - 6))).ToString("0.00");
+                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
+                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
 
                 for (int k = 0; k < newPlayer.Length - 1; k++)
                     playerString += newPlayer[k] + ",";
@@ -206,7 +220,7 @@ public class AllTeams : MonoBehaviour {
                 teams[i].players.Add(newPlayer);
             }
 
-            PlayerPrefs.SetString("Team" + teams[i].id, teams[i].id + "," + teams[i].cityName + " " + teams[i].teamName + "," + teams[i].pick);
+            PlayerPrefs.SetString("Team" + teams[i].id, teams[i].id + "," + teams[i].cityName + "," + teams[i].teamName + "," + teams[i].pick);
             PlayerPrefs.SetString("Overalls" + teams[i].id, teams[i].overalls[0] + "," + teams[i].overalls[1] + "," + teams[i].overalls[2]);
             PlayerPrefs.SetString("PWL" + teams[i].id.ToString(), "0,0,0");
             PlayerPrefs.SetInt("NumPlayers" + i, teams[i].players.Count);

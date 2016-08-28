@@ -20,8 +20,8 @@ public class GetStandings : MonoBehaviour {
         allTeams = manager.GetComponent<AllTeams>();
         for (int i = 0; i < allTeams.teams.Length; i++)
         {
-            if (allTeams.teams[i].teamName.Length > longestTeamName)
-                longestTeamName = allTeams.teams[i].teamName.Length;
+            if (allTeams.teams[i].cityName.Length + allTeams.teams[i].teamName.Length + 1 > longestTeamName)
+                longestTeamName = allTeams.teams[i].cityName.Length + allTeams.teams[i].teamName.Length + 1;
         }
         teams = new Team[allTeams.GetNumTeams()];
         allTeams.teams.CopyTo(teams, 0);
@@ -85,9 +85,9 @@ public class GetStandings : MonoBehaviour {
             newTeam.name = "team" + i.ToString();
             newTeam.transform.SetParent(teamList.transform);
             teams[i].SetStats();
-            string teamListing = teams[i].teamName;
+            string teamListing = teams[i].cityName + " " + teams[i].teamName;
 
-            for (int j = teams[i].teamName.Length; j < longestTeamName; j++)
+            for (int j = teamListing.Length - 1; j < longestTeamName; j++)
                 teamListing += " ";
 
             for (int j = 1; j < headers.Length - 1; j++)

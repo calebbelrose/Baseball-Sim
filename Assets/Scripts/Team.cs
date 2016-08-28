@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class Team {
 
     public List<string[]> players;
+    public List<int> SP, RP, CP, Batters;
     public int[] pwl;
     public float[] overalls;
     public string cityName, teamName;
