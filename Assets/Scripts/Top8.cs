@@ -120,9 +120,7 @@ public class Top8 : MonoBehaviour {
                     if (team2 < goal2)
                         score2++;
                     j++;
-                }
-
-                Debug.Log(thisTeam + " " + top8[thisTeam].teamName + " " + otherTeam + " " + top8[otherTeam].teamName);
+               } 
 
                 if (score1 > score2)
                 {

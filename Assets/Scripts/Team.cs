@@ -20,6 +20,10 @@ public class Team {
     void Reset()
     {
         players = new List<string[]>();
+        SP = new List<int>();
+        RP = new List<int>();
+        CP = new List<int>();
+        Batters = new List<int>(); 
         pwl = new int[3];
         overalls = new float[3];
         for (int i = 0; i < pwl.Length; i++)

@@ -1,15 +1,20 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Play : MonoBehaviour {
 
     int maxPlays = 29;
+    AllTeams allTeams;
+    int lowestScore, highestScore, totalScore = 0;
 
     public void PlayGame()
     {
         GameObject manager = GameObject.Find("_Manager");
-        AllTeams allTeams = manager.GetComponent<AllTeams>();
+        lowestScore = 10;
+        highestScore = 0;
+        allTeams = manager.GetComponent<AllTeams>();
         Text txtResult;
         int you = 0, them = 0, numRows;
         int[,] temp;
@@ -17,64 +22,267 @@ public class Play : MonoBehaviour {
 
         for (int i = 0; i < allTeams.GetNumTeams() / 2; i++)
         {
-            int score1 = 0, score2 = 0, otherTeam, thisTeam, j = 0, points = 1;
-            thisTeam = allTeams.schedule[i, 0];
-            otherTeam = allTeams.schedule[i, 1];
-            float goal1, goal2;
+            int inning = 0, points = 1;
+            int[] scores = new int[2] { 0, 0 };
+            int[] batters = new int[2] { 0, 0 };
+            int[] relievers = new int[2] { 0, 0 };
+            int[] teams = new int[2] { 0, 0 };
+            int[] pitchers = new int[2] { 0, 0 };
+            int[] staminas = new int[2];
 
-            goal1 = allTeams.teams[thisTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[1] + allTeams.teams[otherTeam].overalls[2]);
-            goal2 = allTeams.teams[otherTeam].overalls[1] / (allTeams.teams[thisTeam].overalls[2] + allTeams.teams[otherTeam].overalls[1]);
+            teams[0] = allTeams.schedule[i, 0];
+            teams[1] = allTeams.schedule[i, 1];
 
-            while (j < 9 || score1 == score2)
+            pitchers[0] = allTeams.teams[teams[0]].SP[allTeams.currStarter];
+            pitchers[1] = allTeams.teams[teams[1]].SP[allTeams.currStarter];
+
+            staminas[0] = int.Parse(allTeams.teams[teams[0]].players[pitchers[0]][14]);
+            staminas[1] = int.Parse(allTeams.teams[teams[1]].players[pitchers[1]][14]);
+
+            while (inning < 9 || scores[0] == scores[1])
             {
-                float team1 = Random.value, team2 = Random.value;
-                if (team1 < goal1)
-                    score1++;
-                if (team2 < goal2)
-                    score2++;
-                j++;
+                for (int j = 0; j < 2; j++)
+                {
+                    if (i == 0)
+                    {
+                        if (j == 0)
+                            Debug.Log("Top of the " + (inning + 1));
+                        else
+                            Debug.Log("Bottom of the " + (inning + 1));
+                    }
+                    int outs = 0, thisTeam = j, otherTeam = (j + 1) % 2, strikes = 0, balls = 0;
+                    bool[] bases = new bool[4] { false, false, false, false };
+
+                    if (inning == 9 && scores[thisTeam] > scores[otherTeam])
+                        pitchers[thisTeam] = pitchers[thisTeam] = allTeams.teams[teams[thisTeam]].CP[0];
+
+                    while (outs < 3)
+                    {
+                        bool strike, swing;
+
+                        float thisEye, thisContact, thisPower;
+                        float eye = float.Parse(allTeams.teams[teams[otherTeam]].players[allTeams.teams[teams[otherTeam]].Batters[batters[otherTeam]]][10]) / 100;
+                        float contact = float.Parse(allTeams.teams[teams[otherTeam]].players[allTeams.teams[teams[otherTeam]].Batters[batters[otherTeam]]][9]) / 100;
+
+                        bases[0] = true;
+
+                        if (staminas[thisTeam] <= 0 && relievers[thisTeam] <= 3)
+                        {
+                            pitchers[thisTeam] = allTeams.teams[teams[thisTeam]].RP[relievers[thisTeam]];
+                            relievers[thisTeam]++;
+                        }
+
+                        if (Random.value < 0.5f)
+                            strike = true;
+                        else
+                            strike = false;
+
+                        if (Random.value > float.Parse(allTeams.teams[teams[otherTeam]].players[pitchers[thisTeam]][13]))
+                            strike = !strike;
+
+                        thisEye = Random.value;
+                        if (thisEye < eye)
+                            swing = true;
+                        else
+                            swing = false;
+
+                        if (swing)
+                        {
+                            thisContact = Random.value;
+                            if (thisContact < contact)
+                            {
+                                int numBases;
+
+                                thisPower = Random.value;
+                                thisPower *= float.Parse(allTeams.teams[teams[otherTeam]].players[allTeams.teams[teams[otherTeam]].Batters[batters[otherTeam]]][8]) / 100;
+
+                                if (thisPower > 0.8f)
+                                {
+                                    if (i == 0)
+                                        Debug.Log(strikes + "-" + balls + " Homerun");
+                                    numBases = 4;
+                                }
+                                else
+                                {
+                                   thisPower *= float.Parse(allTeams.teams[teams[otherTeam]].players[allTeams.teams[teams[otherTeam]].Batters[batters[otherTeam]]][11]) / 100;
+
+                                    if (thisPower > 0.65f)
+                                    {
+                                        if (i == 0)
+                                            Debug.Log(strikes + "-" + balls + " Triple");
+                                        numBases = 4;
+                                    }
+                                    else if (thisPower > 0.55f)
+                                    {
+                                        if (i == 0)
+                                            Debug.Log(strikes + "-" + balls + " Flyout");
+                                        numBases = 1;
+                                        bases[0] = false;
+                                        outs++;
+                                    }
+                                    else if (thisPower > 0.45f)
+                                    {
+                                        numBases = 2;
+                                        if (i == 0)
+                                            Debug.Log(strikes + "-" + balls + " Double");
+                                    }
+                                    else if (thisPower > 0.35f)
+                                    {
+                                        if (i == 0)
+                                            Debug.Log(strikes + "-" + balls + " Popout");
+                                        numBases = 0;
+                                        outs++;
+                                    }
+                                    else if (thisPower > 0.2f)
+                                    {
+                                        numBases = 1;
+                                        if (i == 0)
+                                            Debug.Log(strikes + "-" + balls + " Single");
+                                    }
+                                    else if (thisPower > 0.10f)
+                                    {
+                                        numBases = 0;
+                                        outs++;
+                                        if (i == 0)
+                                            Debug.Log("Lineout");
+                                    }
+                                    else
+                                    {
+                                        numBases = 0;
+                                        if (bases[1])
+                                        {
+                                            outs += 2;
+                                            bases[1] = false;
+                                            if (i == 0)
+                                                Debug.Log("Double Play");
+                                        }
+                                        else
+                                        {
+                                            outs++;
+                                            if (i == 0)
+                                                Debug.Log("Groundout");
+                                        }
+
+                                    }
+                                }
+
+                                if(outs < 3)
+                                    for (int k = 3; k >= 0; k--)
+                                        if (bases[k])
+                                        {
+                                            bases[k] = false;
+                                            if (k + numBases > 3)
+                                                scores[otherTeam]++;
+                                            else
+                                                bases[k + numBases] = true;
+                                        }
+
+                                batters[otherTeam] = (batters[otherTeam] + 1) % 9;
+                                strikes = 0;
+                                balls = 0;
+                            }
+                            else
+                                strikes++;
+                        }
+                        else
+                        {
+                            if (strike)
+                                strikes++;
+                            else
+                                balls++;
+                        }
+
+                        if (strikes == 3)
+                        {
+                            outs++;
+                            if (i == 0)
+                                Debug.Log(strikes + "-" + balls + " Strikeout");
+                            batters[otherTeam] = (batters[otherTeam] + 1) % 9;
+                            strikes = 0;
+                            balls = 0;
+                        }
+
+                        if (balls == 4)
+                        {
+                            int currBase = 0;
+
+                            while (currBase < bases.Length && bases[currBase])
+                                currBase++;
+                            if (currBase == 4)
+                                scores[otherTeam]++;
+                            else
+                                for (int k = currBase; k > 0; k--)
+                                {
+                                    bases[k] = true;
+                                    bases[k - 1] = false;
+                                }
+
+                            if (i == 0)
+                                Debug.Log(strikes + "-" + balls + " Walk");
+
+                            batters[otherTeam] = (batters[otherTeam] + 1) % 9;
+                            strikes = 0;
+                            balls = 0;
+                        }
+                    }
+                }
+
+                inning++;
             }
 
-            if (j <= 9)
+            if (inning <= 9)
                 points++;
 
             if (i == 0)
             {
-                you = score1;
-                them = score2;
-                if (score1 > score2)
+                you = scores[0];
+                them = scores[1];
+                if (scores[0] > scores[1])
                 {
-                    allTeams.teams[thisTeam].pwl[1]++;
-                    allTeams.teams[thisTeam].pwl[0] += points;
-                    allTeams.teams[otherTeam].pwl[2]++;
+                    allTeams.teams[teams[0]].pwl[1]++;
+                    allTeams.teams[teams[0]].pwl[0] += points;
+                    allTeams.teams[teams[1]].pwl[2]++;
                     result = "Win";
                 }
                 else
                 {
-                    allTeams.teams[thisTeam].pwl[2]++;
-                    allTeams.teams[otherTeam].pwl[1]++;
-                    allTeams.teams[otherTeam].pwl[0] += points;
+                    allTeams.teams[teams[0]].pwl[2]++;
+                    allTeams.teams[teams[1]].pwl[1]++;
+                    allTeams.teams[teams[1]].pwl[0] += points;
                     result = "Loss";
                 }
             }
             else
             {
-                if (score1 > score2)
+                if (scores[0] > scores[1])
                 {
-                    allTeams.teams[thisTeam].pwl[1]++;
-                    allTeams.teams[thisTeam].pwl[0] += points;
-                    allTeams.teams[otherTeam].pwl[2]++;
+                    allTeams.teams[teams[0]].pwl[1]++;
+                    allTeams.teams[teams[0]].pwl[0] += points;
+                    allTeams.teams[teams[1]].pwl[2]++;
                 }
                 else
                 {
-                    allTeams.teams[thisTeam].pwl[2]++;
-                    allTeams.teams[otherTeam].pwl[1]++;
-                    allTeams.teams[otherTeam].pwl[0] += points;
+                    allTeams.teams[teams[0]].pwl[2]++;
+                    allTeams.teams[teams[1]].pwl[1]++;
+                    allTeams.teams[teams[1]].pwl[0] += points;
                 }
             }
-            PlayerPrefs.SetString("PWL" + allTeams.teams[thisTeam].id.ToString(), allTeams.teams[thisTeam].pwl[0] + "," + allTeams.teams[thisTeam].pwl[1] + "," + allTeams.teams[thisTeam].pwl[2]);
-            PlayerPrefs.SetString("PWL" + allTeams.teams[otherTeam].id.ToString(), allTeams.teams[otherTeam].pwl[0] + "," + allTeams.teams[otherTeam].pwl[1] + "," + allTeams.teams[otherTeam].pwl[2]);
+            PlayerPrefs.SetString("PWL" + allTeams.teams[teams[0]].id.ToString(), allTeams.teams[teams[0]].pwl[0] + "," + allTeams.teams[teams[0]].pwl[1] + "," + allTeams.teams[teams[0]].pwl[2]);
+            PlayerPrefs.SetString("PWL" + allTeams.teams[teams[1]].id.ToString(), allTeams.teams[teams[1]].pwl[0] + "," + allTeams.teams[teams[1]].pwl[1] + "," + allTeams.teams[teams[1]].pwl[2]);
+            if (scores[0] < lowestScore)
+                lowestScore = scores[0];
+            else if (scores[0] > highestScore)
+                highestScore = scores[0];
+            if (scores[1] < lowestScore)
+                lowestScore = scores[1];
+            else if (scores[1] > highestScore)
+                highestScore = scores[1];
+
+            totalScore += scores[0] + scores[1];
         }
+
+        allTeams.currStarter = (allTeams.currStarter + 1) % 5;
+        PlayerPrefs.SetInt("CurrStarter", allTeams.currStarter);
 
         PlayerPrefs.Save();
         GameObject.Find("txtYourScore").GetComponent<Text>().text = "You: " + you;
@@ -116,6 +324,9 @@ public class Play : MonoBehaviour {
         strSchedule = strSchedule.Remove(strSchedule.Length - 1, 1);
         PlayerPrefs.SetString("Schedule", strSchedule);
         allTeams.numPlays++;
+
+        Debug.Log(lowestScore + " " + highestScore);
+        Debug.Log(totalScore / (float)(allTeams.numPlays * allTeams.GetNumTeams()));
 
         if (allTeams.numPlays >= maxPlays)
             GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(6);
