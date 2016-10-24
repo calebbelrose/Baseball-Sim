@@ -154,8 +154,6 @@ public class LoadYourPlayers : MonoBehaviour
 
                 if (i <= j)
                 {
-                    string test = allTeams.teams[0].players[i][0] + " " + allTeams.teams[0].players[i][1],
-                        test1 = allTeams.teams[0].players[j][0] + " " + allTeams.teams[0].players[j][1];
                     int indexI = trade.yourTrades.IndexOf(i), indexJ = trade.yourTrades.IndexOf(j);
                     string[] temp = new string[stats.Length];
 

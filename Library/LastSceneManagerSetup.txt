@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Trade.unity
+- path: Assets/Scenes/Draft.unity
   isLoaded: 1
   isActive: 1
