@@ -59,7 +59,7 @@ public class Top8 : MonoBehaviour {
 
         while (i <= j)
         {
-            while (string.Comp--are(temp[i].pwl[0].ToString(), pivot) > 0)
+            while (string.Compare(temp[i].pwl[0].ToString(), pivot) > 0)
             {
                 i++;
             }

@@ -66,6 +66,7 @@
     <Compile Include="Assets\Scripts\ChangeVolume.cs" />
     <Compile Include="Assets\Scripts\GetAverage.cs" />
     <Compile Include="Assets\Scripts\GetStandings.cs" />
+    <Compile Include="Assets\Scripts\GetStats.cs" />
     <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
     <Compile Include="Assets\Scripts\GetYear.cs" />
     <Compile Include="Assets\Scripts\LoadTheirPlayers.cs" />

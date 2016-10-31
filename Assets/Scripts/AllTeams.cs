@@ -33,14 +33,23 @@ public class AllTeams : MonoBehaviour {
                 string[] teamInfoSplit = teamInfo.Split(',');
                 string[] teamOverallsSplit = teamOveralls.Split(',');
                 string[] pwl;
+                string[] splitName;
 
                 for (int j = 0; j < numPlayers; j++)
                 {
                     string player = PlayerPrefs.GetString("Player" + i + "-" + j);
                     string[] newPlayer = player.Split(',');
+                    string currStats;
+                    string[] splitStats;
+
                     teams[i].players.Add(newPlayer);
-                    if(newPlayer.Length != 15)
-                        Debug.Log(newPlayer.Length);
+                    currStats = PlayerPrefs.GetString("PlayerStats" + i + "-" + teams[i].pStats.Count);
+                    currStats = "0,0";
+                    splitStats = currStats.Split(',');
+                    teams[i].pStats.Add(teams[i].emptyStats);
+
+                    for (int k = 0; k < splitStats.Length; k++)
+                        teams[i].pStats[teams[i].pStats.Count - 1][k] = int.Parse(splitStats[k]);
                 }
 
                 teams[i].id = int.Parse(teamInfoSplit[0]);
@@ -50,6 +59,9 @@ public class AllTeams : MonoBehaviour {
                 teams[i].overalls[0] = float.Parse(teamOverallsSplit[0]);
                 teams[i].overalls[1] = float.Parse(teamOverallsSplit[1]);
                 teams[i].overalls[2] = float.Parse(teamOverallsSplit[2]);
+                splitName = (teams[i].cityName + " " + teams[i].teamName).Split(' ');
+                for (int j = 0; j < splitName.Length; j++)
+                    teams[i].shortform += splitName[j].Substring(0, 1);
                 
                 pwl = PlayerPrefs.GetString("PWL" + i).Split(',');
                 for(int j = 0; j < pwl.Length; j++)
@@ -107,7 +119,7 @@ public class AllTeams : MonoBehaviour {
             string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
             string[] firstNames, lastNames, cityNames, teamNames;
             string[] newPlayer = new string[stats.Length];
-            string playerString;
+            string playerString, currStats = "";
             float totalStats, totalOffense, totalDefense;
             int age, potential;
 
@@ -168,6 +180,14 @@ public class AllTeams : MonoBehaviour {
                 PlayerPrefs.SetInt("Batter" + i + "-" + teams[i].Batters.Count, teams[i].players.Count);
                 teams[i].Batters.Add(teams[i].players.Count);
                 teams[i].players.Add(newPlayer);
+                teams[i].pStats.Add(teams[i].emptyStats);
+
+                for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
+                    currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
+
+                currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
+
+                PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
             }
 
             for (int j = 0; j < 5; j++)
@@ -181,7 +201,7 @@ public class AllTeams : MonoBehaviour {
                 newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
                 newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
 
-                newPlayer[2] = positions[0];
+                newPlayer[2] = "SP";
 
                 age = (int)(Random.value * 27) + 18;
                 newPlayer[5] = age.ToString();
@@ -217,6 +237,14 @@ public class AllTeams : MonoBehaviour {
                 PlayerPrefs.SetInt("SP" + i + "-" + j, teams[i].players.Count);
                 teams[i].SP.Add(teams[i].players.Count);
                 teams[i].players.Add(newPlayer);
+                teams[i].pStats.Add(teams[i].emptyStats);
+
+                for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
+                    currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
+
+                currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
+
+                PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
             }
 
             for (int j = 0; j < 3; j++)
@@ -230,7 +258,7 @@ public class AllTeams : MonoBehaviour {
                 newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
                 newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
 
-                newPlayer[2] = positions[0];
+                newPlayer[2] = "RP";
 
                 age = (int)(Random.value * 27) + 18;
                 newPlayer[5] = age.ToString();
@@ -266,6 +294,14 @@ public class AllTeams : MonoBehaviour {
                 PlayerPrefs.SetInt("RP" + i + "-" + j, teams[i].players.Count);
                 teams[i].RP.Add(teams[i].players.Count);
                 teams[i].players.Add(newPlayer);
+                teams[i].pStats.Add(teams[i].emptyStats);
+
+                for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
+                    currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
+
+                currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
+
+                PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
             }
 
             newPlayer = new string[stats.Length];
@@ -304,6 +340,14 @@ public class AllTeams : MonoBehaviour {
             PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
             teams[i].CP.Add(teams[i].players.Count);
             teams[i].players.Add(newPlayer);
+            teams[i].pStats.Add(teams[i].emptyStats);
+
+            for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
+                currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
+
+            currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
+
+            PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
 
             PlayerPrefs.SetString("Team" + teams[i].id, teams[i].id + "," + teams[i].cityName + "," + teams[i].teamName + "," + teams[i].pick);
             PlayerPrefs.SetString("Overalls" + teams[i].id, teams[i].overalls[0] + "," + teams[i].overalls[1] + "," + teams[i].overalls[2]);

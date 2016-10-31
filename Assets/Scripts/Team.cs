@@ -11,9 +11,16 @@ public class Team {
     public string cityName, teamName;
     public int id, pick;
     string[] stats;
+    public List<int[]> pStats;
+    public string shortform;
+    string[] pStatList = {"G", "AB", "R", "H", "2B", "3B", "HR", "RBI", "BB", "SO", "SB", "CS", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "G", "GS", "SV", "SVO", "IP", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP"};
+    public int[] emptyStats;
 
     public Team()
     {
+        emptyStats = new int[pStatList.Length];
+        for (int i = 0; i < emptyStats.Length; i++)
+            emptyStats[i] = 0;
         Reset();
     }
 
@@ -23,7 +30,8 @@ public class Team {
         SP = new List<int>();
         RP = new List<int>();
         CP = new List<int>();
-        Batters = new List<int>(); 
+        Batters = new List<int>();
+        pStats = new List<int[]>();
         pwl = new int[3];
         overalls = new float[3];
         for (int i = 0; i < pwl.Length; i++)

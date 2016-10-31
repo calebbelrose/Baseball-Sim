@@ -317,9 +317,10 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
     public void PlayerDraft(GameObject player, string playerListing)
     {
+        int count = numPlayers;
+
         Draft(player, player.name.Remove(0, 6));
 
-        int count = numPlayers;
         if (numPlayers > 30)
             count = 30;
 
@@ -333,26 +334,6 @@ public class PopulateDraftPlayers : MonoBehaviour {
     public void Draft(GameObject player, string name)
     {
         int playerNum = int.Parse(name);
-        List<string> starters = new List<string>();
-
-        starters.Add("SP");
-        starters.Add("SP");
-        starters.Add("SP");
-        starters.Add("SP");
-        starters.Add("SP");
-        starters.Add("RP");
-        starters.Add("RP");
-        starters.Add("RP");
-        starters.Add("CP");
-        starters.Add("C");
-        starters.Add("1B");
-        starters.Add("2B");
-        starters.Add("3B");
-        starters.Add("SS");
-        starters.Add("LF");
-        starters.Add("CF");
-        starters.Add("RF");
-        starters.Add("DH");
 
         newPlayers[currTeam].Add(playerStats[playerNum]);
         numPlayers--;
@@ -360,6 +341,26 @@ public class PopulateDraftPlayers : MonoBehaviour {
         if (numPlayers == 0)
         {
             int numTeams = allTeams.GetNumTeams();
+            List<string> starters = new List<string>();
+
+            starters.Add("SP");
+            starters.Add("SP");
+            starters.Add("SP");
+            starters.Add("SP");
+            starters.Add("SP");
+            starters.Add("RP");
+            starters.Add("RP");
+            starters.Add("RP");
+            starters.Add("CP");
+            starters.Add("C");
+            starters.Add("1B");
+            starters.Add("2B");
+            starters.Add("3B");
+            starters.Add("SS");
+            starters.Add("LF");
+            starters.Add("CF");
+            starters.Add("RF");
+            starters.Add("DH");
 
             for (int i = 0; i < numTeams; i++)
             {
@@ -374,9 +375,19 @@ public class PopulateDraftPlayers : MonoBehaviour {
                 {
                     string playerString = "";
                     string[] newPlayer = newPlayers[i].First();
+                    string currStats = "";
 
                     allTeams.teams[i].players.Add(newPlayer);
-                    
+
+                    allTeams.teams[i].pStats.Add(allTeams.teams[i].emptyStats);
+
+                    for (int k = 0; k < allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1].Length - 1; k++)
+                        currStats += allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1][k] + ",";
+
+                    currStats += allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1][allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1].Length - 1];
+
+                    PlayerPrefs.SetString("PlayerStats" + i + "-" + (allTeams.teams[i].pStats.Count - 1), currStats);
+
                     for (int k = 0; k < newPlayer.Length - 1; k++)
                         playerString += newPlayer[k] + ",";
 
@@ -391,28 +402,23 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
                 for(int j = 0; j < result.Length; j++)
                 {
-                    if (result[j][2] == "SP" && starters.Contains("SP"))
+                    if (starters.Contains(result[j][2]))
                     {
                         totalBestPlayers += float.Parse(result[j][3]);
                         offenseBestPlayers += float.Parse(result[j][8]) + float.Parse(result[j][9]) + float.Parse(result[j][10]) + float.Parse(result[j][11]);
                         defenseBestPlayers += float.Parse(result[j][11]) + float.Parse(result[j][12]) + float.Parse(result[j][13]) + float.Parse(result[j][14]);
-                        PlayerPrefs.SetInt("SP" + i + "-" + allTeams.teams[i].SP.Count, j);
-                        allTeams.teams[i].SP.Add(j);
-                    }
-                    else if (result[j][2] == "RP" && starters.Contains("RP"))
-                    {
-                        totalBestPlayers += float.Parse(result[j][3]);
-                        offenseBestPlayers += float.Parse(result[j][8]) + float.Parse(result[j][9]) + float.Parse(result[j][10]) + float.Parse(result[j][11]);
-                        defenseBestPlayers += float.Parse(result[j][11]) + float.Parse(result[j][12]) + float.Parse(result[j][13]) + float.Parse(result[j][14]);
-                        PlayerPrefs.SetInt("RP" + i + "-" + allTeams.teams[i].RP.Count, j);
-                        allTeams.teams[i].RP.Add(j);
-                    }
-                    else if (starters.Contains(result[j][2]))
-                    {
-                        totalBestPlayers += float.Parse(result[j][3]);
-                        offenseBestPlayers += float.Parse(result[j][8]) + float.Parse(result[j][9]) + float.Parse(result[j][10]) + float.Parse(result[j][11]);
-                        defenseBestPlayers += float.Parse(result[j][11]) + float.Parse(result[j][12]) + float.Parse(result[j][13]) + float.Parse(result[j][14]);
-                        if (result[j][2] == "CP")
+
+                        if (result[j][2] == "SP")
+                        {
+                            PlayerPrefs.SetInt("SP" + i + "-" + allTeams.teams[i].SP.Count, j);
+                            allTeams.teams[i].SP.Add(j);
+                        }
+                        else if (result[j][2] == "RP")
+                        {
+                            PlayerPrefs.SetInt("RP" + i + "-" + allTeams.teams[i].RP.Count, j);
+                            allTeams.teams[i].RP.Add(j);
+                        }
+                        else if (result[j][2] == "CP")
                         {
                             PlayerPrefs.SetInt("CP" + i + "-" + allTeams.teams[i].CP.Count, j);
                             allTeams.teams[i].CP.Add(j);
@@ -434,9 +440,6 @@ public class PopulateDraftPlayers : MonoBehaviour {
                 allTeams.teams[i].overalls[2] = defenseBestPlayers / 18.0f;
                 PlayerPrefs.SetString("Overalls" + allTeams.teams[i].id, allTeams.teams[i].overalls[0] + "," + allTeams.teams[i].overalls[1] + "," + allTeams.teams[i].overalls[2]);
                 PlayerPrefs.Save();
-
-                for (int q = 0; q < allTeams.teams[i].Batters.Count; q++)
-                    Debug.Log(allTeams.teams[i].players[allTeams.teams[i].Batters[q]][2]);
             }
 
             for (int i = 0; i < initialPlayers; i++)
@@ -455,16 +458,16 @@ public class PopulateDraftPlayers : MonoBehaviour {
     void Order(List<int> list, int team, int stat, int left, int right)
     {
         int i = left, j = right;
-        string pivot = allTeams.teams[team].players[list[(int)(left + (right - left) / 2)]][stat];
+        string pivot = allTeams.teams[team].players[list[(int)(left + (right - left) / 2)]][stat].ToString();
 
         while (i <= j)
         {
-            while (string.Compare(allTeams.teams[team].players[list[i]][stat], pivot) > 0)
+            while (string.Compare(allTeams.teams[team].players[list[i]][stat].ToString(), pivot) > 0)
             {
                 i++;
             }
 
-            while (string.Compare(allTeams.teams[team].players[list[j]][stat], pivot) < 0)
+            while (string.Compare(allTeams.teams[team].players[list[j]][stat].ToString(), pivot) < 0)
             {
                 j--;
             }
