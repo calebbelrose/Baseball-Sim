@@ -46,7 +46,7 @@ public class AllTeams : MonoBehaviour {
                     currStats = PlayerPrefs.GetString("PlayerStats" + i + "-" + teams[i].pStats.Count);
                     currStats = "0,0";
                     splitStats = currStats.Split(',');
-                    teams[i].pStats.Add(teams[i].emptyStats);
+                    teams[i].pStats.Add(teams[i].NewEmptyStats());
 
                     for (int k = 0; k < splitStats.Length; k++)
                         teams[i].pStats[teams[i].pStats.Count - 1][k] = int.Parse(splitStats[k]);
@@ -180,7 +180,7 @@ public class AllTeams : MonoBehaviour {
                 PlayerPrefs.SetInt("Batter" + i + "-" + teams[i].Batters.Count, teams[i].players.Count);
                 teams[i].Batters.Add(teams[i].players.Count);
                 teams[i].players.Add(newPlayer);
-                teams[i].pStats.Add(teams[i].emptyStats);
+                teams[i].pStats.Add(teams[i].NewEmptyStats());
 
                 for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
                     currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
@@ -237,7 +237,7 @@ public class AllTeams : MonoBehaviour {
                 PlayerPrefs.SetInt("SP" + i + "-" + j, teams[i].players.Count);
                 teams[i].SP.Add(teams[i].players.Count);
                 teams[i].players.Add(newPlayer);
-                teams[i].pStats.Add(teams[i].emptyStats);
+                teams[i].pStats.Add(teams[i].NewEmptyStats());
 
                 for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
                     currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
@@ -294,7 +294,7 @@ public class AllTeams : MonoBehaviour {
                 PlayerPrefs.SetInt("RP" + i + "-" + j, teams[i].players.Count);
                 teams[i].RP.Add(teams[i].players.Count);
                 teams[i].players.Add(newPlayer);
-                teams[i].pStats.Add(teams[i].emptyStats);
+                teams[i].pStats.Add(teams[i].NewEmptyStats());
 
                 for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
                     currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
@@ -340,7 +340,7 @@ public class AllTeams : MonoBehaviour {
             PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
             teams[i].CP.Add(teams[i].players.Count);
             teams[i].players.Add(newPlayer);
-            teams[i].pStats.Add(teams[i].emptyStats);
+            teams[i].pStats.Add(teams[i].NewEmptyStats());
 
             for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length; k++)
                 currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";

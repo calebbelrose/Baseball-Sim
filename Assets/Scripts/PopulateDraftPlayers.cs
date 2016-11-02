@@ -379,7 +379,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
                     allTeams.teams[i].players.Add(newPlayer);
 
-                    allTeams.teams[i].pStats.Add(allTeams.teams[i].emptyStats);
+                    allTeams.teams[i].pStats.Add(allTeams.teams[i].NewEmptyStats());
 
                     for (int k = 0; k < allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1].Length - 1; k++)
                         currStats += allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1][k] + ",";

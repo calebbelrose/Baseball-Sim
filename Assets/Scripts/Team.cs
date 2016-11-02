@@ -13,14 +13,10 @@ public class Team {
     string[] stats;
     public List<int[]> pStats;
     public string shortform;
-    string[] pStatList = {"G", "AB", "R", "H", "2B", "3B", "HR", "RBI", "BB", "SO", "SB", "CS", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "G", "GS", "SV", "SVO", "IP", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP"};
-    public int[] emptyStats;
+    string[] pStatList = {"G", "AB", "R", "H", "2B", "3B", "HR", "RBI", "BB", "SO", "SB", "CS", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP"};
 
     public Team()
     {
-        emptyStats = new int[pStatList.Length];
-        for (int i = 0; i < emptyStats.Length; i++)
-            emptyStats[i] = 0;
         Reset();
     }
 
@@ -50,5 +46,15 @@ public class Team {
     public string[] GetStats()
     {
         return stats;
+    }
+
+    public int[] NewEmptyStats()
+    {
+        int[] emptyStats = new int[pStatList.Length];
+
+        for (int i = 0; i < emptyStats.Length; i++)
+            emptyStats[i] = 0;
+
+        return emptyStats;
     }
 }

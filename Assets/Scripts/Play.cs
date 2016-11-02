@@ -38,14 +38,6 @@ public class Play : MonoBehaviour
             staminas[0] = int.Parse(allTeams.teams[teams[0]].players[pitchers[0]][14]);
             staminas[1] = int.Parse(allTeams.teams[teams[1]].players[pitchers[1]][14]);
 
-            Debug.Log(allTeams.teams[teams[0]].Batters.Count);
-            Debug.Log(allTeams.teams[teams[1]].Batters.Count);
-            for (int q = 0; q < allTeams.teams[teams[0]].Batters.Count; q++)
-                Debug.Log(allTeams.teams[teams[0]].players[allTeams.teams[teams[0]].Batters[q]][2]);
-
-            for (int q = 0; q < allTeams.teams[teams[1]].Batters.Count; q++)
-                Debug.Log(allTeams.teams[teams[1]].players[allTeams.teams[teams[1]].Batters[q]][2]);
-
             while (inning < 9 || scores[0] == scores[1])
             {
                 for (int j = 0; j < 2; j++)
@@ -108,9 +100,9 @@ public class Play : MonoBehaviour
                                 {
                                     /*if (i == 0)
                                         Debug.Log(strikes + "-" + balls + " Homerun");*/
-                                    allTeams.teams[otherTeam].pStats[batters[otherTeam]][6]++;
-                                    allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][25]++;
-                                    allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][28]++;
+                                    allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][6]++;
+                                    allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]++;
+                                    allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][28]++;
                                     numBases = 4;
                                 }
                                 else
@@ -121,8 +113,8 @@ public class Play : MonoBehaviour
                                     {
                                         /*if (i == 0)
                                             Debug.Log(strikes + "-" + balls + " Triple");*/
-                                        allTeams.teams[otherTeam].pStats[batters[otherTeam]][5]++;
-                                        allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][25]++;
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][5]++;
+                                        allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]++;
                                         numBases = 4;
                                     }
                                     else if (thisPower > 0.55f)
@@ -139,8 +131,8 @@ public class Play : MonoBehaviour
                                         numBases = 2;
                                         /*if (i == 0)
                                             Debug.Log(strikes + "-" + balls + " Double");*/
-                                        allTeams.teams[otherTeam].pStats[batters[otherTeam]][4]++;
-                                        allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][25]++;
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][4]++;
+                                        allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]++;
                                     }
                                     else if (thisPower > 0.35f)
                                     {
@@ -154,8 +146,8 @@ public class Play : MonoBehaviour
                                         numBases = 1;
                                         /*if (i == 0)
                                             Debug.Log(strikes + "-" + balls + " Single");*/
-                                        allTeams.teams[otherTeam].pStats[batters[otherTeam]][3]++;
-                                        allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][25]++;
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][3]++;
+                                        allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]++;
                                     }
                                     else if (thisPower > 0.10f)
                                     {
@@ -181,8 +173,8 @@ public class Play : MonoBehaviour
                                                 Debug.Log("Groundout");*/
                                         }
                                     }
-                                    allTeams.teams[otherTeam].pStats[batters[otherTeam]][1]++;
-                                    allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][24] += 1/3;
+                                    allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][1]++;
+                                    allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24] += 1 / 3;
                                 }
 
                                 if (outs < 3)
@@ -196,17 +188,17 @@ public class Play : MonoBehaviour
                                             if (k + numBases > 3)
                                             {
                                                 scores[otherTeam]++;
-                                                allTeams.teams[otherTeam].pStats[batters[otherTeam]][8]++;
-                                                allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][26]++;
-                                                allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][27]++;
+                                                allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][8]++;
+                                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][26]++;
+                                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][27]++;
                                             }
                                             else
                                                 bases[k + numBases] = true;
                                         }
                                     if (fly && advanced)
                                     {
-                                        allTeams.teams[otherTeam].pStats[batters[otherTeam]][13]++;
-                                        allTeams.teams[otherTeam].pStats[batters[otherTeam]][1]--;
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][13]++;
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][1]--;
                                     }
                                 }
 
@@ -231,8 +223,8 @@ public class Play : MonoBehaviour
                             /*if (i == 0)
                                 Debug.Log(strikes + "-" + balls + " Strikeout");*/
                             batters[otherTeam] = (batters[otherTeam] + 1) % 9;
-                            allTeams.teams[otherTeam].pStats[batters[otherTeam]][10]++;
-                            allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][30]++;
+                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][10]++;
+                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][30]++;
                             strikes = 0;
                             balls = 0;
                         }
@@ -245,7 +237,7 @@ public class Play : MonoBehaviour
                             if (currBase == 4)
                             {
                                 scores[otherTeam]++;
-                                allTeams.teams[otherTeam].pStats[batters[otherTeam]][8]++;
+                                allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][8]++;
                             }
                             else
                                 for (int k = currBase; k > 0; k--)
@@ -257,8 +249,8 @@ public class Play : MonoBehaviour
                             /*if (i == 0)
                                 Debug.Log(strikes + "-" + balls + " Walk");*/
 
-                            allTeams.teams[otherTeam].pStats[batters[otherTeam]][9]++;
-                            allTeams.teams[thisTeam].pStats[pitchers[thisTeam]][29]++;
+                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][9]++;
+                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][29]++;
 
                             batters[otherTeam] = (batters[otherTeam] + 1) % 9;
                             strikes = 0;
