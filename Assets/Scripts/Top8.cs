@@ -5,7 +5,7 @@ using System.Collections;
 
 public class Top8 : MonoBehaviour {
 
-    Team[] top8 = new Team[8];
+    Team[] top8 = new Team[2];
     Team[] temp;
     int[] schedule = new int[8];
     int[] newRound = new int[4];
@@ -38,7 +38,7 @@ public class Top8 : MonoBehaviour {
             }
         }
         else
-            round = 1;
+            round = 3;
 
         for (int i = 0; i < allTeams.teams.Length; i++)
             allTeams.teams[i].pick = i;
@@ -47,8 +47,9 @@ public class Top8 : MonoBehaviour {
         {
             top8[i] = temp[i];
             GameObject.Find("txtTeam" + i).GetComponent<Text>().text = top8[i].cityName + " " + top8[i].teamName;
-            schedule[i] = 7 - i;
+            schedule[i] = 1 - i;
             top8[i].pwl[1] = 0;
+            top8[i].pwl[2] = 0;
         }
     }
 
@@ -98,8 +99,6 @@ public class Top8 : MonoBehaviour {
         string result = "";
         bool player = false;
         int you = 0, them = 0;
-        int singles = 0, doubles = 0, triples = 0, homeruns = 0, walks = 0, rbis = 0, sacs = 0, strikeouts = 0;
-        float abs = 0.0f;
 
         for (int i = 0; i < newRound.Length; i++)
         {
@@ -109,21 +108,30 @@ public class Top8 : MonoBehaviour {
 
             if (top8[teams[0]].pwl[1] < 4 && top8[teams[1]].pwl[1] < 4)
             {
-                int inning = 0;
+                int inning = 1;
                 int[] scores = new int[2] { 0, 0 };
                 int[] batters = new int[2] { 0, 0 };
                 int[] relievers = new int[2] { 0, 0 };
-                
                 int[] pitchers = new int[2] { 0, 0 };
                 int[] staminas = new int[2];
 
                 pitchers[0] = allTeams.teams[teams[0]].SP[allTeams.currStarter];
                 pitchers[1] = allTeams.teams[teams[1]].SP[allTeams.currStarter];
 
+                allTeams.teams[teams[0]].pStats[pitchers[0]][0]++;
+                allTeams.teams[teams[0]].pStats[pitchers[0]][21]++;
+
+                allTeams.teams[teams[1]].pStats[pitchers[1]][0]++;
+                allTeams.teams[teams[1]].pStats[pitchers[1]][21]++;
+
+                for (int j = 0; j < 2; j++)
+                    for (int k = 0; k < allTeams.teams[teams[j]].Batters.Count; k++)
+                        allTeams.teams[teams[j]].pStats[allTeams.teams[teams[j]].Batters[k]][0]++;
+
                 staminas[0] = int.Parse(allTeams.teams[teams[0]].players[pitchers[0]][14]);
                 staminas[1] = int.Parse(allTeams.teams[teams[1]].players[pitchers[1]][14]);
 
-                while (inning < 9 || scores[0] == scores[1])
+                while (inning <= 9 || scores[0] == scores[1])
                 {
                     for (int j = 0; j < 2; j++)
                     {
@@ -138,23 +146,24 @@ public class Top8 : MonoBehaviour {
                         bool[] bases = new bool[4] { false, false, false, false };
 
                         if (inning == 9 && scores[thisTeam] > scores[otherTeam])
+                        {
                             pitchers[thisTeam] = allTeams.teams[teams[thisTeam]].CP[0];
-
-
+                            staminas[thisTeam] = int.Parse(allTeams.teams[teams[thisTeam]].players[pitchers[thisTeam]][14]);
+                        }
 
                         while (outs < 3)
                         {
                             bool strike, swing;
-
                             float thisEye, thisContact, thisPower;
                             float eye = float.Parse(allTeams.teams[teams[otherTeam]].players[allTeams.teams[teams[otherTeam]].Batters[batters[otherTeam]]][10]) / 100;
                             float contact = float.Parse(allTeams.teams[teams[otherTeam]].players[allTeams.teams[teams[otherTeam]].Batters[batters[otherTeam]]][9]) / 100;
 
                             bases[0] = true;
 
-                            if (staminas[thisTeam] <= 0 && relievers[thisTeam] <= 3)
+                            if (staminas[thisTeam] <= 0 && strikes == 0 && balls == 0 && relievers[thisTeam] < 2)
                             {
                                 pitchers[thisTeam] = allTeams.teams[teams[thisTeam]].RP[relievers[thisTeam]];
+                                staminas[thisTeam] = int.Parse(allTeams.teams[teams[thisTeam]].players[pitchers[thisTeam]][14]);
                                 relievers[thisTeam]++;
                             }
 
@@ -163,7 +172,7 @@ public class Top8 : MonoBehaviour {
                             else
                                 strike = false;
 
-                            if (Random.value > float.Parse(allTeams.teams[teams[otherTeam]].players[pitchers[thisTeam]][13]))
+                            if (Random.value > float.Parse(allTeams.teams[teams[thisTeam]].players[pitchers[thisTeam]][13]))
                                 strike = !strike;
 
                             thisEye = Random.value;
@@ -187,8 +196,9 @@ public class Top8 : MonoBehaviour {
                                     {
                                         /*if (i == 0)
                                             Debug.Log(strikes + "-" + balls + " Homerun");*/
-                                        homeruns++;
-                                        abs++;
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][6]++;
+                                        allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][26]++;
+                                        allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][29]++;
                                         numBases = 4;
                                     }
                                     else
@@ -199,8 +209,8 @@ public class Top8 : MonoBehaviour {
                                         {
                                             /*if (i == 0)
                                                 Debug.Log(strikes + "-" + balls + " Triple");*/
-                                            triples++;
-                                            abs++;
+                                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][5]++;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][26]++;
                                             numBases = 4;
                                         }
                                         else if (thisPower > 0.55f)
@@ -210,38 +220,38 @@ public class Top8 : MonoBehaviour {
                                             fly = true;
                                             numBases = 1;
                                             bases[0] = false;
-                                            abs++;
                                             outs++;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24]++;
                                         }
                                         else if (thisPower > 0.45f)
                                         {
                                             numBases = 2;
                                             /*if (i == 0)
                                                 Debug.Log(strikes + "-" + balls + " Double");*/
-                                            doubles++;
-                                            abs++;
+                                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][4]++;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][26]++;
                                         }
                                         else if (thisPower > 0.35f)
                                         {
                                             /*if (i == 0)
                                                 Debug.Log(strikes + "-" + balls + " Popout");*/
                                             numBases = 0;
-                                            abs++;
                                             outs++;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24]++;
                                         }
                                         else if (thisPower > 0.2f)
                                         {
                                             numBases = 1;
                                             /*if (i == 0)
                                                 Debug.Log(strikes + "-" + balls + " Single");*/
-                                            singles++;
-                                            abs++;
+                                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][3]++;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][26]++;
                                         }
                                         else if (thisPower > 0.10f)
                                         {
                                             numBases = 0;
                                             outs++;
-                                            abs++;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24]++;
                                             /*if (i == 0)
                                                 Debug.Log("Lineout");*/
                                         }
@@ -251,6 +261,7 @@ public class Top8 : MonoBehaviour {
                                             if (bases[1])
                                             {
                                                 outs += 2;
+                                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24] += 2;
                                                 bases[1] = false;
                                                 /*if (i == 0)
                                                     Debug.Log("Double Play");*/
@@ -258,12 +269,13 @@ public class Top8 : MonoBehaviour {
                                             else
                                             {
                                                 outs++;
-                                                abs++;
+                                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24]++;
                                                 /*if (i == 0)
                                                     Debug.Log("Groundout");*/
                                             }
-
                                         }
+                                        allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][1]++;
+                                        allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]++;
                                     }
 
                                     if (outs < 3)
@@ -277,15 +289,18 @@ public class Top8 : MonoBehaviour {
                                                 if (k + numBases > 3)
                                                 {
                                                     scores[otherTeam]++;
-                                                    rbis++;
+                                                    allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][8]++;
+                                                    allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][27]++;
+                                                    allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][28]++;
                                                 }
                                                 else
                                                     bases[k + numBases] = true;
                                             }
                                         if (fly && advanced)
                                         {
-                                            sacs++;
-                                            abs--;
+                                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][13]++;
+                                            allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][1]--;
+                                            allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]--;
                                         }
                                     }
 
@@ -307,11 +322,14 @@ public class Top8 : MonoBehaviour {
                             if (strikes == 3)
                             {
                                 outs++;
-                                abs++;
+                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][24]++;
+                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][25]++;
+                                allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][1]++;
                                 /*if (i == 0)
                                     Debug.Log(strikes + "-" + balls + " Strikeout");*/
                                 batters[otherTeam] = (batters[otherTeam] + 1) % 9;
-                                strikeouts++;
+                                allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][10]++;
+                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][31]++;
                                 strikes = 0;
                                 balls = 0;
                             }
@@ -324,7 +342,7 @@ public class Top8 : MonoBehaviour {
                                 if (currBase == 4)
                                 {
                                     scores[otherTeam]++;
-                                    rbis++;
+                                    allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][8]++;
                                 }
                                 else
                                     for (int k = currBase; k > 0; k--)
@@ -336,12 +354,14 @@ public class Top8 : MonoBehaviour {
                                 /*if (i == 0)
                                     Debug.Log(strikes + "-" + balls + " Walk");*/
 
-                                walks++;
+                                allTeams.teams[teams[otherTeam]].pStats[batters[otherTeam]][9]++;
+                                allTeams.teams[teams[thisTeam]].pStats[pitchers[thisTeam]][30]++;
 
                                 batters[otherTeam] = (batters[otherTeam] + 1) % 9;
                                 strikes = 0;
                                 balls = 0;
                             }
+                            staminas[thisTeam]--;
                         }
                     }
 
@@ -420,6 +440,7 @@ public class Top8 : MonoBehaviour {
                         for (int k = 0; k < schedule.Length; k++)
                         {
                             top8[schedule[k]].pwl[1] = 0;
+                            top8[schedule[k]].pwl[2] = 0;
                             GameObject.Find("txtTeam" + schedule[k]).GetComponent<Text>().name = "txtWinner";
                             Text text = GameObject.Find("txt" + round.ToString() + k.ToString()).GetComponent<Text>();
                             text.name = "txtTeam" + schedule[k];
@@ -430,6 +451,7 @@ public class Top8 : MonoBehaviour {
                     else
                     {
                         championPanel.SetActive(true);
+                        DetermineMVP();
                         GameObject.Find("txtChampion").GetComponent<Text>().text = top8[newRound[i]].cityName + " " + top8[newRound[i]].teamName;
                         allTeams.needDraft = true;
                         PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
@@ -450,7 +472,7 @@ public class Top8 : MonoBehaviour {
                             for (int l = 0; l < allTeams.teams[k].players.Count; l++)
                             {
                                 int increase;
-                                string playerString = "";
+                                string playerString = "", currStats = "";
 
                                 if (int.Parse(allTeams.teams[k].players[l][6]) <= 0)
                                     allTeams.teams[k].players[l][4] = (int.Parse(allTeams.teams[k].players[l][6]) - (int)(Random.value * 10)).ToString();
@@ -469,6 +491,17 @@ public class Top8 : MonoBehaviour {
                                 playerString += allTeams.teams[k].players[l][allTeams.teams[k].players[l].Length - 1];
 
                                 PlayerPrefs.SetString("Player" + k + "-" + l, playerString);
+
+                                for (int m = 0; m < allTeams.teams[k].pStats[l].Length - 1; m++)
+                                {
+                                    allTeams.teams[k].pStats[l][m] = 0;
+                                    currStats += "0,";
+                                }
+
+                                allTeams.teams[k].pStats[l][allTeams.teams[k].pStats[l].Length - 1] = 0;
+                                currStats += "0";
+
+                                PlayerPrefs.SetString("PlayerStats" + k + "-" + l, currStats);
                             }
                         }
 
@@ -497,5 +530,42 @@ public class Top8 : MonoBehaviour {
 
         GameObject.Find("txtWL").GetComponent<Text>().text = "W/L: " + allTeams.teams[0].pwl[1] + "/" + allTeams.teams[0].pwl[2];
         GameObject.Find("txtTheirScore").GetComponent<Text>().text = "Them: " + them;
+    }
+
+    void DetermineMVP()
+    {
+        double mvpWorth, cyWorth, bestMVP = 0.0, bestCY = 0.0, mvpOPS = 0.0, cyERA = 0.0;
+        int[] mvp = new int[2], cy = new int[2];
+        for (int i = 0; i < allTeams.GetNumTeams(); i++)
+            for(int j = 0; j < allTeams.teams[i].pStats.Count; j++)
+            {
+                
+                if(allTeams.teams[i].players[j][2].Contains("P"))
+                {
+                    double era = allTeams.teams[i].pStats[j][28] * 27 / (double)allTeams.teams[i].pStats[j][24];
+                    cyWorth = (6.0 - era) * 5 + allTeams.teams[i].pStats[j][24] / (double)8;
+                    if (cyWorth > bestCY)
+                    {
+                        bestCY = cyWorth;
+                        cy[0] = i;
+                        cy[1] = j;
+                        cyERA = era;
+                    }
+                }
+                else
+                {
+                    double ops = (allTeams.teams[i].pStats[j][3] + allTeams.teams[i].pStats[j][9]) / (double)(allTeams.teams[i].pStats[j][1] + allTeams.teams[i].pStats[j][9] + allTeams.teams[i].pStats[j][13]) + (allTeams.teams[i].pStats[j][3] + allTeams.teams[i].pStats[j][4] * 2 + allTeams.teams[i].pStats[j][5] * 3 + allTeams.teams[i].pStats[j][6] * 4) / (double)allTeams.teams[i].pStats[j][1];
+                    mvpWorth = allTeams.teams[i].pStats[j][6] / 40.0 + ops * 25;
+                    if (mvpWorth > bestMVP)
+                    {
+                        bestMVP = mvpWorth;
+                        mvp[0] = i;
+                        mvp[1] = j;
+                        mvpOPS = ops;
+                    }
+                }
+            }
+        GameObject.Find("txtMVP").GetComponent<Text>().text = allTeams.teams[mvp[0]].players[mvp[1]][0] + " " + allTeams.teams[mvp[0]].players[mvp[1]][1] + " (" + allTeams.teams[mvp[0]].shortform + ") OPS: " + mvpOPS.ToString("0.000") + " HR: " + allTeams.teams[mvp[0]].pStats[mvp[1]][6];
+        GameObject.Find("txtCY").GetComponent<Text>().text = allTeams.teams[cy[0]].players[cy[1]][0] + " " + allTeams.teams[cy[0]].players[cy[1]][1] + " (" + allTeams.teams[cy[0]].shortform + ") ERA: " + cyERA.ToString("0.00") + " SO: " + allTeams.teams[cy[0]].pStats[cy[1]][24];
     }
 }

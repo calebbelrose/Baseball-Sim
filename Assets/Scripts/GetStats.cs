@@ -9,7 +9,7 @@ public class GetStats : MonoBehaviour {
     GameObject teamList;
     GameObject manager;
     AllTeams allTeams;
-    string[] headers = new string[] { "G", "AB", "R", "H", "2B", "3B", "HR", "RBI", "BB", "SO", "SB", "CS", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP" };
+    string[] headers = new string[] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP" };
     string[] playerInfoHeaders = new string[] { "First Name", "Last Name", "Position", "Team" };
     int currSortedStat = 10;
     char order = 'd';
@@ -32,29 +32,6 @@ public class GetStats : MonoBehaviour {
         for (int i = 0; i < headerLengths.Length; i++)
             headerLengths[i] = headers[i].Length;
 
-        for (int i = 0; i < allTeams.teams.Length; i++)
-        {
-            if (allTeams.teams[i].shortform.Length > playerInfoLengths[playerInfoLengths.Length - 1])
-                playerInfoLengths[playerInfoLengths.Length - 1] = allTeams.teams[i].shortform.Length;
-
-            for (int j = 0; j < allTeams.teams[i].players.Count; j++)
-            {
-                for(int k = 0; k < playerInfoLengths.Length - 1; k++)
-                    if (allTeams.teams[i].players[j][k].Length > playerInfoLengths[k])
-                        playerInfoLengths[k] = allTeams.teams[i].players[j][k].Length;
-
-                for (int k = 0; k < headers.Length; k++)
-                    if (allTeams.teams[i].pStats[j][k].ToString().Length > headerLengths[k])
-                        headerLengths[k] = allTeams.teams[i].pStats[j][k].ToString().Length;
-            }
-        }
-
-        for (int i = 0; i < playerInfoLengths.Length; i++)
-            playerInfoLengths[i]++;
-
-        for (int i = 0; i < headerLengths.Length; i++)
-            headerLengths[i]++;
-
         teams = new Team[allTeams.GetNumTeams()];
         allTeams.teams.CopyTo(teams, 0);
 
@@ -62,18 +39,95 @@ public class GetStats : MonoBehaviour {
             for (int j = 0; j < teams[i].pStats.Count; j++)
             {
                 string[] copy = new string[playerInfoHeaders.Length + teams[i].pStats[j].Length];
-                int currStat = 0;
+                int currStat = 0, temp, tb;
+                double obp, slug;
 
                 for (int k = 0; k < playerInfoHeaders.Length - 1; k++)
                     copy[currStat++] = teams[i].players[j][k];
 
                 copy[currStat++] = teams[i].shortform;
 
-                for (int k = 0; k < headers.Length; k++)
+                for (int k = 0; k < 7; k++)
                     copy[currStat++] = teams[i].pStats[j][k].ToString();
+
+                tb = teams[i].pStats[j][3] + teams[i].pStats[j][4] * 2 + teams[i].pStats[j][5] * 3 + teams[i].pStats[j][6] * 4;
+                copy[currStat++] = tb.ToString();
+
+                for (int k = 8; k < 14; k++)
+                    copy[currStat++] = teams[i].pStats[j][k].ToString();
+
+                if(teams[i].pStats[j][1] != 0)
+                    copy[currStat++] = (teams[i].pStats[j][3] / (double)teams[i].pStats[j][1]).ToString("0.000");
+                else 
+                    copy[currStat++] = (teams[i].pStats[j][3] / (double)1).ToString("0.000");
+
+                temp = (teams[i].pStats[j][1] + teams[i].pStats[j][9] + teams[i].pStats[j][13]);
+                if (temp != 0)
+                    obp = (teams[i].pStats[j][3] + teams[i].pStats[j][9]) / (double)temp;
+                else
+                    obp = (teams[i].pStats[j][3] + teams[i].pStats[j][9]) / (double)1;
+                copy[currStat++] = obp.ToString("0.000");
+
+                if(teams[i].pStats[j][1] != 0)
+                    slug = tb / (double)teams[i].pStats[j][1];
+                else
+                    slug = tb / (double)1;
+                copy[currStat++] = (slug).ToString("0.000");
+
+                copy[currStat++] = (obp + slug).ToString("0.000");
+
+                for (int k = 18; k < 20; k++)
+                    copy[currStat++] = teams[i].pStats[j][k].ToString();
+
+                if (teams[i].pStats[j][24] != 0)
+                    copy[currStat++] = (teams[i].pStats[j][28] * 27 / (double)teams[i].pStats[j][24]).ToString("0.00");
+                else
+                    copy[currStat++] = (teams[i].pStats[j][28] * 27 / (double)1 / 3).ToString("0.00");
+
+                for (int k = 21; k < 24; k++)
+                    copy[currStat++] = teams[i].pStats[j][k].ToString();
+
+                if (teams[i].pStats[j][24] != 0)
+                    copy[currStat++] = (teams[i].pStats[j][24] / 3).ToString() + "." + (teams[i].pStats[j][24] % 3).ToString();
+                else
+                    copy[currStat++] = "0.0";
+
+                for (int k = 25; k < 32; k++)
+                    copy[currStat++] = teams[i].pStats[j][k].ToString();
+
+                if (teams[i].pStats[j][24] != 0)
+                    copy[currStat++] = (teams[i].pStats[j][26]  / (double)teams[i].pStats[j][25]).ToString("0.000");
+                else
+                    copy[currStat++] = (teams[i].pStats[j][26] / (double)1).ToString("0.000");
+
+                if (teams[i].pStats[j][24] != 0)
+                    copy[currStat++] = ((teams[i].pStats[j][26] + teams[i].pStats[j][29]) / (double)teams[i].pStats[j][24] / 3).ToString("0.000");
+                else
+                    copy[currStat++] = ((teams[i].pStats[j][26] + teams[i].pStats[j][29]) / (double)1 / 3).ToString("0.000");
 
                 tempStats.Add(copy);
             }
+
+        for (int i = 0; i < tempStats.Count; i++)
+        {
+            for (int j = 0; j < playerInfoLengths.Length - 1; j++)
+                if (tempStats[i][j].Length > playerInfoLengths[j])
+                    playerInfoLengths[j] = tempStats[i][j].Length;
+
+            for (int j = 0; j < headers.Length; j++)
+                if (tempStats[i][j + playerInfoLengths.Length].Length > headerLengths[j])
+                    headerLengths[j] = tempStats[i][j + playerInfoLengths.Length].Length;
+        }
+
+        for (int i = 0; i < allTeams.teams.Length; i++)
+            if (allTeams.teams[i].shortform.Length > playerInfoLengths[playerInfoLengths.Length - 1])
+                playerInfoLengths[playerInfoLengths.Length - 1] = allTeams.teams[i].shortform.Length;
+
+        for (int i = 0; i < playerInfoLengths.Length; i++)
+            playerInfoLengths[i]++;
+
+        for (int i = 0; i < headerLengths.Length; i++)
+            headerLengths[i]++;
 
         IntSort(10, 0, tempStats.Count - 1);
         DisplayHeader();
@@ -189,10 +243,16 @@ public class GetStats : MonoBehaviour {
 
     public void StartSorting(string name)
     {
-        int left = 0, right = tempStats.Count- 1, statNum = int.Parse(name.Remove(0, 6));
-        string pivot = tempStats[(int)(left + (right - left) / 2)][statNum];
-        int test;
-        bool isInt = int.TryParse(pivot, out test);
+        int left = 0, right = tempStats.Count - 1, statNum = int.Parse(name.Remove(0, 6));
+        bool isInt = false, isFloat = false;
+        int[] intStats = { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 22, 23, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35 };
+        isInt = intStats.Contains(statNum);
+
+        if (!isInt)
+        {
+            int[] floatStats = { 18, 19, 20, 21, 24, 28, 35, 36 };
+            isFloat = floatStats.Contains(statNum);
+        }
 
         if (currSortedStat == statNum)
         {
@@ -203,7 +263,7 @@ public class GetStats : MonoBehaviour {
         }
         else
         {
-            if (isInt)
+            if (isInt || isFloat)
                 order = 'd';
             else
                 order = 'a';
@@ -211,6 +271,8 @@ public class GetStats : MonoBehaviour {
 
         if (isInt)
             IntSort(statNum, left, right);
+        else if (isFloat)
+            FloatSort(statNum, left, right);
         else
             Sort(statNum, left, right);
 
@@ -341,6 +403,65 @@ public class GetStats : MonoBehaviour {
         if (i < right)
         {
             IntSort(statNum, i, right);
+        }
+    }
+
+    void FloatSort(int statNum, int left, int right)
+    {
+        int i = left, j = right;
+        float pivot = float.Parse(tempStats[(int)(left + (right - left) / 2)][statNum]);
+
+        if (order == 'a')
+            while (i <= j)
+            {
+                while (float.Parse(tempStats[i][statNum]) < pivot)
+                    i++;
+
+                while (float.Parse(tempStats[j][statNum]) > pivot)
+                    j--;
+
+                if (i <= j)
+                {
+                    string[] temp;
+
+                    temp = tempStats[i];
+                    tempStats[i] = tempStats[j];
+                    tempStats[j] = temp;
+
+                    i++;
+                    j--;
+                }
+            }
+        else
+            while (i <= j)
+            {
+                while (float.Parse(tempStats[i][statNum]) > pivot)
+                    i++;
+
+                while (float.Parse(tempStats[j][statNum]) < pivot)
+                    j--;
+
+                if (i <= j)
+                {
+                    string[] temp;
+
+                    temp = tempStats[i];
+                    tempStats[i] = tempStats[j];
+                    tempStats[j] = temp;
+
+                    i++;
+                    j--;
+                }
+            }
+
+        if (left < j)
+        {
+            FloatSort(statNum, left, j);
+        }
+
+        if (i < right)
+        {
+            FloatSort(statNum, i, right);
         }
     }
 }

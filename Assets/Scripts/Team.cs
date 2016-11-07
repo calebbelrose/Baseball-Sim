@@ -13,7 +13,7 @@ public class Team {
     string[] stats;
     public List<int[]> pStats;
     public string shortform;
-    string[] pStatList = {"G", "AB", "R", "H", "2B", "3B", "HR", "RBI", "BB", "SO", "SB", "CS", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP"};
+    string[] pStatList = { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP" };
 
     public Team()
     {
