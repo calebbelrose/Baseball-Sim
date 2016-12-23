@@ -6,15 +6,144 @@ using System.IO;
 public class AllTeams : MonoBehaviour {
 
     static int numTeams = 30;
-    public Team[] teams = new Team[numTeams];
+	public List<Team> teams = new List<Team>();
     public int[,] schedule = new int[numTeams / 2, 2];
     public int year, numPlays, numStats, currStarter;
     public bool needDraft, inFinals;
-    string[] stats = File.ReadAllLines("Stats.txt");
+    public string[] stats = File.ReadAllLines("Stats.txt");
+	public List<string> tradeList;
+	public List<string> injuries;
+	public int longestHitStreak = 0, hitStreakYear;
+	public string hitStreakName;
+	int[] league = new int[] {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	division = new int[] {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	home = new int[] {1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 };
 
     // Use this for initialization
-    void Start () {
-        numStats = stats.Length;
+    void Start ()
+	{
+		string[] lines = File.ReadAllLines ("test.txt");
+		System.IO.StreamWriter file1 = new System.IO.StreamWriter ("test1.txt");
+		bool home = false;
+		for (int i = 0; i < lines.Length; i++)
+		{
+			if (lines [i] == "-1")
+			{
+				home = true;
+				file1.WriteLine ("teamSchedule.Add(new ScheduledGame(29,1==1));");
+			}
+			else if (lines [i] == "vs")
+				home = true;
+			else if (lines [i] == "@")
+				home = false;
+			else if (lines [i] != " ") {
+				file1.Write ("teamSchedule.Add(new ScheduledGame(");
+				switch (lines [i]) {
+				case "Toronto":
+					file1.Write ("0,");
+					break;
+				case "Baltimore":
+					file1.Write ("1,");
+					break;
+				case "Tampa Bay":
+					file1.Write ("2,");
+					break;
+				case "Boston":
+					file1.Write ("3,");
+					break;
+				case "NY Yankees":
+					file1.Write ("4,");
+					break;
+				case "Detroit":
+					file1.Write ("5,");
+					break;
+				case "Cleveland":
+					file1.Write ("6,");
+					break;
+				case "White Sox":
+					file1.Write ("7,");
+					break;
+				case "Kansas City":
+					file1.Write ("8,");
+					break;
+				case "Minnesota":
+					file1.Write ("9,");
+					break;
+				case "LA Angels":
+					file1.Write ("10,");
+					break;
+				case "Seattle":
+					file1.Write ("11,");
+					break;
+				case "Texas":
+					file1.Write ("12,");
+					break;
+				case "Oakland":
+					file1.Write ("13,");
+					break;
+				case "Houston":
+					file1.Write ("14,");
+					break;
+				case "Atlanta":
+					file1.Write ("15,");
+					break;
+				case "Washington":
+					file1.Write ("16,");
+					break;
+				case "Miami":
+					file1.Write ("17,");
+					break;
+				case "Philadelphia":
+					file1.Write ("18,");
+					break;
+				case "NY Mets":
+					file1.Write ("19,");
+					break;
+				case "Milwaukee":
+					file1.Write ("20,");
+					break;
+				case "St. Louis":
+					file1.Write ("21,");
+					break;
+				case "Cincinnati":
+					file1.Write ("22,");
+					break;
+				case "Pittsburgh":
+					file1.Write ("23,");
+					break;
+				case "Cubs":
+					file1.Write ("24,");
+					break;
+				case "Arizona":
+					file1.Write ("25,");
+					break;
+				case "San Diego":
+					file1.Write ("26,");
+					break;
+				case "San Francisco":
+					file1.Write ("27,");
+					break;
+				case "LA Dodgers":
+					file1.Write ("28,");
+					break;
+				case "Colorado":
+					file1.Write ("29,");
+					break;
+				default:
+					System.IO.StreamWriter file2 = new System.IO.StreamWriter ("test2.txt");
+					file2.WriteLine (lines[i]);
+					file2.Close ();
+					break;
+				}
+				if (home)
+					file1.WriteLine ("1==1));");
+				else
+					file1.WriteLine ("0==1));");
+			}
+		}
+
+		file1.Close ();
+
 
         if (PlayerPrefs.HasKey("Year"))
         {
@@ -26,60 +155,59 @@ public class AllTeams : MonoBehaviour {
             
             for (int i = 0; i < numTeams; i++)
             {
-                teams[i] = new Team();
+                Team team = new Team();
                 int numPlayers = PlayerPrefs.GetInt("NumPlayers" + i);
                 string teamInfo = PlayerPrefs.GetString("Team" + i);
                 string teamOveralls = PlayerPrefs.GetString("Overalls" + i);
                 string[] teamInfoSplit = teamInfo.Split(',');
                 string[] teamOverallsSplit = teamOveralls.Split(',');
-                string[] pwl;
+                string[] wl;
                 string[] splitName;
 
                 for (int j = 0; j < numPlayers; j++)
                 {
-                    string player = PlayerPrefs.GetString("Player" + i + "-" + j);
-                    string[] newPlayer = player.Split(',');
-                    string currStats;
-                    string[] splitStats;
+					Player newPlayer = new Player ();
 
-                    teams[i].players.Add(newPlayer);
-                    currStats = PlayerPrefs.GetString("PlayerStats" + i + "-" + teams[i].pStats.Count);
-                    splitStats = currStats.Split(',');
-                    teams[i].pStats.Add(teams[i].NewEmptyStats());
+					newPlayer.LoadPlayer (i, j);
 
-                    for (int k = 0; k < splitStats.Length; k++)
-                        teams[i].pStats[teams[i].pStats.Count - 1][k] = int.Parse(splitStats[k]);
+                    team.players.Add(newPlayer);
+					team.currentSalary += newPlayer.salary;
                 }
 
-                teams[i].id = int.Parse(teamInfoSplit[0]);
-                teams[i].cityName = teamInfoSplit[1];
-                teams[i].teamName = teamInfoSplit[2];
-                teams[i].pick = int.Parse(teamInfoSplit[3]);
-                teams[i].overalls[0] = float.Parse(teamOverallsSplit[0]);
-                teams[i].overalls[1] = float.Parse(teamOverallsSplit[1]);
-                teams[i].overalls[2] = float.Parse(teamOverallsSplit[2]);
-                splitName = (teams[i].cityName + " " + teams[i].teamName).Split(' ');
+                team.id = int.Parse(teamInfoSplit[0]);
+                team.cityName = teamInfoSplit[1];
+                team.teamName = teamInfoSplit[2];
+                team.pick = int.Parse(teamInfoSplit[3]);
+                team.overalls[0] = float.Parse(teamOverallsSplit[0]);
+                team.overalls[1] = float.Parse(teamOverallsSplit[1]);
+                team.overalls[2] = float.Parse(teamOverallsSplit[2]);
+                splitName = (team.cityName + " " + team.teamName).Split(' ');
 
                 for (int j = 0; j < splitName.Length; j++)
                     if (System.Char.IsLetter(splitName[j][0]) && System.Char.IsUpper(splitName[j][0]))
-                        teams[i].shortform += splitName[j][0];
+                        team.shortform += splitName[j][0];
                 
-                pwl = PlayerPrefs.GetString("PWL" + i).Split(',');
-                for(int j = 0; j < pwl.Length; j++)
-                    teams[i].pwl[j] = int.Parse(pwl[j]);
+                wl = PlayerPrefs.GetString("WL" + i).Split(',');
+				team.wins = int.Parse(wl [0]);
+				team.losses = int.Parse(wl [1]);
 
                 for(int j = 0; j < 5; j++)
-                    teams[i].SP.Add(PlayerPrefs.GetInt("SP" + i + "-" + j));
+                    team.SP.Add(PlayerPrefs.GetInt("SP" + i + "-" + j));
 
                 for(int j = 0; j < 9; j++)
-                    teams[i].Batters.Add(PlayerPrefs.GetInt("Batter" + i + "-" + j));
+                    team.Batters.Add(PlayerPrefs.GetInt("Batter" + i + "-" + j));
 
                 for (int j = 0; j < 3; j++)
-                    teams[i].RP.Add(PlayerPrefs.GetInt("RP" + i + "-" + j));
+                    team.RP.Add(PlayerPrefs.GetInt("RP" + i + "-" + j));
 
                 for (int j = 0; j < 1; j++)
-                    teams[i].CP.Add(PlayerPrefs.GetInt("CP" + i + "-" + j));
+                    team.CP.Add(PlayerPrefs.GetInt("CP" + i + "-" + j));
+
+				teams.Add (team);
             }
+
+			Player.longestFirstName = PlayerPrefs.GetInt ("LongestFirstName");
+			Player.longestLastName = PlayerPrefs.GetInt ("LongestLastName");
             
             string fullSchedule = PlayerPrefs.GetString("Schedule");
             string[] tempSchedule = fullSchedule.Split(',');
@@ -98,278 +226,85 @@ public class AllTeams : MonoBehaviour {
     }
 
     public void Restart()
-    {
-        List<int> picksLeft = new List<int>();
-        string strSchedule = "";
+	{
+		List<int> picksLeft = new List<int> ();
+		string strSchedule = "";
 
-        year = System.DateTime.Now.Year;
-        PlayerPrefs.SetString("Year", year.ToString());
-        needDraft = true;
-        PlayerPrefs.SetString("NeedDraft", needDraft.ToString());
-        inFinals = false;
-        PlayerPrefs.SetString("InFinals", inFinals.ToString());
-        currStarter = 0;
-        PlayerPrefs.SetInt("CurrStarter", currStarter);
+		year = System.DateTime.Now.Year;
+		PlayerPrefs.SetString ("Year", year.ToString ());
+		numPlays = 0;
+		PlayerPrefs.SetString ("NumPlays", numPlays.ToString ());
+		needDraft = true;
+		PlayerPrefs.SetString ("NeedDraft", needDraft.ToString ());
+		inFinals = false;
+		PlayerPrefs.SetString ("InFinals", inFinals.ToString ());
+		currStarter = 0;
+		PlayerPrefs.SetInt ("CurrStarter", currStarter);
+		tradeList = new List<string> ();
 
-        for (int i = 0; i < teams.Length; i++)
-            picksLeft.Add(i);
+		for (int i = 0; i < numTeams; i++)
+			picksLeft.Add (i);
 
-        for (int i = 0; i < teams.Length; i++)
-        {
-            teams[i] = new Team();
-            string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
-            string[] firstNames, lastNames, cityNames, teamNames;
-            string[] newPlayer = new string[stats.Length];
-            string playerString, currStats = "";
-            float totalStats, totalOffense, totalDefense;
-            int age, potential;
+		for (int i = 0; i < numTeams; i++) {
+			Team team = new Team ();
+			string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
+			Player newPlayer;
 
-            firstNames = File.ReadAllLines("FirstNames.txt");
-            lastNames = File.ReadAllLines("LastNames.txt");
-            cityNames = File.ReadAllLines("CityNames.txt");
-            teamNames = File.ReadAllLines("TeamNames.txt");
-            teams[i].cityName = cityNames[(int)(Random.value * cityNames.Length)];
-            teams[i].teamName = teamNames[(int)(Random.value * teamNames.Length)];
-            teams[i].id = i;
-            teams[i].pick = picksLeft[(int)(Random.value * picksLeft.Count)];
+			team.id = i;
+			team.pick = picksLeft [(int)(Random.value * picksLeft.Count)];
 
-            for (int j = 3; j < positions.Length; j++)
-            {
-                newPlayer = new string[stats.Length];
-                playerString = "";
-                totalStats = 0;
-                totalOffense = 0;
-                totalDefense = 0;
+			for (int j = 3; j < positions.Length; j++) {
+				newPlayer = new Player (positions [j]);
+				newPlayer.playerNumber = team.players.Count;
 
-                newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
-                newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
-                newPlayer[2] = positions[j];
+				newPlayer.SavePlayer (i, newPlayer.playerNumber);
+				PlayerPrefs.SetInt ("Batter" + i + "-" + team.Batters.Count, newPlayer.playerNumber);
+				team.Batters.Add (newPlayer.playerNumber);
+				team.players.Add (newPlayer);
+				team.currentSalary += newPlayer.salary;
+			}
 
-                age = (int)(Random.value * 27) + 18;
-                newPlayer[7] = age.ToString();
+			for (int j = 0; j < 5; j++) {
+				newPlayer = new Player ("SP");
+				newPlayer.playerNumber = team.players.Count;
 
-                for (int k = 8; k < stats.Length; k++)
-                {
-                    int currStat = (int)(Random.value * age) + 55;
-                    newPlayer[k] = currStat.ToString();
-                    totalStats += currStat;
-                    if (k < 11)
-                        totalOffense += currStat;
-                    else if (k > 11)
-                        totalDefense += currStat;
-                    else
-                    {
-                        totalOffense += currStat;
-                        totalDefense += currStat;
-                    }
-                }
+				newPlayer.SavePlayer (i, newPlayer.playerNumber);
+				PlayerPrefs.SetInt ("SP" + i + "-" + team.SP.Count, newPlayer.playerNumber);
+				team.SP.Add (newPlayer.playerNumber);
+				team.players.Add (newPlayer);
+				team.currentSalary += newPlayer.salary;
+			}
 
-                potential = (int)(Random.value * 25 + (43 - age) * 3);
-                if (potential < 0)
-                    potential = 0;
-                newPlayer[6] = potential.ToString();
+			for (int j = 0; j < 3; j++) {
+				newPlayer = new Player ("RP");
+				newPlayer.playerNumber = team.players.Count;
 
-                newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
-                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
-                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
+				newPlayer.SavePlayer (i, newPlayer.playerNumber);
+				PlayerPrefs.SetInt ("RP" + i + "-" + team.RP.Count, newPlayer.playerNumber);
+				team.RP.Add (newPlayer.playerNumber);
+				team.players.Add (newPlayer);
+				team.currentSalary += newPlayer.salary;
+			}
 
-                for (int k = 0; k < newPlayer.Length - 1; k++)
-                    playerString += newPlayer[k] + ",";
-                playerString += newPlayer[newPlayer.Length - 1];
+			newPlayer = new Player ("CP");
+			newPlayer.playerNumber = team.players.Count;
 
-                PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
-                PlayerPrefs.SetInt("Batter" + i + "-" + teams[i].Batters.Count, teams[i].players.Count);
-                teams[i].Batters.Add(teams[i].players.Count);
-                teams[i].players.Add(newPlayer);
-                teams[i].pStats.Add(teams[i].NewEmptyStats());
+			newPlayer.SavePlayer (i, newPlayer.playerNumber);
+			PlayerPrefs.SetInt ("CP" + i + "-" + team.CP.Count, newPlayer.playerNumber);
+			team.CP.Add (newPlayer.playerNumber);
+			team.players.Add (newPlayer);
+			team.currentSalary += newPlayer.salary;
 
-                for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length - 1; k++)
-                    currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
+			PlayerPrefs.SetString ("Team" + team.id, team.id + "," + team.cityName + "," + team.teamName + "," + team.pick);
+			PlayerPrefs.SetString ("Overalls" + team.id, team.overalls [0] + "," + team.overalls [1] + "," + team.overalls [2]);
+			PlayerPrefs.SetString ("WL" + team.id.ToString (), "0,0");
+			PlayerPrefs.SetInt ("NumPlayers" + i, team.players.Count);
 
-                currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
+			teams.Add (team);
+		}
 
-                PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
-                currStats = "";
-            }
-
-            for (int j = 0; j < 5; j++)
-            {
-                newPlayer = new string[stats.Length];
-                playerString = "";
-                totalStats = 0;
-                totalOffense = 0;
-                totalDefense = 0;
-
-                newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
-                newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
-                newPlayer[2] = "SP";
-
-                age = (int)(Random.value * 27) + 18;
-                newPlayer[7] = age.ToString();
-
-                for (int k = 8; k < stats.Length; k++)
-                {
-                    int currStat = (int)(Random.value * age) + 55;
-                    newPlayer[k] = currStat.ToString();
-                    totalStats += currStat;
-                    if (k < 11)
-                        totalOffense += currStat;
-                    else if (k > 11)
-                        totalDefense += currStat;
-                    else
-                    {
-                        totalOffense += currStat;
-                        totalDefense += currStat;
-                    }
-                }
-
-                potential = (int)(Random.value * 25 + (43 - age) * 3);
-                if (potential < 0)
-                    potential = 0;
-                newPlayer[6] = potential.ToString();
-
-                newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
-                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
-                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
-
-                for (int k = 0; k < newPlayer.Length - 1; k++)
-                    playerString += newPlayer[k] + ",";
-                playerString += newPlayer[newPlayer.Length - 1];
-
-                PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
-                PlayerPrefs.SetInt("Batter" + i + "-" + teams[i].Batters.Count, teams[i].players.Count);
-                teams[i].SP.Add(teams[i].players.Count);
-                teams[i].players.Add(newPlayer);
-                teams[i].pStats.Add(teams[i].NewEmptyStats());
-
-                for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length - 1; k++)
-                    currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
-
-                currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
-
-                PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
-                currStats = "";
-            }
-
-            for (int j = 0; j < 3; j++)
-            {
-                newPlayer = new string[stats.Length];
-                playerString = "";
-                totalStats = 0;
-                totalOffense = 0;
-                totalDefense = 0;
-
-                newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
-                newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
-                newPlayer[2] = "RP";
-
-                age = (int)(Random.value * 27) + 18;
-                newPlayer[7] = age.ToString();
-
-                for (int k = 8; k < stats.Length; k++)
-                {
-                    int currStat = (int)(Random.value * age) + 55;
-                    newPlayer[k] = currStat.ToString();
-                    totalStats += currStat;
-                    if (k < 11)
-                        totalOffense += currStat;
-                    else if (k > 11)
-                        totalDefense += currStat;
-                    else
-                    {
-                        totalOffense += currStat;
-                        totalDefense += currStat;
-                    }
-                }
-
-                potential = (int)(Random.value * 25 + (43 - age) * 3);
-                if (potential < 0)
-                    potential = 0;
-                newPlayer[6] = potential.ToString();
-
-                newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
-                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
-                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
-
-                for (int k = 0; k < newPlayer.Length - 1; k++)
-                    playerString += newPlayer[k] + ",";
-                playerString += newPlayer[newPlayer.Length - 1];
-
-                PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
-                PlayerPrefs.SetInt("Batter" + i + "-" + teams[i].Batters.Count, teams[i].players.Count);
-                teams[i].RP.Add(teams[i].players.Count);
-                teams[i].players.Add(newPlayer);
-                teams[i].pStats.Add(teams[i].NewEmptyStats());
-
-                for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length - 1; k++)
-                    currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
-
-                currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
-
-                PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
-                currStats = "";
-            }
-
-            newPlayer = new string[stats.Length];
-            playerString = "";
-            totalStats = 0;
-            totalOffense = 0;
-            totalDefense = 0;
-
-            newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
-            newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
-            newPlayer[2] = "CP";
-
-            age = (int)(Random.value * 27) + 18;
-            newPlayer[7] = age.ToString();
-
-            for (int k = 8; k < stats.Length; k++)
-            {
-                int currStat = (int)(Random.value * age) + 55;
-                newPlayer[k] = currStat.ToString();
-                totalStats += currStat;
-                if (k < 11)
-                    totalOffense += currStat;
-                else if (k > 11)
-                    totalDefense += currStat;
-                else
-                {
-                    totalOffense += currStat;
-                    totalDefense += currStat;
-                }
-            }
-
-            potential = (int)(Random.value * 25 + (43 - age) * 3);
-            if (potential < 0)
-                potential = 0;
-            newPlayer[6] = potential.ToString();
-
-            newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
-            newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
-            newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
-
-            for (int k = 0; k < newPlayer.Length - 1; k++)
-                playerString += newPlayer[k] + ",";
-            playerString += newPlayer[newPlayer.Length - 1];
-
-            PlayerPrefs.SetString("Player" + i + "-" + teams[i].players.Count, playerString);
-            PlayerPrefs.SetInt("Batter" + i + "-" + teams[i].Batters.Count, teams[i].players.Count);
-            teams[i].CP.Add(teams[i].players.Count);
-            teams[i].players.Add(newPlayer);
-            teams[i].pStats.Add(teams[i].NewEmptyStats());
-
-            for (int k = 0; k < teams[i].pStats[teams[i].pStats.Count - 1].Length - 1; k++)
-                currStats += teams[i].pStats[teams[i].pStats.Count - 1][k] + ",";
-
-            currStats += teams[i].pStats[teams[i].pStats.Count - 1][teams[i].pStats[teams[i].pStats.Count - 1].Length - 1];
-
-            PlayerPrefs.SetString("PlayerStats" + i + "-" + (teams[i].pStats.Count - 1), currStats);
-
-            PlayerPrefs.SetString("Team" + teams[i].id, teams[i].id + "," + teams[i].cityName + "," + teams[i].teamName + "," + teams[i].pick);
-            PlayerPrefs.SetString("Overalls" + teams[i].id, teams[i].overalls[0] + "," + teams[i].overalls[1] + "," + teams[i].overalls[2]);
-            PlayerPrefs.SetString("PWL" + teams[i].id.ToString(), "0,0,0");
-            PlayerPrefs.SetInt("NumPlayers" + i, teams[i].players.Count);
-        }
+		PlayerPrefs.SetInt("LongestFirstName", Player.longestFirstName);
+		PlayerPrefs.SetInt("LongestLastName", Player.longestLastName);
 
         for (int i = 0; i < numTeams; i++)
         {
@@ -379,6 +314,7 @@ public class AllTeams : MonoBehaviour {
 
         strSchedule = strSchedule.Remove(strSchedule.Length - 1, 1);
         PlayerPrefs.SetString("Schedule", strSchedule);
+
         PlayerPrefs.Save();
     }
 }

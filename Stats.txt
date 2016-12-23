@@ -11,5 +11,8 @@ Contact
 Eye
 Speed
 Catching
-Throwing
+Throwing Power
+Accuracy
+Movement
+Energy
 Endurance

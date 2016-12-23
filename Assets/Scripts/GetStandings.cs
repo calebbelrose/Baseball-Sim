@@ -1,30 +1,33 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 public class GetStandings : MonoBehaviour {
 
     GameObject teamList;
     GameObject manager;
     AllTeams allTeams;
-    string[] headers = new string[] { "Team Name", "Points", "Wins", "Losses" };
+    string[] headers = new string[] { "Team Name", "Wins", "Losses", "Games Behind" };
     int currSortedStat = 3;
     char order = 'd';
     int longestTeamName = 0;
-    Team[] teams;
+	List<Team> teams = new List<Team>();
 
     void Start()
     {
         teamList = GameObject.Find("TeamList");
         manager = GameObject.Find("_Manager");
         allTeams = manager.GetComponent<AllTeams>();
-        for (int i = 0; i < allTeams.teams.Length; i++)
+
+        for (int i = 0; i < allTeams.teams.Count; i++)
         {
             if (allTeams.teams[i].cityName.Length + allTeams.teams[i].teamName.Length + 1 > longestTeamName)
                 longestTeamName = allTeams.teams[i].cityName.Length + allTeams.teams[i].teamName.Length + 1;
         }
-        teams = new Team[allTeams.GetNumTeams()];
-        allTeams.teams.CopyTo(teams, 0);
+
+		teams = allTeams.teams.OrderBy(teamX => teamX.division).ThenBy (teamY => teamY.league).ThenBy(teamZ => teamZ.wins).ToList ();
         DisplayHeader();
         DisplayTeams();
     }
@@ -48,7 +51,7 @@ public class GetStandings : MonoBehaviour {
         Object header = Resources.Load("Header", typeof(GameObject));
         float prevWidth = -10.0f, newWidth = 0.0f;
         float totalWidth = (8.04f * (standingsHeaderLength));
-        teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (teams.Length) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
+        teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (teams.Count + 8) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
         totalWidth /= -2.0f;
 
         for (int i = 0; i < headers.Length; i++)
@@ -78,10 +81,60 @@ public class GetStandings : MonoBehaviour {
         for (int i = 0; i < currTeams.Length; i++)
             Destroy(currTeams[i]);
 
-        for (int i = 0; i < teams.Length; i++)
+		for(int l = 0; l < 2; l++)
+		{
+			Object leagueHeader = Resources.Load("Team", typeof(GameObject));
+			GameObject newLeagueHeader = Instantiate(leagueHeader) as GameObject;
+			char league;
+
+			if (l == 0) {
+				newLeagueHeader.name = "headerAL";
+				newLeagueHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "American League";
+				league = 'A';
+			} else {
+				newLeagueHeader.name = "headerNL";
+				newLeagueHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "National League";
+				league = 'N';
+			}
+
+			newLeagueHeader.transform.SetParent(teamList.transform);
+			newLeagueHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+			newLeagueHeader.GetComponent<Button>().interactable = false;
+
+			for(int m = 0; m < 3; m++)
+			{
+				int start = l * 15 + m * 5, end = start + 5;
+				Object divisionHeader = Resources.Load("Team", typeof(GameObject));
+				GameObject newDivisionHeader = Instantiate(divisionHeader) as GameObject;
+				int leaderWins, leaderLosses;
+
+				switch (m) {
+				case 0:
+					newDivisionHeader.name = "header" + league + "C";
+					newDivisionHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "Central Division";
+					break;
+				case 1:
+					newDivisionHeader.name = "header" + league + "E";;
+					newDivisionHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "East Division";
+					break;
+				case 2:
+					newDivisionHeader.name = "header" + league + "W";;
+					newDivisionHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "West Division";
+					break;
+				}
+
+				newDivisionHeader.transform.SetParent(teamList.transform);
+				newDivisionHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+				newDivisionHeader.GetComponent<Button>().interactable = false;
+
+				leaderWins = teams [start].wins;
+				leaderLosses = teams [start].losses;
+
+				for (int i = start; i < end; i++)
         {
             Object teamButton = Resources.Load("Team", typeof(GameObject));
             GameObject newTeam = Instantiate(teamButton) as GameObject;
+
             newTeam.name = "team" + i.ToString();
             newTeam.transform.SetParent(teamList.transform);
             teams[i].SetStats();
@@ -98,7 +151,11 @@ public class GetStandings : MonoBehaviour {
                     teamListing += " ";
             }
 
-            teamListing += " " + teams[i].GetStats()[headers.Length - 1];
+					if (i == start)
+						teamListing += " -";
+					else
+						teamListing += " " + (((leaderWins - teams [i].wins) + (teams[i].losses - leaderLosses)) / 2.0).ToString("0.0");
+
 
             newTeam.transform.GetChild(0).gameObject.GetComponent<Text>().text = teamListing;
             newTeam.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
@@ -111,11 +168,13 @@ public class GetStandings : MonoBehaviour {
                 b.colors = c;
             }
         }
-    }
+	}
+		}
+	}
 
     public void StartSorting(string name)
     {
-        int left = 0, right = teams.Length - 1, statNum = int.Parse(name.Remove(0, 6));
+        int left = 0, right = teams.Count - 1, statNum = int.Parse(name.Remove(0, 6));
         string pivot = teams[(int)(left + (right - left) / 2)].GetStats()[statNum];
         int test;
         bool notString = int.TryParse(pivot, out test);
@@ -130,75 +189,7 @@ public class GetStandings : MonoBehaviour {
             order = 'd';
         else
             order = 'a';
-        Sort(statNum, left, right);
         currSortedStat = statNum;
         DisplayTeams();
-    }
-
-    void Sort(int statNum, int left, int right)
-    {
-        int i = left, j = right;
-        string pivot = teams[(int)(left + (right - left) / 2)].GetStats()[statNum];
-
-        if (order == 'a')
-            while (i <= j)
-            {
-                while (string.Compare(teams[i].GetStats()[statNum], pivot) < 0)
-                {
-                    i++;
-                }
-
-                while (string.Compare(teams[j].GetStats()[statNum], pivot) > 0)
-                {
-                    j--;
-                }
-
-                if (i <= j)
-                {
-                    Team temp = new Team();
-
-                    temp = teams[i];
-                    teams[i] = teams[j];
-                    teams[j] = temp;
-
-                    i++;
-                    j--;
-                }
-            }
-        else
-            while (i <= j)
-            {
-                while (string.Compare(teams[i].GetStats()[statNum], pivot) > 0)
-                {
-                    i++;
-                }
-
-                while (string.Compare(teams[j].GetStats()[statNum], pivot) < 0)
-                {
-                    j--;
-                }
-
-                if (i <= j)
-                {
-                    Team temp = new Team();
-
-                    temp = teams[i];
-                    teams[i] = teams[j];
-                    teams[j] = temp;
-
-                    i++;
-                    j--;
-                }
-            }
-
-        if (left < j)
-        {
-            Sort(statNum, left, j);
-        }
-
-        if (i < right)
-        {
-            Sort(statNum, i, right);
-        }
     }
 }

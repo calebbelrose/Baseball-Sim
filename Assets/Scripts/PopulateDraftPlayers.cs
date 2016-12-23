@@ -7,18 +7,15 @@ using System.Linq;
 
 public class PopulateDraftPlayers : MonoBehaviour {
 
-    List<string[]> playerStats = new List<string[]>();
-    List<string[]>[] newPlayers;
-    int numPlayers = 0, initialPlayers;
+    List<Player>[] newPlayers;
+	List<Player> draftPlayers;
+    int  initialPlayers;
     GameObject draftList, manager;
     RectTransform draftListRect, draftListParentRect;
     AllTeams allTeams;
-    int longestFirstName = 10, longestLastName = 9;
-    string[] stats;
-    int currSortedStat = 3;
-    char order = 'd';
-    int currTeam = 0;
+    int numPlayers = 0, longestFirstName = 10, longestLastName = 9, currSortedStat = 3, currTeam = 0;
     float newWidth = 0.0f;
+	char order = 'a';
 
     void Awake()
     {
@@ -29,101 +26,51 @@ public class PopulateDraftPlayers : MonoBehaviour {
     // Use this for initialization
     void Start() {
         string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
-        string[] firstNames, lastNames;
 
         int statHeaderLength = 0;
         manager = GameObject.Find("_Manager");
         draftList = GameObject.Find("DraftList");
         allTeams = manager.GetComponent<AllTeams>();
-        newPlayers = new List<string[]>[allTeams.GetNumTeams()];
+        newPlayers = new List<Player>[allTeams.GetNumTeams()];
         draftListRect = draftList.GetComponent<RectTransform>();
         draftListParentRect = draftList.transform.parent.gameObject.GetComponent<RectTransform>();
-        stats = manager.GetComponent<Stats>().statList;
-        firstNames = manager.GetComponent<Stats>().firstNames;
-        lastNames = manager.GetComponent<Stats>().lastNames;
+		draftPlayers = new List<Player> ();
 
         for (int i = 0; i < newPlayers.Length; i++)
-            newPlayers[i] = new List<string[]>();
+            newPlayers[i] = new List<Player>();
 
         while (PlayerPrefs.HasKey("Draft" + numPlayers.ToString()))
         {
+			string playerString = PlayerPrefs.GetString("Draft" + numPlayers);
+			Player newPlayer = new Player();
+			string[] splitPlayer;
+			int current;
+
             numPlayers++;
+			splitPlayer = playerString.Split(',');
+			newPlayer.firstName = splitPlayer [0];
+			newPlayer.lastName = splitPlayer[1];
+			newPlayer.position = splitPlayer [2];
+			newPlayer.potential = int.Parse(splitPlayer[3]);
+			newPlayer.age = int.Parse(splitPlayer [4]);
+			current = 5;
+			for(int i = 0; i < newPlayer.skills.Length; i++)
+				newPlayer.skills[i] = int.Parse(splitPlayer [current++]);
+			newPlayer.offense = float.Parse(splitPlayer[current++]);
+			newPlayer.defense = float.Parse(splitPlayer[current++]);
+			newPlayer.overall= float.Parse(splitPlayer[current]);
         }
 
-        if (numPlayers > 0)
-        {
-            for (int i = 0; i < numPlayers; i++)
-            {
-                string[] newPlayer = new string[stats.Length];
-                string playerString = PlayerPrefs.GetString("Draft" + i.ToString());
-                newPlayer = playerString.Split(',');
-                playerStats.Add(newPlayer);
-                if (newPlayer[0].Length > longestFirstName)
-                    longestFirstName = newPlayer[0].Length;
-
-                if (newPlayer[1].Length > longestLastName)
-                    longestLastName = newPlayer[1].Length;
-            }
-        }
-        else
+        if (numPlayers == 0)
         {
             numPlayers = (int)(Random.value * 5.0f) + 250;
-            numPlayers = 1;
 
             for (int i = 0; i < numPlayers; i++)
             {
-                string[] newPlayer = new string[stats.Length];
-                float totalStats = 0, totalOffense = 0, totalDefense = 0;
-                int age;
-                string playerString = "";
+				Player newPlayer = new Player(positions[(int)(Random.value * positions.Length)]);
+				draftPlayers.Add (newPlayer);
 
-                newPlayer[0] = firstNames[(int)(Random.value * firstNames.Length)];
-                newPlayer[1] = lastNames[(int)(Random.value * lastNames.Length)];
-
-                if (newPlayer[0].Length > longestFirstName)
-                    longestFirstName = newPlayer[0].Length;
-
-                if (newPlayer[1].Length > longestLastName)
-                    longestLastName = newPlayer[1].Length;
-
-                newPlayer[2] = positions[(int)(Random.value * positions.Length)];
-
-                age = (int)(Random.value * 27) + 18;
-                newPlayer[7] = age.ToString();
-
-                for (int j = 8; j < stats.Length; j++)
-                {
-                    int currStat = (int)(Random.value * age) + 55;
-                    newPlayer[j] = currStat.ToString();
-                    totalStats += currStat;
-                    if (j < 11)
-                        totalOffense += currStat;
-                    else if (j > 11)
-                        totalDefense += currStat;
-                    else
-                    {
-                        totalOffense += currStat;
-                        totalDefense += currStat;
-                    }
-                }
-
-                int potential = (int)(Random.value * 25 + (43 - age) * 3);
-                if (potential < 0)
-                    potential = 0;
-                newPlayer[6] = potential.ToString();
-
-                newPlayer[3] = ((totalStats / (stats.Length - 8))).ToString("0.00");
-                newPlayer[4] = ((totalOffense / 4)).ToString("0.00");
-                newPlayer[5] = ((totalDefense / 4)).ToString("0.00");
-
-                playerStats.Add(newPlayer);
-
-                for (int j = 0; j < stats.Length - 1; j++)
-                    playerString += newPlayer[j] + ",";
-
-                playerString += newPlayer[stats.Length - 1];
-
-                PlayerPrefs.SetString("Draft" + i.ToString(), playerString);
+				PlayerPrefs.SetString("Draft" + i.ToString(), newPlayer.firstName + "," + newPlayer.lastName + "," + newPlayer.position + "," + newPlayer.potential + "," + newPlayer.age + "," + newPlayer.skills[0] + "," + newPlayer.skills[1] + "," + newPlayer.skills[2] + "," + newPlayer.skills[3] + "," + newPlayer.skills[4] + "," + newPlayer.skills[5] + "," + newPlayer.skills[6] + "," + newPlayer.skills[7] + "," + newPlayer.offense + "," + newPlayer.defense + "," + newPlayer.overall);
             }
         }
         PlayerPrefs.Save();
@@ -133,9 +80,9 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
         statHeaderLength += longestFirstName + longestLastName + 2;
 
-        for (int i = 2; i < stats.Length; i++)
+        for (int i = 2; i < allTeams.stats.Length; i++)
         {
-            statHeaderLength += stats[i].Length + 1;
+			statHeaderLength += allTeams.stats[i].Length + 1;
         }
 
         Object header = Resources.Load("Header", typeof(GameObject));
@@ -143,18 +90,18 @@ public class PopulateDraftPlayers : MonoBehaviour {
         float totalWidth = (8.04f * (statHeaderLength + 1.0f));
         totalWidth /= -2.0f;
 
-        for (int i = 0; i < stats.Length; i++)
+		for (int i = 0; i < allTeams.stats.Length; i++)
         {
             GameObject statHeader = Instantiate(header) as GameObject;
             statHeader.name = "header" + i.ToString();
             statHeader.transform.SetParent(draftListHeader.transform);
             statHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-            statHeader.transform.GetChild(0).gameObject.GetComponent<Text>().text = stats[i];
+			statHeader.transform.GetChild(0).gameObject.GetComponent<Text>().text = allTeams.stats[i];
             statHeader.GetComponent<Button>().onClick.AddListener(() => StartSorting(statHeader));
 
             float currWidth;
             if (i > 1)
-                currWidth = (8.04f * (stats[i].Length + 1));
+				currWidth = (8.04f * (allTeams.stats[i].Length + 1));
             else if (i == 1)
                 currWidth = (8.04f * (longestLastName + 1));
             else
@@ -169,110 +116,92 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
         newWidth -= draftList.transform.parent.gameObject.GetComponent<RectTransform>().rect.width;
 
-        Sort(3, 0, numPlayers - 1);
         DisplayPlayers();
     }
 
-    public void StartSorting(GameObject other)
-    {
-        int statNum = int.Parse(other.name.Remove(0, 6));
-        int left = 0, right = numPlayers - 1;
-        string pivot = playerStats[(int)(left + (right - left) / 2)][statNum];
-        int test;
-        bool notString = int.TryParse(pivot, out test);
+	public void StartSorting (GameObject other)
+	{
+		int headerNum = int.Parse (other.name.Remove (0, 6));
+		bool notString;
 
-        if (currSortedStat == statNum)
-            if (order == 'a')
-                order = 'd';
-            else
-                order = 'a';
-        else
-            if (notString)
-            order = 'd';
-        else
-            order = 'a';
+		if (headerNum <= 1)
+			notString = false;
+		else
+			notString = true;
 
-        Sort(statNum, left, right);
-        currSortedStat = statNum;
-        DisplayPlayers();
-    }
+		if (currSortedStat == headerNum)
+		if (order == 'a')
+			order = 'd';
+		else
+			order = 'a';
+		else if (notString)
+			order = 'd';
+		else
+			order = 'a';
 
-    void Sort(int statNum, int left, int right)
-    {
-        int i = left, j = right;
-        string pivot = playerStats[(int)(left + (right - left) / 2)][statNum];
+		if (order == 'a')
+			switch (headerNum) {
+			case 0:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.firstName).ToList ();
+				break;
+			case 1:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.lastName).ToList ();
+				break;
+			case 2:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.position).ToList ();
+				break;
+			case 3:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.overall).ToList ();
+				break;
+			case 4:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.offense).ToList ();
+				break;
+			case 5:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.defense).ToList ();
+				break;
+			case 6:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.potential).ToList ();
+				break;
+			case 7:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.age).ToList ();
+				break;
+			default:
+				draftPlayers = draftPlayers.OrderBy (playerX => playerX.skills [headerNum - 8]).ToList ();
+				break;
+			}
+		else
+			switch (headerNum) {
+			case 0:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.firstName).ToList ();
+				break;
+			case 1:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.lastName).ToList ();
+				break;
+			case 2:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.position).ToList ();
+				break;
+			case 3:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.overall).ToList ();
+				break;
+			case 4:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.offense).ToList ();
+				break;
+			case 5:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.defense).ToList ();
+				break;
+			case 6:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.potential).ToList ();
+				break;
+			case 7:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.age).ToList ();
+				break;
+			default:
+				draftPlayers = draftPlayers.OrderByDescending (playerX => playerX.skills [headerNum - 8]).ToList ();
+				break;
+			}
 
-        if(order == 'a')
-            while (i <= j)
-            {
-                while (string.Compare(playerStats[i][statNum], pivot) < 0)
-                {
-                    i++;
-                }
-
-                while (string.Compare(playerStats[j][statNum], pivot) > 0)
-                {
-                    j--;
-                }
-
-                if (i <= j)
-                {
-                    string[] temp = new string[stats.Length];
-
-                    for (int k = 0; k < stats.Length; k++)
-                        temp[k] = playerStats[i][k];
-
-                    for (int k = 0; k < stats.Length; k++)
-                        playerStats[i][k] = playerStats[j][k];
-
-                    for (int k = 0; k < stats.Length; k++)
-                        playerStats[j][k] = temp[k];
-
-                    i++;
-                    j--;
-                }
-            }
-        else
-            while (i <= j)
-            {
-                while (string.Compare(playerStats[i][statNum], pivot) > 0)
-                {
-                    i++;
-                }
-
-                while (string.Compare(playerStats[j][statNum], pivot) < 0)
-                {
-                    j--;
-                }
-
-                if (i <= j)
-                {
-                    string[] temp = new string[stats.Length];
-
-                    for (int k = 0; k < stats.Length; k++)
-                        temp[k] = playerStats[i][k];
-
-                    for (int k = 0; k < stats.Length; k++)
-                        playerStats[i][k] = playerStats[j][k];
-
-                    for (int k = 0; k < stats.Length; k++)
-                        playerStats[j][k] = temp[k];
-
-                    i++;
-                    j--;
-                }
-            }
-
-        if (left < j)
-        {
-            Sort(statNum, left, j);
-        }
-
-        if (i < right)
-        {
-            Sort(statNum, i, right);
-        }
-    }
+		DisplayPlayers ();
+	}
 
     void DisplayPlayers()
     {
@@ -280,32 +209,74 @@ public class PopulateDraftPlayers : MonoBehaviour {
         for (int i = 0; i < currPlayers.Length; i++)
             Destroy(currPlayers[i]);
 
-        for (int i = 0; i < numPlayers; i++)
+		for (int i = 0; i < draftPlayers.Count; i++)
+		{
+			if (draftPlayers[i].firstName.Length > longestFirstName)
+				longestFirstName = draftPlayers[i].firstName.Length;
+
+			if (draftPlayers[i].lastName.Length > longestLastName)
+				longestLastName = draftPlayers[i].lastName.Length;
+		}
+
+		for (int i = 0; i < draftPlayers.Count; i++)
         {
             Object playerButton = Resources.Load("Player", typeof(GameObject));
             GameObject newPlayer = Instantiate(playerButton) as GameObject;
-            string playerListing = playerStats[i][0];
+			string playerListing;
 
-            newPlayer.name = "player" + i.ToString();
-            newPlayer.transform.SetParent(draftList.transform);
+			newPlayer.name = "player" + i.ToString();
+			newPlayer.transform.SetParent(draftList.transform);
+
+			playerListing = draftPlayers[i].firstName;
+
+			for (int j = draftPlayers[i].firstName.Length; j < longestFirstName; j++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].lastName;
+
+			for (int j = draftPlayers[i].lastName.Length; j < longestLastName; j++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].position;
+
+			for (int k = draftPlayers[i].position.Length; k < allTeams.stats[2].Length; k++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].overall;
+
+			for (int k = draftPlayers[i].overall.ToString().Length; k < allTeams.stats[3].Length; k++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].offense;
+
+			for (int k = draftPlayers[i].offense.ToString().Length; k < allTeams.stats[4].Length; k++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].defense;
+
+			for (int k = draftPlayers[i].defense.ToString().Length; k < allTeams.stats[5].Length; k++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].potential;
+
+			for (int k = draftPlayers[i].potential.ToString().Length; k < allTeams.stats[6].Length; k++)
+				playerListing += " ";
+
+			playerListing += " " + draftPlayers[i].age;
+
+			for (int k = draftPlayers[i].age.ToString().Length; k < allTeams.stats[7].Length; k++)
+				playerListing += " ";
+
+			for (int j = 0; j < draftPlayers[i].skills.Length - 1; j++)
+			{
+				playerListing += " " + draftPlayers[i].skills[j];
+
+				for (int k = draftPlayers [i].skills [j].ToString ().Length; k < allTeams.stats [j + 8].Length; k++)
+					playerListing += " ";
+			}
+
+			playerListing += " " + draftPlayers[i].skills[draftPlayers[i].skills.Length - 1]; 
             
-            for (int j = playerStats[i][0].Length; j < longestFirstName; j++)
-                playerListing += " ";
-
-            playerListing += " " + playerStats[i][1];
-
-            for (int j = playerStats[i][1].Length; j < longestLastName; j++)
-                playerListing += " ";
-
-            for (int j = 2; j < stats.Length - 1; j++)
-            {
-                playerListing += " " + playerStats[i][j];
-
-                for (int k = playerStats[i][j].Length; k < stats[j].Length; k++)
-                    playerListing += " ";
-            }
-
-            playerListing += " " + playerStats[i][stats.Length - 1];
             newPlayer.transform.GetChild(0).gameObject.GetComponent<Text>().text = playerListing;
             newPlayer.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             newPlayer.GetComponent<Button>().onClick.AddListener(() => PlayerDraft(newPlayer, playerListing));
@@ -335,18 +306,16 @@ public class PopulateDraftPlayers : MonoBehaviour {
     {
         int playerNum = int.Parse(name);
 
-        newPlayers[currTeam].Add(playerStats[playerNum]);
-        numPlayers--;
+		newPlayers[currTeam].Add(draftPlayers[playerNum]);
+		draftPlayers.RemoveAt (playerNum);
 
-        if (numPlayers == 0)
+		if (draftPlayers.Count == 0)
         {
             int numTeams = allTeams.GetNumTeams();
 
             for (int i = 0; i < numTeams; i++)
             {
                 float totalBestPlayers = 0.0f, offenseBestPlayers = 0.0f, defenseBestPlayers = 0.0f;
-                List<string[]> temp = new List<string[]>();
-                int position = allTeams.teams[i].players[0].Length;
                 List<string> starters = new List<string>();
 
                 starters.Add("SP");
@@ -375,80 +344,53 @@ public class PopulateDraftPlayers : MonoBehaviour {
 
                 while (newPlayers[i].Count > 0)
                 {
-                    string playerString = "";
-                    string[] newPlayer = newPlayers[i].First();
-                    string currStats = "";
-
+                    Player newPlayer = newPlayers[i].First();
+					newPlayer.playerNumber = allTeams.teams [i].players.Count;
+					newPlayer.SavePlayer (i, newPlayer.playerNumber);
                     allTeams.teams[i].players.Add(newPlayer);
-
-                    allTeams.teams[i].pStats.Add(allTeams.teams[i].NewEmptyStats());
-
-                    for (int k = 0; k < allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1].Length - 1; k++)
-                        currStats += allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1][k] + ",";
-
-                    currStats += allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1][allTeams.teams[i].pStats[allTeams.teams[i].pStats.Count - 1].Length - 1];
-
-                    PlayerPrefs.SetString("PlayerStats" + i + "-" + (allTeams.teams[i].pStats.Count - 1), currStats);
-
-                    for (int k = 0; k < newPlayer.Length - 1; k++)
-                        playerString += newPlayer[k] + ",";
-
-                    playerString += newPlayer[newPlayer.Length - 1];
                     newPlayers[i].RemoveAt(0);
-                    PlayerPrefs.SetString("Player" + i + "-" + (allTeams.teams[i].players.Count - 1), playerString);
-                }
+				}
 
-                for (int j = 0; j < allTeams.teams[i].players.Count; j++)
-                {
-                    string[] tempS = new string[allTeams.teams[i].players[j].Length + 1];
-                    for (int k = 0; k < allTeams.teams[i].players[j].Length; k++)
-                        tempS[k] = allTeams.teams[i].players[j][k];
-                    tempS[position] = j.ToString();
-                    temp.Add(tempS);
-                }
-
-                var result = temp.OrderBy(playerX => playerX[2]).ThenByDescending(playerX => playerX[3]).ToArray<string[]>();
+				List<Player> result = allTeams.teams[i].players.OrderBy(playerX => playerX.position).ThenByDescending(playerX => playerX.overall).ToList<Player>();
 
                 PlayerPrefs.SetInt("NumPlayers" + i, allTeams.teams[i].players.Count);
 
-                for(int j = 0; j < result.Length; j++)
+                for(int j = 0; j < result.Count; j++)
                 {
-                    if (starters.Contains(result[j][2]))
+					if (starters.Contains(result[j].position))
                     {
-                        totalBestPlayers += float.Parse(result[j][3]);
-                        offenseBestPlayers += float.Parse(result[j][8]) + float.Parse(result[j][9]) + float.Parse(result[j][10]) + float.Parse(result[j][11]);
-                        defenseBestPlayers += float.Parse(result[j][11]) + float.Parse(result[j][12]) + float.Parse(result[j][13]) + float.Parse(result[j][14]);
+						totalBestPlayers += result[j].overall;
+						offenseBestPlayers += (float)(result[j].skills[0] + result[j].skills[1] + result[j].skills[2] + result[j].skills[3]);
+						defenseBestPlayers += (float)(result[j].skills[3] + result[j].skills[4] + result[j].skills[5] + result[j].skills[6]);
 
-                        if (result[j][2] == "SP")
+						if (result[j].position == "SP")
                         {
                             PlayerPrefs.SetInt("SP" + i + "-" + allTeams.teams[i].SP.Count, j);
-                            allTeams.teams[i].SP.Add(int.Parse(result[j][position]));
+							allTeams.teams[i].SP.Add(result[j].playerNumber);
                             starters.Remove("SP");
                         }
-                        else if (result[j][2] == "RP")
+						else if (result[j].position == "RP")
                         {
                             PlayerPrefs.SetInt("RP" + i + "-" + allTeams.teams[i].RP.Count, j);
-                            allTeams.teams[i].RP.Add(int.Parse(result[j][position]));
+							allTeams.teams[i].RP.Add(result[j].playerNumber);
                             starters.Remove("RP");
                         }
-                        else if (result[j][2] == "CP")
+						else if (result[j].position == "CP")
                         {
                             PlayerPrefs.SetInt("CP" + i + "-" + allTeams.teams[i].CP.Count, j);
-                            allTeams.teams[i].CP.Add(int.Parse(result[j][position]));
+							allTeams.teams[i].CP.Add(result[j].playerNumber);
                             starters.Remove("CP");
                         }
                         else
                         {
-                            PlayerPrefs.SetInt("Batters" + i + "-" + allTeams.teams[i].Batters.Count, j);
-                            allTeams.teams[i].Batters.Add(int.Parse(result[j][position]));
-                            starters.Remove(result[j][2]);
+                            PlayerPrefs.SetInt("Batter" + i + "-" + allTeams.teams[i].Batters.Count, j);
+							allTeams.teams[i].Batters.Add(result[j].playerNumber);
+							starters.Remove(result[j].position);
                         }
                     }
                 }
 
-                Order(allTeams.teams[i].Batters, i, 4, 0, allTeams.teams[i].Batters.Count - 1);
-                Order(allTeams.teams[i].SP, i, 13, 0, allTeams.teams[i].SP.Count - 1);
-                Order(allTeams.teams[i].RP, i, 13, 0, allTeams.teams[i].RP.Count - 1);
+				allTeams.teams [i].OrderLineup ();
 
                 allTeams.teams[i].overalls[0] = totalBestPlayers / 18.0f;
                 allTeams.teams[i].overalls[1] = offenseBestPlayers / 18.0f;
@@ -459,6 +401,9 @@ public class PopulateDraftPlayers : MonoBehaviour {
             for (int i = 0; i < initialPlayers; i++)
                 PlayerPrefs.DeleteKey("Draft" + i.ToString());
 
+			PlayerPrefs.SetInt("LongestFirstName", Player.longestFirstName);
+			PlayerPrefs.SetInt("LongestLastName", Player.longestLastName);
+
             allTeams.needDraft = false;
             PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
             PlayerPrefs.Save();
@@ -467,37 +412,8 @@ public class PopulateDraftPlayers : MonoBehaviour {
         }
         currTeam = (currTeam + 1) % 30;
         Destroy(player);
-        playerStats.RemoveAt(playerNum);
+		numPlayers--;
     }
 
-    void Order(List<int> list, int team, int stat, int left, int right)
-    {
-        int i = left, j = right;
-        float pivot = float.Parse(allTeams.teams[team].players[list[(int)(left + (right - left) / 2)]][stat]);
-
-        while (i <= j)
-        {
-            while (float.Parse(allTeams.teams[team].players[list[i]][stat]) > pivot)
-                i++;
-
-            while (float.Parse(allTeams.teams[team].players[list[j]][stat]) < pivot)
-                j--;
-
-            if (i <= j)
-            {
-                int temp = list[i];
-                list[i] = list[j];
-                list[j] = temp;
-
-                i++;
-                j--;
-            }
-        }
-
-        if (left < j)
-            Order(list, team, stat, left, j);
-
-        if (i < right)
-            Order(list, team, stat, i, right);
-    }
+    
 }
