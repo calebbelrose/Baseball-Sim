@@ -32,6 +32,7 @@ public class GetStandings : MonoBehaviour {
         DisplayTeams();
     }
 
+	// Displays header
     void DisplayHeader()
     {
         int standingsHeaderLength = longestTeamName;
@@ -74,17 +75,17 @@ public class GetStandings : MonoBehaviour {
         teamList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
     }
 
+	// Displays teams
     public void DisplayTeams()
-    {
-        GameObject[] currTeams = GameObject.FindGameObjectsWithTag("Team");
+	{
+		GameObject[] currTeams = GameObject.FindGameObjectsWithTag ("Team");
 
-        for (int i = 0; i < currTeams.Length; i++)
-            Destroy(currTeams[i]);
+		for (int i = 0; i < currTeams.Length; i++)
+			Destroy (currTeams [i]);
 
-		for(int l = 0; l < 2; l++)
-		{
-			Object leagueHeader = Resources.Load("Team", typeof(GameObject));
-			GameObject newLeagueHeader = Instantiate(leagueHeader) as GameObject;
+		for (int l = 0; l < 2; l++) {
+			Object leagueHeader = Resources.Load ("Team", typeof(GameObject));
+			GameObject newLeagueHeader = Instantiate (leagueHeader) as GameObject;
 			char league;
 
 			if (l == 0) {
@@ -97,15 +98,14 @@ public class GetStandings : MonoBehaviour {
 				league = 'N';
 			}
 
-			newLeagueHeader.transform.SetParent(teamList.transform);
-			newLeagueHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-			newLeagueHeader.GetComponent<Button>().interactable = false;
+			newLeagueHeader.transform.SetParent (teamList.transform);
+			newLeagueHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
+			newLeagueHeader.GetComponent<Button> ().interactable = false;
 
-			for(int m = 0; m < 3; m++)
-			{
+			for (int m = 0; m < 3; m++) {
 				int start = l * 15 + m * 5, end = start + 5;
-				Object divisionHeader = Resources.Load("Team", typeof(GameObject));
-				GameObject newDivisionHeader = Instantiate(divisionHeader) as GameObject;
+				Object divisionHeader = Resources.Load ("Team", typeof(GameObject));
+				GameObject newDivisionHeader = Instantiate (divisionHeader) as GameObject;
 				int leaderWins, leaderLosses;
 
 				switch (m) {
@@ -114,64 +114,64 @@ public class GetStandings : MonoBehaviour {
 					newDivisionHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "Central Division";
 					break;
 				case 1:
-					newDivisionHeader.name = "header" + league + "E";;
+					newDivisionHeader.name = "header" + league + "E";
+					;
 					newDivisionHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "East Division";
 					break;
 				case 2:
-					newDivisionHeader.name = "header" + league + "W";;
+					newDivisionHeader.name = "header" + league + "W";
+					;
 					newDivisionHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = "West Division";
 					break;
 				}
 
-				newDivisionHeader.transform.SetParent(teamList.transform);
-				newDivisionHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-				newDivisionHeader.GetComponent<Button>().interactable = false;
+				newDivisionHeader.transform.SetParent (teamList.transform);
+				newDivisionHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
+				newDivisionHeader.GetComponent<Button> ().interactable = false;
 
 				leaderWins = teams [start].wins;
 				leaderLosses = teams [start].losses;
 
-				for (int i = start; i < end; i++)
-        {
-            Object teamButton = Resources.Load("Team", typeof(GameObject));
-            GameObject newTeam = Instantiate(teamButton) as GameObject;
+				for (int i = start; i < end; i++) {
+					Object teamButton = Resources.Load ("Team", typeof(GameObject));
+					GameObject newTeam = Instantiate (teamButton) as GameObject;
 
-            newTeam.name = "team" + i.ToString();
-            newTeam.transform.SetParent(teamList.transform);
-            teams[i].SetStats();
-            string teamListing = teams[i].cityName + " " + teams[i].teamName;
+					newTeam.name = "team" + i.ToString ();
+					newTeam.transform.SetParent (teamList.transform);
+					teams [i].SetStats ();
+					string teamListing = teams [i].cityName + " " + teams [i].teamName;
 
-            for (int j = teamListing.Length - 1; j < longestTeamName; j++)
-                teamListing += " ";
+					for (int j = teamListing.Length - 1; j < longestTeamName; j++)
+						teamListing += " ";
 
-            for (int j = 1; j < headers.Length - 1; j++)
-            {
-                teamListing += " " + teams[i].GetStats()[j];
+					for (int j = 1; j < headers.Length - 1; j++) {
+						teamListing += " " + teams [i].GetStats () [j];
 
-                for (int k = teams[i].GetStats()[j].Length; k < headers[j].Length; k++)
-                    teamListing += " ";
-            }
+						for (int k = teams [i].GetStats () [j].Length; k < headers [j].Length; k++)
+							teamListing += " ";
+					}
 
 					if (i == start)
 						teamListing += " -";
 					else
-						teamListing += " " + (((leaderWins - teams [i].wins) + (teams[i].losses - leaderLosses)) / 2.0).ToString("0.0");
+						teamListing += " " + (((leaderWins - teams [i].wins) + (teams [i].losses - leaderLosses)) / 2.0).ToString ("0.0");
 
 
-            newTeam.transform.GetChild(0).gameObject.GetComponent<Text>().text = teamListing;
-            newTeam.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-            newTeam.GetComponent<Button>().interactable = false;
-            if (teams[i].teamName == allTeams.teams[0].teamName)
-            {
-                Button b = newTeam.GetComponent<Button>();
-                ColorBlock c = b.colors;
-                c.disabledColor = new Color(1.0f, 1.0f, 0.0f);
-                b.colors = c;
-            }
-        }
-	}
+					newTeam.transform.GetChild (0).gameObject.GetComponent<Text> ().text = teamListing;
+					newTeam.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
+					newTeam.GetComponent<Button> ().interactable = false;
+					if (teams [i].teamName == allTeams.teams [0].teamName) {
+						Button b = newTeam.GetComponent<Button> ();
+						ColorBlock c = b.colors;
+						c.disabledColor = new Color (1.0f, 1.0f, 0.0f);
+						b.colors = c;
+					}
+				}
+			}
 		}
 	}
 
+	// Sorts the teams based on the specified stat
     public void StartSorting(string name)
     {
         int left = 0, right = teams.Count - 1, statNum = int.Parse(name.Remove(0, 6));

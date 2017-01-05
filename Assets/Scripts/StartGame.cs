@@ -3,6 +3,7 @@ using System.Collections;
 
 public class StartGame : MonoBehaviour {
 
+	// Changes to the scene that corresponds to where the player is in the game (draft, normal season, finals, team selection)
     public void ChangeScene()
     {
         AllTeams allTeams = GameObject.Find("_Manager").GetComponent<AllTeams>();

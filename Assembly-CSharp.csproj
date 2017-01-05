@@ -3,9 +3,8 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.20506</ProductVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
     <ProjectGuid>{934A720B-EB18-375A-BC6D-AA1461E3CBCB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -34,57 +33,57 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.XML" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="UnityEngine">
-      <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
+      <HintPath>C:\Program Files\Unity\Editor\Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor">
-      <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
+      <HintPath>C:\Program Files\Unity\Editor\Data\Managed\UnityEditor.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\AllTeams.cs" />
-     <Compile Include="Assets\Scripts\ChangeScene.cs" />
-     <Compile Include="Assets\Scripts\ChangeVolume.cs" />
-     <Compile Include="Assets\Scripts\CreateSchedule.cs" />
-     <Compile Include="Assets\Scripts\FormatPrice.cs" />
-     <Compile Include="Assets\Scripts\Game.cs" />
-     <Compile Include="Assets\Scripts\GetAverage.cs" />
-     <Compile Include="Assets\Scripts\GetFinances.cs" />
-     <Compile Include="Assets\Scripts\GetStandings.cs" />
-     <Compile Include="Assets\Scripts\GetStats.cs" />
-     <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
-     <Compile Include="Assets\Scripts\GetYear.cs" />
-     <Compile Include="Assets\Scripts\LoadTheirPlayers.cs" />
-     <Compile Include="Assets\Scripts\LoadYourPlayers.cs" />
-     <Compile Include="Assets\Scripts\Manager.cs" />
-     <Compile Include="Assets\Scripts\MenuMusic.cs" />
-     <Compile Include="Assets\Scripts\MuteControl.cs" />
-     <Compile Include="Assets\Scripts\Play.cs" />
-     <Compile Include="Assets\Scripts\Player.cs" />
-     <Compile Include="Assets\Scripts\PlayerID.cs" />
-     <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
-     <Compile Include="Assets\Scripts\PopulateTeams.cs" />
-     <Compile Include="Assets\Scripts\Report.cs" />
-     <Compile Include="Assets\Scripts\ScheduledGame.cs" />
-     <Compile Include="Assets\Scripts\SetTeamInfo.cs" />
-     <Compile Include="Assets\Scripts\StartGame.cs" />
-     <Compile Include="Assets\Scripts\Team.cs" />
-     <Compile Include="Assets\Scripts\TeamInfo.cs" />
-     <Compile Include="Assets\Scripts\TeamLogo.cs" />
-     <Compile Include="Assets\Scripts\Top8.cs" />
-     <Compile Include="Assets\Scripts\Trade.cs" />
-     <Compile Include="Assets\Scripts\TradePlayerInfo.cs" />
-     <Compile Include="Assets\Scripts\ViewPlayers.cs" />
-     <None Include="Assets\Fonts\SIL Open Font License.txt" />
- <Reference Include="UnityEngine.UI">
- <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.Networking">
- <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
- </Reference>
+    <Compile Include="Assets\Scripts\AllTeams.cs" />
+    <Compile Include="Assets\Scripts\ChangeScene.cs" />
+    <Compile Include="Assets\Scripts\ChangeVolume.cs" />
+    <Compile Include="Assets\Scripts\CreateSchedule.cs" />
+    <Compile Include="Assets\Scripts\FormatPrice.cs" />
+    <Compile Include="Assets\Scripts\Game.cs" />
+    <Compile Include="Assets\Scripts\GetAverage.cs" />
+    <Compile Include="Assets\Scripts\GetFinances.cs" />
+    <Compile Include="Assets\Scripts\GetStandings.cs" />
+    <Compile Include="Assets\Scripts\GetStats.cs" />
+    <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
+    <Compile Include="Assets\Scripts\GetYear.cs" />
+    <Compile Include="Assets\Scripts\LoadTheirPlayers.cs" />
+    <Compile Include="Assets\Scripts\LoadYourPlayers.cs" />
+    <Compile Include="Assets\Scripts\Manager.cs" />
+    <Compile Include="Assets\Scripts\MenuMusic.cs" />
+    <Compile Include="Assets\Scripts\MuteControl.cs" />
+    <Compile Include="Assets\Scripts\Play.cs" />
+    <Compile Include="Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\PopulateDraftPlayers.cs" />
+    <Compile Include="Assets\Scripts\PopulateStadiumTiers.cs" />
+    <Compile Include="Assets\Scripts\PopulateTeams.cs" />
+    <Compile Include="Assets\Scripts\Report.cs" />
+    <Compile Include="Assets\Scripts\ScheduledGame.cs" />
+    <Compile Include="Assets\Scripts\SetTeamInfo.cs" />
+    <Compile Include="Assets\Scripts\StartGame.cs" />
+    <Compile Include="Assets\Scripts\Team.cs" />
+    <Compile Include="Assets\Scripts\TeamInfo.cs" />
+    <Compile Include="Assets\Scripts\TeamLogo.cs" />
+    <Compile Include="Assets\Scripts\Top8.cs" />
+    <Compile Include="Assets\Scripts\Trade.cs" />
+    <Compile Include="Assets\Scripts\TradePlayerInfo.cs" />
+    <Compile Include="Assets\Scripts\ViewPlayers.cs" />
+    <None Include="Assets\Fonts\SIL Open Font License.txt" />
+    <Reference Include="UnityEngine.UI">
+      <HintPath>C:\Program Files\Unity\Editor\Data\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Networking">
+      <HintPath>C:\Program Files\Unity\Editor\Data\UnityExtensions\Unity\Networking\UnityEngine.Networking.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -94,5 +93,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  
 </Project>

@@ -119,6 +119,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
         DisplayPlayers();
     }
 
+	// Sorts draft players
 	public void StartSorting (GameObject other)
 	{
 		int headerNum = int.Parse (other.name.Remove (0, 6));
@@ -203,6 +204,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
 		DisplayPlayers ();
 	}
 
+	// Displays draft players
     void DisplayPlayers()
     {
         GameObject[] currPlayers = GameObject.FindGameObjectsWithTag("Player");
@@ -286,6 +288,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
         draftListRect.offsetMax = new Vector2(newWidth, 0);
     }
 
+	// Drafts a player for each team, or until no players are left
     public void PlayerDraft(GameObject player, string playerListing)
     {
         int count = numPlayers;
@@ -302,6 +305,7 @@ public class PopulateDraftPlayers : MonoBehaviour {
         DisplayPlayers();
     }
 
+	// Draft a player
     public void Draft(GameObject player, string name)
     {
         int playerNum = int.Parse(name);
@@ -414,6 +418,4 @@ public class PopulateDraftPlayers : MonoBehaviour {
         Destroy(player);
 		numPlayers--;
     }
-
-    
 }

@@ -25,6 +25,7 @@ public class LoadYourPlayers : MonoBehaviour
 		Sort(3);
     }
 
+	// Displays header
 	void DisplayHeader()
 	{
 		int statHeaderLength = 0;
@@ -71,6 +72,7 @@ public class LoadYourPlayers : MonoBehaviour
 		teamList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
 	}
 
+	// Displays players
 	public void DisplayPlayers()
 	{
 		GameObject[] currPlayers = GameObject.FindGameObjectsWithTag ("YourPlayer");
@@ -142,11 +144,13 @@ public class LoadYourPlayers : MonoBehaviour
 		}
 	}
 
+	// Starts sorting players
 	public void StartSorting (GameObject other)
 	{
 		Sort (int.Parse (other.name.Remove (0, 6)));
 	}
 
+	// Sorts players
 	void Sort(int headerNum)
 	{
 		bool notString;

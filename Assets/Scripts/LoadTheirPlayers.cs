@@ -28,6 +28,7 @@ public class LoadTheirPlayers : MonoBehaviour {
 		Sort (3);
     }
 
+	// Refreshes players
     public void Refresh(Dropdown dropdown)
     {
         teamList = GameObject.Find("TheirList");
@@ -37,6 +38,7 @@ public class LoadTheirPlayers : MonoBehaviour {
 		Sort (currSortedStat);
     }
 
+	// Displays header
 	void DisplayHeader()
 	{
 		int statHeaderLength = 0;
@@ -83,6 +85,7 @@ public class LoadTheirPlayers : MonoBehaviour {
 		teamList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
 	}
 
+	// Displays players
 	public void DisplayPlayers()
 	{
 		GameObject[] currPlayers = GameObject.FindGameObjectsWithTag ("TheirPlayer");
@@ -153,11 +156,13 @@ public class LoadTheirPlayers : MonoBehaviour {
 		}
 	}
 
+	// Starts Sorting players
 	public void StartSorting (GameObject other)
 	{
 		Sort(int.Parse (other.name.Remove (0, 6)));
 	}
 
+	// Sorts players
 	void Sort(int headerNum)
 	{
 		bool notString;

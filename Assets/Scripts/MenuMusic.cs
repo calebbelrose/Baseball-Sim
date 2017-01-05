@@ -3,6 +3,7 @@ using System.Collections;
 
 public class MenuMusic : MonoBehaviour
 {
+	// Makes sure the music persists through scenes
     void Awake()
     {
         if(GameObject.Find("music") == null)

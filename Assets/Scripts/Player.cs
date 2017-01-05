@@ -20,6 +20,7 @@ public class Player
 	{
 	}
 
+	// 1-arg constructor
 	public Player(string newPosition)
 	{
 		firstName = firstNames [(int)(Random.value * firstNames.Length)];
@@ -59,6 +60,7 @@ public class Player
 		Reset ();
 	}
 
+	// Resets player's stats
 	void Reset()
 	{
 		games = 0;
@@ -95,17 +97,20 @@ public class Player
 		hitByPitch = 0;
 	}
 
+	// Saves player
 	public void SavePlayer(int teamNum, int playerNum)
 	{
 		PlayerPrefs.SetString ("Player" + teamNum + "-" + playerNum, firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + potential + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + offense + "," + defense + "," + overall + "," + salary + "," + contractLength + "," + injuryLength);
 		SaveStats (teamNum, playerNum);
 	}
 
+	// Saves stats
 	public void SaveStats(int teamNum, int playerNum)
 	{
 		PlayerPrefs.SetString ("PlayerStats" + teamNum + "-" + playerNum, games + "," + atBats + "," + runs + "," + hits + "," + doubles + "," + triples + "," + homeruns + "," + totalBases + "," + runsBattedIn + "," + walks + "," + strikeouts + "," + stolenBases + "," + caughtStealing + "," + sacrifices + "," + wins + "," + losses + "," + gamesStarted + "," + saves + "," + saveOpportunities + "," + inningsPitched + "," + atBatsAgainst + "," + hitsAgainst + "," + runsAgainst + "," + earnedRuns + "," + homerunsAgainst + "," + walksAgainst + "," + strikeoutsAgainst + "," + qualityStarts + "," + completeGames + "," + hitStreak + "," + reachedOnError + "," + hitByPitch); 
 	}
 
+	// Loads player and stats
 	public void LoadPlayer(int teamNum, int playerNum)
 	{
 		string player = PlayerPrefs.GetString("Player" + teamNum + "-" + playerNum), stats = PlayerPrefs.GetString("PlayerStats" + teamNum + "-" + playerNum);
@@ -170,6 +175,7 @@ public class Player
 		team = teamNum;
 	}
 
+	// Injures player
 	public void Injure()
 	{
 		float r1 = Random.value * 10 + 1, r2 = Random.value * 10 + 1, r3 = Random.value * 5 + 1;
@@ -247,6 +253,7 @@ public class Player
 		}
 	}
 
+	// Retires player
 	void Retire()
 	{
 		skills [0] = 0;
@@ -260,6 +267,7 @@ public class Player
 		skills [8] = 0;
 	}
 
+	// Calculates strikeout-to-walk ratio
 	public float BBToK()
 	{
 		if (strikeouts != 0)
@@ -270,6 +278,7 @@ public class Player
 			return 0.0f;
 	}
 
+	// Calculates batting average against
 	public float BAA()
 	{
 		if (atBatsAgainst != 0)
@@ -278,6 +287,7 @@ public class Player
 			return 1.0f;
 	}
 
+	// Calculates isolated power
 	public float ISO()
 	{
 		if (atBats != 0)
@@ -286,6 +296,7 @@ public class Player
 			return 0.0f;
 	}
 
+	// Calculates batting average
 	public float BA()
 	{
 		if (atBats != 0)
@@ -294,6 +305,7 @@ public class Player
 			return 0.0f;
 	}
 
+	// Calculates linear weights ratio
 	public double LWR()
 	{
 		if (position.Length == 1 || (position.Length == 2 && position.Substring (1) != "P"))
@@ -302,6 +314,7 @@ public class Player
 			return 0.0;
 	}
 
+	// Calculates power/speed number
 	public float PSN()
 	{
 		int denominator = homeruns + stolenBases;
@@ -311,6 +324,7 @@ public class Player
 			return 0.0f;
 	}
 
+	// Calculates walks and hits per innings pitched
 	public float WHIP()
 	{
 		if (inningsPitched != 0)
@@ -319,6 +333,7 @@ public class Player
 			return 999.99f;
 	}
 
+	// Calculates runs created per 27 outs (1 game)
 	public float RC27()
 	{
 		int denominator = atBats + walks;

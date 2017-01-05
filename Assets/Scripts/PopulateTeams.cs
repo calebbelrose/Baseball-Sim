@@ -4,6 +4,7 @@ using System.Collections;
 
 public class PopulateTeams : MonoBehaviour {
 
+	// Populates dropdown with all teams
 	// Use this for initialization
 	void Start () {
         Dropdown dropdown = GetComponent<Dropdown>();

@@ -53,6 +53,7 @@ public class Top8 : MonoBehaviour {
         }
     }
 
+	// Sorts players to determine who's in the finals
     void Sort(int left, int right)
     {
         int i = left, j = right;
@@ -94,6 +95,7 @@ public class Top8 : MonoBehaviour {
         }
     }
 
+	// Play a game
     public void PlayGame()
     {
         string result = "";
@@ -495,6 +497,7 @@ public class Top8 : MonoBehaviour {
             GameObject.Find("pnlScore").gameObject.SetActive(false);
     }
 
+	// Displays the result of the player's game (if they have one)
     void DisplayResult(string result, int you, int them, int yourWins, int theirWins)
     {
         GameObject.Find("txtYourScore").GetComponent<Text>().text = "You: " + you;
@@ -513,6 +516,7 @@ public class Top8 : MonoBehaviour {
         GameObject.Find("txtTheirScore").GetComponent<Text>().text = "Them: " + them;
     }
 
+	// Determines who the MVP and Cy Young award winners are
     void DetermineMVP()
     {
         double mvpWorth, cyWorth, bestMVP = 0.0, bestCY = 0.0, mvpOPS = 0.0, cyERA = 0.0;

@@ -18,136 +18,135 @@ public class GetStats : MonoBehaviour {
     List<string[]> tempStats = new List<string[]>();
 
     void Start()
-    {
-        teamList = GameObject.Find("TeamList");
-        manager = GameObject.Find("_Manager");
-        allTeams = manager.GetComponent<AllTeams>();
-        playerInfoLengths = new int[playerInfoHeaders.Length];
-        headerLengths = new int[headers.Length];
+	{
+		teamList = GameObject.Find ("TeamList");
+		manager = GameObject.Find ("_Manager");
+		allTeams = manager.GetComponent<AllTeams> ();
+		playerInfoLengths = new int[playerInfoHeaders.Length];
+		headerLengths = new int[headers.Length];
         
 
-        for (int i = 0; i < playerInfoLengths.Length; i++)
-            playerInfoLengths[i] = playerInfoHeaders[i].Length;
+		for (int i = 0; i < playerInfoLengths.Length; i++)
+			playerInfoLengths [i] = playerInfoHeaders [i].Length;
 
-        for (int i = 0; i < headerLengths.Length; i++)
-            headerLengths[i] = headers[i].Length;
+		for (int i = 0; i < headerLengths.Length; i++)
+			headerLengths [i] = headers [i].Length;
 
-        teams = new Team[allTeams.GetNumTeams()];
-        allTeams.teams.CopyTo(teams, 0);
+		teams = new Team[allTeams.GetNumTeams ()];
+		allTeams.teams.CopyTo (teams, 0);
 
-        for (int i = 0; i < teams.Length; i++)
-            for (int j = 0; j < teams[i].players.Count; j++)
-            {
-                string[] copy = new string[playerInfoHeaders.Length + headers.Length];
-                int currStat = 0, temp, tb;
-                double obp, slug;
+		for (int i = 0; i < teams.Length; i++)
+			for (int j = 0; j < teams [i].players.Count; j++) {
+				string[] copy = new string[playerInfoHeaders.Length + headers.Length];
+				int currStat = 0, temp, tb;
+				double obp, slug;
 
-				copy[currStat++] = teams[i].players[j].firstName.ToString();
-				copy[currStat++] = teams[i].players[j].lastName.ToString();
-				copy[currStat++] = teams[i].players[j].position.ToString();
-                copy[currStat++] = teams[i].shortform;
-				copy[currStat++] = teams[i].players[j].games.ToString();
-				copy[currStat++] = teams[i].players[j].atBats.ToString();
-				copy[currStat++] = teams[i].players[j].runs.ToString();
-				copy[currStat++] = teams[i].players[j].hits.ToString();
-				copy[currStat++] = teams[i].players[j].doubles.ToString();
-				copy[currStat++] = teams[i].players[j].triples.ToString();
-				copy[currStat++] = teams[i].players[j].homeruns.ToString();
+				copy [currStat++] = teams [i].players [j].firstName.ToString ();
+				copy [currStat++] = teams [i].players [j].lastName.ToString ();
+				copy [currStat++] = teams [i].players [j].position.ToString ();
+				copy [currStat++] = teams [i].shortform;
+				copy [currStat++] = teams [i].players [j].games.ToString ();
+				copy [currStat++] = teams [i].players [j].atBats.ToString ();
+				copy [currStat++] = teams [i].players [j].runs.ToString ();
+				copy [currStat++] = teams [i].players [j].hits.ToString ();
+				copy [currStat++] = teams [i].players [j].doubles.ToString ();
+				copy [currStat++] = teams [i].players [j].triples.ToString ();
+				copy [currStat++] = teams [i].players [j].homeruns.ToString ();
 
-                tb = teams[i].players[j].singles + teams[i].players[j].doubles * 2 + teams[i].players[j].triples * 3 + teams[i].players[j].homeruns * 4;
+				tb = teams [i].players [j].singles + teams [i].players [j].doubles * 2 + teams [i].players [j].triples * 3 + teams [i].players [j].homeruns * 4;
                 
-				copy[currStat++] = tb.ToString();
-				copy[currStat++] = teams[i].players[j].runsBattedIn.ToString();
-				copy[currStat++] = teams[i].players[j].walks.ToString();
-				copy[currStat++] = teams[i].players[j].strikeouts.ToString();
-				copy[currStat++] = teams[i].players[j].stolenBases.ToString();
-				copy[currStat++] = teams[i].players[j].caughtStealing.ToString();
-				copy[currStat++] = teams[i].players[j].sacrifices.ToString();
+				copy [currStat++] = tb.ToString ();
+				copy [currStat++] = teams [i].players [j].runsBattedIn.ToString ();
+				copy [currStat++] = teams [i].players [j].walks.ToString ();
+				copy [currStat++] = teams [i].players [j].strikeouts.ToString ();
+				copy [currStat++] = teams [i].players [j].stolenBases.ToString ();
+				copy [currStat++] = teams [i].players [j].caughtStealing.ToString ();
+				copy [currStat++] = teams [i].players [j].sacrifices.ToString ();
 
-                if(teams[i].players[j].atBats != 0)
-                    copy[currStat++] = (teams[i].players[j].hits / (double)teams[i].players[j].atBats).ToString("0.000");
-                else 
-                    copy[currStat++] = "0.000";
+				if (teams [i].players [j].atBats != 0)
+					copy [currStat++] = (teams [i].players [j].hits / (double)teams [i].players [j].atBats).ToString ("0.000");
+				else
+					copy [currStat++] = "0.000";
 
-                temp = (teams[i].players[j].atBats + teams[i].players[j].walks + teams[i].players[j].sacrifices);
-                if (temp != 0)
-                    obp = (teams[i].players[j].hits + teams[i].players[j].walks) / (double)temp;
-                else
-                    obp = (teams[i].players[j].hits + teams[i].players[j].walks) / (double)1;
+				temp = (teams [i].players [j].atBats + teams [i].players [j].walks + teams [i].players [j].sacrifices);
+				if (temp != 0)
+					obp = (teams [i].players [j].hits + teams [i].players [j].walks) / (double)temp;
+				else
+					obp = (teams [i].players [j].hits + teams [i].players [j].walks) / (double)1;
 				
-                copy[currStat++] = obp.ToString("0.000");
+				copy [currStat++] = obp.ToString ("0.000");
 
-                if(teams[i].players[j].atBats != 0)
-                    slug = tb / (double)teams[i].players[j].atBats;
-                else
-                    slug = tb / (double)1;
+				if (teams [i].players [j].atBats != 0)
+					slug = tb / (double)teams [i].players [j].atBats;
+				else
+					slug = tb / (double)1;
 				
-                copy[currStat++] = (slug).ToString("0.000");
-                copy[currStat++] = (obp + slug).ToString("0.000");
-				copy[currStat++] = teams[i].players[j].wins.ToString();
-				copy[currStat++] = teams[i].players[j].losses.ToString();
+				copy [currStat++] = (slug).ToString ("0.000");
+				copy [currStat++] = (obp + slug).ToString ("0.000");
+				copy [currStat++] = teams [i].players [j].wins.ToString ();
+				copy [currStat++] = teams [i].players [j].losses.ToString ();
 
-                if (teams[i].players[j].inningsPitched != 0)
-                    copy[currStat++] = (teams[i].players[j].earnedRuns * 27 / (double)teams[i].players[j].inningsPitched).ToString("0.00");
-                else
-                    copy[currStat++] = (teams[i].players[j].earnedRuns * 27 / (double)1 / 3).ToString("0.00");
+				if (teams [i].players [j].inningsPitched != 0)
+					copy [currStat++] = (teams [i].players [j].earnedRuns * 27 / (double)teams [i].players [j].inningsPitched).ToString ("0.00");
+				else
+					copy [currStat++] = (teams [i].players [j].earnedRuns * 27 / (double)1 / 3).ToString ("0.00");
 
-				copy[currStat++] = teams[i].players[j].gamesStarted.ToString();
-				copy[currStat++] = teams[i].players[j].saves.ToString();
-				copy[currStat++] = teams[i].players[j].saveOpportunities.ToString();
+				copy [currStat++] = teams [i].players [j].gamesStarted.ToString ();
+				copy [currStat++] = teams [i].players [j].saves.ToString ();
+				copy [currStat++] = teams [i].players [j].saveOpportunities.ToString ();
 
-                if (teams[i].players[j].inningsPitched != 0)
-                    copy[currStat++] = (teams[i].players[j].inningsPitched / 3).ToString() + "." + (teams[i].players[j].inningsPitched % 3).ToString();
-                else
-                    copy[currStat++] = "0.0";
+				if (teams [i].players [j].inningsPitched != 0)
+					copy [currStat++] = (teams [i].players [j].inningsPitched / 3).ToString () + "." + (teams [i].players [j].inningsPitched % 3).ToString ();
+				else
+					copy [currStat++] = "0.0";
 
-				copy[currStat++] = teams[i].players[j].atBatsAgainst.ToString();
-				copy[currStat++] = teams[i].players[j].hitsAgainst.ToString();
-				copy[currStat++] = teams[i].players[j].runsAgainst.ToString();
-				copy[currStat++] = teams[i].players[j].earnedRuns.ToString();
-				copy[currStat++] = teams[i].players[j].homerunsAgainst.ToString();
-				copy[currStat++] = teams[i].players[j].walksAgainst.ToString();
-				copy[currStat++] = teams[i].players[j].strikeoutsAgainst.ToString();
+				copy [currStat++] = teams [i].players [j].atBatsAgainst.ToString ();
+				copy [currStat++] = teams [i].players [j].hitsAgainst.ToString ();
+				copy [currStat++] = teams [i].players [j].runsAgainst.ToString ();
+				copy [currStat++] = teams [i].players [j].earnedRuns.ToString ();
+				copy [currStat++] = teams [i].players [j].homerunsAgainst.ToString ();
+				copy [currStat++] = teams [i].players [j].walksAgainst.ToString ();
+				copy [currStat++] = teams [i].players [j].strikeoutsAgainst.ToString ();
 
-                if (teams[i].players[j].inningsPitched != 0)
-                    copy[currStat++] = (teams[i].players[j].hitsAgainst  / (double)teams[i].players[j].atBatsAgainst).ToString("0.000");
-                else
-                    copy[currStat++] = (teams[i].players[j].hitsAgainst / (double)1).ToString("0.000");
+				if (teams [i].players [j].inningsPitched != 0)
+					copy [currStat++] = (teams [i].players [j].hitsAgainst / (double)teams [i].players [j].atBatsAgainst).ToString ("0.000");
+				else
+					copy [currStat++] = (teams [i].players [j].hitsAgainst / (double)1).ToString ("0.000");
 
-                if (teams[i].players[j].inningsPitched != 0)
-                    copy[currStat++] = ((teams[i].players[j].hitsAgainst + teams[i].players[j].homerunsAgainst) / (double)teams[i].players[j].inningsPitched / 3).ToString("0.000");
-                else
-                    copy[currStat++] = ((teams[i].players[j].hitsAgainst + teams[i].players[j].homerunsAgainst) / (double)1 / 3).ToString("0.000");
+				if (teams [i].players [j].inningsPitched != 0)
+					copy [currStat++] = ((teams [i].players [j].hitsAgainst + teams [i].players [j].homerunsAgainst) / (double)teams [i].players [j].inningsPitched / 3).ToString ("0.000");
+				else
+					copy [currStat++] = ((teams [i].players [j].hitsAgainst + teams [i].players [j].homerunsAgainst) / (double)1 / 3).ToString ("0.000");
 
-                tempStats.Add(copy);
-            }
+				tempStats.Add (copy);
+			}
 
-        for (int i = 0; i < tempStats.Count; i++)
-        {
-            for (int j = 0; j < playerInfoLengths.Length - 1; j++)
-                if (tempStats[i][j].Length > playerInfoLengths[j])
-                    playerInfoLengths[j] = tempStats[i][j].Length;
+			for (int i = 0; i < tempStats.Count; i++) {
+				for (int j = 0; j < playerInfoLengths.Length - 1; j++)
+					if (tempStats [i] [j].Length > playerInfoLengths [j])
+						playerInfoLengths [j] = tempStats [i] [j].Length;
 
-            for (int j = 0; j < headers.Length; j++)
-                if (tempStats[i][j + playerInfoLengths.Length].Length > headerLengths[j])
-                    headerLengths[j] = tempStats[i][j + playerInfoLengths.Length].Length;
-        }
+			for (int j = 0; j < headers.Length; j++)
+				if (tempStats [i] [j + playerInfoLengths.Length].Length > headerLengths [j])
+					headerLengths [j] = tempStats [i] [j + playerInfoLengths.Length].Length;
+		}
 
-        for (int i = 0; i < allTeams.teams.Count; i++)
-            if (allTeams.teams[i].shortform.Length > playerInfoLengths[playerInfoLengths.Length - 1])
-                playerInfoLengths[playerInfoLengths.Length - 1] = allTeams.teams[i].shortform.Length;
+		for (int i = 0; i < allTeams.teams.Count; i++)
+			if (allTeams.teams [i].shortform.Length > playerInfoLengths [playerInfoLengths.Length - 1])
+				playerInfoLengths [playerInfoLengths.Length - 1] = allTeams.teams [i].shortform.Length;
 
-        for (int i = 0; i < playerInfoLengths.Length; i++)
-            playerInfoLengths[i]++;
+		for (int i = 0; i < playerInfoLengths.Length; i++)
+			playerInfoLengths [i]++;
 
-        for (int i = 0; i < headerLengths.Length; i++)
-            headerLengths[i]++;
+		for (int i = 0; i < headerLengths.Length; i++)
+			headerLengths [i]++;
 
-        IntSort(10, 0, tempStats.Count - 1);
-        DisplayHeader();
-        DisplayTeams();
-    }
+		IntSort (10, 0, tempStats.Count - 1);
+		DisplayHeader ();
+		DisplayTeams ();
+	}
 
+	// Displays header
     void DisplayHeader()
     {
         int standingsHeaderLength = -1;
@@ -206,6 +205,7 @@ public class GetStats : MonoBehaviour {
         teamList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
     }
 
+	// Displays players from all teams
     public void DisplayTeams()
     {
         GameObject[] currTeams = GameObject.FindGameObjectsWithTag("Player");
@@ -255,6 +255,7 @@ public class GetStats : MonoBehaviour {
         }
     }
 
+	// Sorts players
     public void StartSorting(string name)
     {
         int left = 0, right = tempStats.Count - 1, statNum = int.Parse(name.Remove(0, 6));

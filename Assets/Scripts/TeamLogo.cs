@@ -4,7 +4,7 @@ using System.Collections;
 
 public class TeamLogo : MonoBehaviour
 {
-    TeamInfo teamInfo;
+    TeamInfo teamInfo;	// The team's logo
 
     void Start()
     {
@@ -12,12 +12,13 @@ public class TeamLogo : MonoBehaviour
         GetTeamLogo();
     }
 
-    // Use this for initialization
+	// Gets the team's logo
     public void GetTeamLogo()
     {
         GetComponent<Image>().sprite = teamInfo.teamLogo;
     }
 
+	// Sets the team's logo
     public void SetTeamLogo(Slider slider)
     {
         teamInfo.teamLogo = Resources.Load<Sprite>("team" + slider.value);

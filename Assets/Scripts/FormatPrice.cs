@@ -4,6 +4,7 @@ using System.Collections;
 
 public class FormatPrice : MonoBehaviour {
 
+	// Formats string to be in a price format
 	public void NewPrice(string text)
 	{
 		double value = double.Parse(text);

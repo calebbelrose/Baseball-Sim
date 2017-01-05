@@ -3,31 +3,40 @@ using UnityEngine.UI;
 using System.Collections;
 
 public class GetFinances : MonoBehaviour {
-	public GameObject currentCash, currentRevenues, currentExpenses, currentProfitLoss, ticketPriceObj, foodPriceObj, drinkPriceObj, uniformPriceObj;
-	InputField ticketPrice, foodPrice, drinkPrice, uniformPrice;
-	Team team;
+	public GameObject currentCash, currentRevenues, currentExpenses, currentProfitLoss,	// Game objects to display the corresponding financial information
+	ticketPriceObj, foodPriceObj, drinkPriceObj, uniformPriceObj;						// Game objects to display the corresponding financial information
+	InputField ticketPrice, foodPrice, drinkPrice, uniformPrice;						// Game objects to retrieve the corresponding financial information
+	Team team;																			// The player's team
 
 	// Use this for initialization
 	void Start () {
-		Text profitLoss = currentProfitLoss.GetComponent<Text> (), cash = currentCash.GetComponent<Text>(), revenues, expenses;
+		Text profitLoss, cash, revenues, expenses;
+
+		profitLoss = currentProfitLoss.GetComponent<Text>();
+			cash = currentCash.GetComponent<Text>();
 
 		team = GameObject.Find ("_Manager").GetComponent<AllTeams>().teams [0];
 
+		// Gets the input fields
 		ticketPrice = ticketPriceObj.GetComponent<InputField> ();
 		foodPrice = foodPriceObj.GetComponent<InputField> ();
 		drinkPrice = drinkPriceObj.GetComponent<InputField> ();
 		uniformPrice = uniformPriceObj.GetComponent<InputField> ();
 
+		// Formats the prices
 		ticketPrice.text = team.ticketPrice.ToString("0.00");
 		foodPrice.text = team.foodPrice.ToString("0.00");
 		drinkPrice.text = team.drinkPrice.ToString("0.00");
 		uniformPrice.text = team.uniformPrice.ToString("0.00");
 
+		// Gets the text fields
 		revenues = currentRevenues.GetComponent<Text> ();
 		expenses = currentExpenses.GetComponent<Text> ();
 
+		// Formats the revenue field
 		revenues.text = team.revenues.ToString("0.00");
 
+		// Changes the colour of text based on whether they're positive/neutral/negative
 		if (team.revenues == 0.00)
 			revenues.color = Color.white;
 
@@ -78,6 +87,7 @@ public class GetFinances : MonoBehaviour {
 		}
 	}
 
+	// Sets the prices based on the entered prices
 	public void SetPrices()
 	{
 		team.ticketPrice = double.Parse(ticketPrice.text);

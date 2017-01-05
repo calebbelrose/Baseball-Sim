@@ -5,19 +5,16 @@ using System.IO;
 
 public class AllTeams : MonoBehaviour {
 
-    static int numTeams = 30;
-	public List<Team> teams = new List<Team>();
-    public int[,] schedule = new int[numTeams / 2, 2];
-    public int year, numPlays, numStats, currStarter;
+    static int numTeams = 30;								// Number of teams
+	public List<Team> teams = new List<Team>();				// List of all teams
+    public int[,] schedule = new int[numTeams / 2, 2];		// Schedule of the next games to be played
+    public int year, numPlays, numStats, currStarter;		// 
     public bool needDraft, inFinals;
     public string[] stats = File.ReadAllLines("Stats.txt");
 	public List<string> tradeList;
 	public List<string> injuries;
 	public int longestHitStreak = 0, hitStreakYear;
 	public string hitStreakName;
-	int[] league = new int[] {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	division = new int[] {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	home = new int[] {1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 };
 
     // Use this for initialization
     void Start ()
@@ -144,7 +141,7 @@ public class AllTeams : MonoBehaviour {
 
 		file1.Close ();
 
-
+		// Loads everything after starting the game after having already played
         if (PlayerPrefs.HasKey("Year"))
         {
             year = int.Parse(PlayerPrefs.GetString("Year"));
@@ -216,10 +213,12 @@ public class AllTeams : MonoBehaviour {
                 schedule[i / 2, i % 2] = int.Parse(tempSchedule[i]);
             }
         }
+		// Creates a new game if it is the first time playing
         else
             Restart();
     }
-	
+
+	// Returns the number of teams
 	public int GetNumTeams()
     {
         return numTeams;
@@ -227,8 +226,8 @@ public class AllTeams : MonoBehaviour {
 
     public void Restart()
 	{
-		List<int> picksLeft = new List<int> ();
-		string strSchedule = "";
+		List<int> picksLeft = new List<int> ();	// List of picks left for the draft
+		string strSchedule = "";				// Schedule in string format
 
 		year = System.DateTime.Now.Year;
 		PlayerPrefs.SetString ("Year", year.ToString ());
@@ -242,9 +241,11 @@ public class AllTeams : MonoBehaviour {
 		PlayerPrefs.SetInt ("CurrStarter", currStarter);
 		tradeList = new List<string> ();
 
+		// Adds the draft picks to the list
 		for (int i = 0; i < numTeams; i++)
 			picksLeft.Add (i);
 
+		// Creates each team with 1 of batting position, 5 Starting Pitcher, 3 Relief Pitcher and 1 Closing Pitcher
 		for (int i = 0; i < numTeams; i++) {
 			Team team = new Team ();
 			string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
@@ -303,9 +304,11 @@ public class AllTeams : MonoBehaviour {
 			teams.Add (team);
 		}
 
+		// Stores the length of the longest first and last name to be able to display them properly
 		PlayerPrefs.SetInt("LongestFirstName", Player.longestFirstName);
 		PlayerPrefs.SetInt("LongestLastName", Player.longestLastName);
 
+		// Creates the schedule for the first games
         for (int i = 0; i < numTeams; i++)
         {
             schedule[i / 2, i % 2] = i;

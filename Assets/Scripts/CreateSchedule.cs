@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class CreateSchedule
 {
+	// The schedule for all teams, will be used to create a proper schedule later
 	public List<List<ScheduledGame>> Create(List<List<ScheduledGame>> schedule)
 	{
 		//0

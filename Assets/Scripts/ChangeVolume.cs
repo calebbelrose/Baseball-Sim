@@ -4,6 +4,7 @@ using System.Collections;
 
 public class ChangeVolume : MonoBehaviour {
 
+	// Changes the volume when the slider is moved
 	public void OnVolumeChange(Slider slider)
     {
         GameObject musicPlayer = GameObject.Find("music");

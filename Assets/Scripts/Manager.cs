@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Manager : MonoBehaviour {
 
+	// Makes sure the manager persists through scenes
     void Awake()
     {
         if (GameObject.Find("_Manager") == null)

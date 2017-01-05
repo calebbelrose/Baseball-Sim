@@ -4,10 +4,11 @@ using System.Collections;
 
 public class TradePlayerInfo : MonoBehaviour {
 
-    bool active = false;
-    Color yellow = new Color(1.0f, 1.0f, 0.0f);
-    public int playerNum, teamNum;
+    bool active = false;						// Whether the player is part of the trade or not
+    Color yellow = new Color(1.0f, 1.0f, 0.0f);	// The colour to change to if the player is part of the trade
+    public int playerNum, teamNum;				// The number of the player and their team
 
+	// Changes the colour of the player when it's displayed based on whether it's part of the trade or not
 	public void ChangeButtonColour()
     {
         Button button = GetComponent<Button>();
@@ -24,11 +25,9 @@ public class TradePlayerInfo : MonoBehaviour {
         button.colors = cb;
     }
 
+	// Adds the player to the trade
     public void AddToTrade()
     {
-        if(active)
-        {
-            GameObject.Find("btnOffer").GetComponent<Trade>().AddPlayer(playerNum, teamNum);
-        }
+    	GameObject.Find("btnOffer").GetComponent<Trade>().AddPlayer(playerNum, teamNum);
     }
 }

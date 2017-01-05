@@ -16,7 +16,8 @@ public class Report : MonoBehaviour
 		players = new List<Player> ();
 		GenerateReport ();
 	}
-	
+
+	// Generates a report to show worst/best players/teams
 	void GenerateReport()
 	{
 		List<Player> result;
