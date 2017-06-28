@@ -16,6 +16,8 @@ public class Top8 : MonoBehaviour {
 
     void Start()
     {
+		int pick = 29;
+
         allTeams = GameObject.Find("_Manager").GetComponent<AllTeams>();
         temp = new Team[allTeams.GetNumTeams()];
         allTeams.teams.CopyTo(temp, 0);
@@ -40,8 +42,8 @@ public class Top8 : MonoBehaviour {
         else
             round = 1;
 
-        for (int i = 0; i < allTeams.teams.Count; i++)
-            allTeams.teams[i].pick = i;
+        for (int i = 0; i < temp.Length; i++)
+			allTeams.teams[temp[i].id].Pick = pick--;
 
         for (int i = 0; i < top8.Length; i++)
         {
@@ -459,8 +461,8 @@ public class Top8 : MonoBehaviour {
                         PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
                         allTeams.inFinals = false;
                         PlayerPrefs.SetString("InFinals", allTeams.inFinals.ToString());
-                        allTeams.year++;
-                        PlayerPrefs.SetString("Year", allTeams.year.ToString());
+						allTeams.NewYear();
+                        PlayerPrefs.SetString("Year", allTeams.Year.ToString());
                         allTeams.numPlays = 0;
                         PlayerPrefs.SetInt("NumPlays", 0);
 
@@ -484,7 +486,7 @@ public class Top8 : MonoBehaviour {
 									allTeams.teams [k].players [l].skills[currStat]++;
 								}
 
-								allTeams.teams [k].players [l].SavePlayer(k, l);
+								allTeams.teams [k].players [l].SavePlayer(k);
 							}
                         }
 

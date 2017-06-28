@@ -12,8 +12,6 @@ public class MenuMusic : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
         else if(gameObject.name != "music")
-        {
             Destroy(this.gameObject);
-        }
     }
 }

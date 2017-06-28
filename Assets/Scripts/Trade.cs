@@ -95,8 +95,8 @@ public class Trade : MonoBehaviour {
 
 			// Saves the new players to your team
 			for (int i = 0; i < allTeams.teams [0].players.Count; i++) {
-				allTeams.teams [0].players [i].SavePlayer (0, i);
-				allTeams.teams [0].players [i].playerNumber = i;
+				allTeams.teams [0].players [i].SavePlayer (0);
+				allTeams.teams [0].players [i].PlayerIndex = i;
 			}
 
 			// Removes the old players from your team if you have less players
@@ -107,8 +107,8 @@ public class Trade : MonoBehaviour {
 
 			// Saves the new players to their team
 			for (int i = 0; i < allTeams.teams [theirTeam].players.Count; i++) {
-				allTeams.teams [theirTeam].players [i].SavePlayer (theirTeam, i);
-				allTeams.teams [theirTeam].players [i].playerNumber = i;
+				allTeams.teams [theirTeam].players [i].SavePlayer (theirTeam);
+				allTeams.teams [theirTeam].players [i].PlayerIndex = i;
 			}
 
 			// Removes the old players from their team if they have less players

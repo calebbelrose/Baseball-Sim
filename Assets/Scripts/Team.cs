@@ -4,24 +4,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-public class Team {
-
-    public List<Player> players;
+public class Team
+{
+	public List<Player> players;
+    private List<int> majorLeagueIndexes, minorLeagueIndexes;
     public List<int> SP, RP, CP, Batters;
     public int wins, losses;
     public float[] overalls;
     public string cityName, teamName;
-	public int id, pick, streak = 0, stadiumCapacity = 50000, stadiumTier = 0;
+	public int id, streak = 0, stadiumCapacity = 50000, stadiumTier = 0;
     string[] stats;
-	static char sLeague = 'A', sDivision = 'E';
-	public char league, division;
+	static League sLeague = League.American;
+	static Division sDivision = Division.East;
+	public League league;
+	public Division division;
 	public string shortform;
 	public static int longestCityName = 0, longestTeamName = 0;
 	static string[] cityNames = File.ReadAllLines("CityNames.txt"), teamNames = File.ReadAllLines("TeamNames.txt");
 	public double currentSalary;
 	public double cash = 25000000.00, hype = 0.5, revenues = 0, expenses = 0, profit = 0, ticketPrice = 100.00, drinkPrice = 10.00, foodPrice = 10.00, uniformPrice = 100.00, newStadiumPrice = 5000000.00;
 	int drinksSold = 0, foodSold = 0, uniformsSold = 0, ticketsSold = 0;
-	public int homeGames = 0;
+	private int currStarter = 0;
+	public int Pick;
+
+	public int CurrStarter
+	{
+		get
+		{
+			return currStarter;
+		}
+	}
 
     public Team()
     {
@@ -31,7 +43,9 @@ public class Team {
 	// Resets team
     void Reset()
     {
-        players = new List<Player>();
+		players = new List<Player>();
+		majorLeagueIndexes = new List<int>();
+		minorLeagueIndexes = new List<int>();
         SP = new List<int>();
         RP = new List<int>();
         CP = new List<int>();
@@ -51,17 +65,17 @@ public class Team {
 		league = sLeague;
 		division = sDivision;
 
-		if (sLeague == 'A')
-			sLeague = 'N';
+		if (sLeague == League.American)
+			sLeague = League.National;
 		else
-			sLeague = 'A';
+			sLeague = League.American;
 
-		if (sDivision == 'E')
-			sDivision = 'W';
-		else if (sDivision == 'W')
-			sDivision = 'C';
+		if (sDivision == Division.East)
+			sDivision = Division.West;
+		else if (sDivision == Division.West)
+			sDivision = Division.Central;
 		else
-			sDivision = 'E';
+			sDivision = Division.East;
     }
     
 	// Sets the stats for the team
@@ -100,6 +114,8 @@ public class Team {
 			hype = 1;
 		
 		wins++;
+		PlayerPrefs.SetString ("WL" + id.ToString (), wins + "," + losses);
+		PlayerPrefs.Save ();
 	}
 
 	// Adds a loss
@@ -115,6 +131,8 @@ public class Team {
 			hype = 0;
 		
 		losses++;
+		PlayerPrefs.SetString ("WL" + id.ToString (), wins + "," + losses);
+		PlayerPrefs.Save ();
 	}
 
 	// Adds revenue
@@ -149,7 +167,6 @@ public class Team {
 		cash += thisRevenue;
 
 		SubtractExpenses ();
-		homeGames++;
 	}
 
 	// Subtract expenses
@@ -186,4 +203,119 @@ public class Team {
 		stadiumTier = tier;
 
 	}
+
+	public void AutomaticRoster()
+	{
+		List<string> starters = new List<string>();
+		int benchSpace = 7;
+
+		majorLeagueIndexes.Clear ();
+		minorLeagueIndexes.Clear ();
+
+		starters.Add("SP");
+		starters.Add("SP");
+		starters.Add("SP");
+		starters.Add("SP");
+		starters.Add("SP");
+		starters.Add("RP");
+		starters.Add("RP");
+		starters.Add("RP");
+		starters.Add("CP");
+		starters.Add("C");
+		starters.Add("1B");
+		starters.Add("2B");
+		starters.Add("3B");
+		starters.Add("SS");
+		starters.Add("LF");
+		starters.Add("CF");
+		starters.Add("RF");
+		starters.Add("DH");
+
+		Batters.Clear();
+		SP.Clear();
+		RP.Clear();
+		CP.Clear();
+
+		List<Player> result = players.OrderBy(playerX => playerX.position).ThenByDescending(playerX => playerX.overall).ToList<Player>();
+
+		for(int j = 0; j < result.Count; j++)
+		{
+			if (starters.Contains (result [j].position)) {
+				if (result [j].position == "SP") {
+					PlayerPrefs.SetInt ("SP" + id + "-" + SP.Count, j);
+					SP.Add (result [j].PlayerIndex);
+					starters.Remove ("SP");
+				} else if (result [j].position == "RP") {
+					PlayerPrefs.SetInt ("RP" + id + "-" + RP.Count, j);
+					RP.Add (result [j].PlayerIndex);
+					starters.Remove ("RP");
+				} else if (result [j].position == "CP") {
+					PlayerPrefs.SetInt ("CP" + id + "-" + CP.Count, j);
+					CP.Add (result [j].PlayerIndex);
+					starters.Remove ("CP");
+				} else {
+					PlayerPrefs.SetInt ("Batter" + id + "-" + Batters.Count, j);
+					Batters.Add (result [j].PlayerIndex);
+					starters.Remove (result [j].position);
+				}
+				majorLeagueIndexes.Add (result [j].PlayerIndex);
+			}
+			else if (benchSpace > 0)
+				majorLeagueIndexes.Add (result [j].PlayerIndex);
+			else
+				minorLeagueIndexes.Add (result [j].PlayerIndex);
+		}
+
+		OrderLineup ();
+		CalculateOveralls ();
+	}
+
+	public void CalculateOveralls()
+	{
+		float totalOverall = 0.0f, totalOffense = 0.0f, totalDefense = 0.0f;
+
+		for (int i = 0; i < majorLeagueIndexes.Count; i++)
+		{
+			totalOverall += players [majorLeagueIndexes [i]].overall;
+			totalOffense += players [majorLeagueIndexes [i]].offense;
+			totalDefense += players [majorLeagueIndexes [i]].defense;
+		}
+
+		overalls [0] = totalOverall / majorLeagueIndexes.Count;
+		overalls [1] = totalOffense / majorLeagueIndexes.Count;
+		overalls [2] = totalDefense / majorLeagueIndexes.Count;
+
+		PlayerPrefs.SetString("Overalls" + id, overalls[0] + "," + overalls[1] + "," + overalls[2]);
+	}
+
+	public void AddToMajors(int index)
+	{
+		minorLeagueIndexes.Remove (index);
+		majorLeagueIndexes.Add (index);
+	}
+
+	public void AddToMinors(int index)
+	{
+		majorLeagueIndexes.Remove (index);
+		minorLeagueIndexes.Add (index);
+	}
+
+	public void UseStarter()
+	{
+		currStarter = (currStarter + 1) % 5;
+		PlayerPrefs.SetInt ("CurrStarter" + id, currStarter);
+	}
+}
+
+public enum League
+{
+	American,
+	National
+}
+
+public enum Division
+{
+	East,
+	West,
+	Central
 }

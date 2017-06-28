@@ -35,7 +35,7 @@ public class SetTeamInfo : MonoBehaviour
         if (tempTeamName != "")
             allTeams.teams[0].teamName = tempTeamName;
 
-        PlayerPrefs.SetString("Team" + allTeams.teams[0].id, allTeams.teams[0].id + "," + allTeams.teams[0].cityName + "," + allTeams.teams[0].teamName + "," + allTeams.teams[0].pick);
+		PlayerPrefs.SetString("Team" + allTeams.teams[0].id, allTeams.teams[0].id + "," + allTeams.teams[0].cityName + "," + allTeams.teams[0].teamName + "," + allTeams.teams[0].Pick);
         PlayerPrefs.Save();
     }
 }

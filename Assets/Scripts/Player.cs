@@ -4,29 +4,66 @@ using System.IO;
 
 public class Player
 {
-	public int games, atBats, runs, hits, singles, doubles, triples, homeruns, totalBases, runsBattedIn, walks, strikeouts, stolenBases, caughtStealing, sacrifices, wins, losses, gamesStarted, saves, saveOpportunities, inningsPitched, atBatsAgainst, hitsAgainst, runsAgainst, earnedRuns, homerunsAgainst, walksAgainst, strikeoutsAgainst, qualityStarts, completeGames, hitStreak, reachedOnError, hitByPitch;
+	public int games, atBats, runs, hits, singles, doubles, triples, homeruns, totalBases, runsBattedIn, walks, strikeouts, stolenBases, caughtStealing, sacrifices, wins, losses, gamesStarted, saves, saveOpportunities, inningsPitched, atBatsAgainst, hitsAgainst, runsAgainst, earnedRuns, homerunsAgainst, walksAgainst, strikeoutsAgainst, qualityStarts, completeGames, hitStreak, reachedOnError, hitByPitch, longestHitStreak, hitStreakYear;
 	public int potential, age, contractLength;
 	public int[] skills = new int[10]; // 0power, 1contact, 2eye, 3speed, 4catching, 5throwing power, 6accuracy, 7movement, 8energy, 9endurance
 	public float offense, defense, overall;
 	public double salary;
 	public string firstName, lastName, position;
 	static string[] firstNames = File.ReadAllLines("FirstNames.txt"), lastNames = File.ReadAllLines("LastNames.txt");
-	public int playerNumber, team, injuryLength;
-	public static int longestFirstName = 9, longestLastName = 10;
+	public int team, injuryLength;
+	private int playerIndex;
+	public static int longestFirstName = 10, longestLastName = 9;
 	public string injuryLocation, injurySeriousness;
 	public int[,,] runExpectancy = new int[2,3,8];
+	public string country;
+	private static int year;
+
+	public static int Year
+	{
+		get
+		{
+			return year;
+		}
+	}
+
+	public string Name
+	{
+		get
+		{
+			return firstName + " " + lastName;
+		}
+	}
+
+	public int PlayerIndex
+	{
+		get
+		{
+			return playerIndex;
+		}
+		set
+		{
+			playerIndex = value;
+		}
+	}
+
+	public static void SetYear(int _year)
+	{
+		year = _year;
+	}
 
 	public Player()
 	{
 	}
 
 	// 1-arg constructor
-	public Player(string newPosition)
+	public Player(string newPosition, int minAge, int ageRange, int index = 0)
 	{
+		float randomCountry = Random.value;
 		firstName = firstNames [(int)(Random.value * firstNames.Length)];
 		lastName = lastNames [(int)(Random.value * lastNames.Length)];
 		position = newPosition;
-		age = (int)(Random.value * 27) + 18;
+		age = (int)(Random.value * ageRange) + minAge;
 		skills[0] = (int)(Random.value * age) + 55;
 		skills[1] = (int)(Random.value * age) + 55;
 		skills[2] = (int)(Random.value * age) + 55;
@@ -51,11 +88,58 @@ public class Player
 		contractLength = (int)(Random.value * 4) + 1;
 		injuryLength = 0;
 
+		if(randomCountry <= 0.5437956204f)
+			country = "United States";
+		else if(randomCountry <= 0.7761557178f)
+			country = "Dominican Republic";
+		else if(randomCountry <= 0.8613138686f)
+			country = "Venezuela";
+		else if(randomCountry <= 0.8917274939f)
+			country = "Puerto Rico";
+		else if(randomCountry <= 0.9160583942f)
+			country = "Cuba";
+		else if(randomCountry <= 0.9318734793f)
+			country = "Mexico";
+		else if(randomCountry <= 0.9416058394f)
+			country = "Japan";
+		else if(randomCountry <= 0.9513381995f)
+			country = "Canada";
+		else if(randomCountry <= 0.9598540146f)
+			country = "Panama";
+		else if(randomCountry <= 0.9671532847f)
+			country = "South Korea";
+		else if(randomCountry <= 0.9720194647f)
+			country = "Curaçao";
+		else if(randomCountry <= 0.9768856448f)
+			country = "Colombia";
+		else if(randomCountry <= 0.9805352798f)
+			country = "Germany";
+		else if(randomCountry <= 0.9841849149f)
+			country = "Nicaragua";
+		else if(randomCountry <= 0.9878345499f)
+			country = "Oceania";
+		else if(randomCountry <= 0.9902676399f)
+			country = "Taiwan";
+		else if(randomCountry <= 0.9927007299f)
+			country = "Virgin Islands";
+		else if(randomCountry <= 0.99513382f)
+			country = "Brazil";
+		else if(randomCountry <= 0.996350365f)
+			country = "South Africa";
+		else if(randomCountry <= 0.99756691f)
+			country = "Lithuania";
+		else if(randomCountry <= 0.998783455f)
+			country = "Netherlands";
+		else
+			country = "Aruba";
+
 		if (firstName.Length > longestFirstName)
 			longestFirstName = firstName.Length;
 
 		if (lastName.Length > longestLastName)
 			longestLastName = lastName.Length;
+
+		playerIndex = index;
 
 		Reset ();
 	}
@@ -95,25 +179,27 @@ public class Player
 		hitStreak = 0;
 		reachedOnError = 0;
 		hitByPitch = 0;
+		longestHitStreak = 0;
+		hitStreakYear = 0;
 	}
 
 	// Saves player
-	public void SavePlayer(int teamNum, int playerNum)
+	public void SavePlayer(int teamNum)
 	{
-		PlayerPrefs.SetString ("Player" + teamNum + "-" + playerNum, firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + potential + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + offense + "," + defense + "," + overall + "," + salary + "," + contractLength + "," + injuryLength);
-		SaveStats (teamNum, playerNum);
+		PlayerPrefs.SetString ("Player" + teamNum + "-" + playerIndex, firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + potential + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + offense + "," + defense + "," + overall + "," + salary + "," + contractLength + "," + injuryLength + "," + country);
+		SaveStats (teamNum);
 	}
 
 	// Saves stats
-	public void SaveStats(int teamNum, int playerNum)
+	public void SaveStats(int teamNum)
 	{
-		PlayerPrefs.SetString ("PlayerStats" + teamNum + "-" + playerNum, games + "," + atBats + "," + runs + "," + hits + "," + doubles + "," + triples + "," + homeruns + "," + totalBases + "," + runsBattedIn + "," + walks + "," + strikeouts + "," + stolenBases + "," + caughtStealing + "," + sacrifices + "," + wins + "," + losses + "," + gamesStarted + "," + saves + "," + saveOpportunities + "," + inningsPitched + "," + atBatsAgainst + "," + hitsAgainst + "," + runsAgainst + "," + earnedRuns + "," + homerunsAgainst + "," + walksAgainst + "," + strikeoutsAgainst + "," + qualityStarts + "," + completeGames + "," + hitStreak + "," + reachedOnError + "," + hitByPitch); 
+		PlayerPrefs.SetString ("PlayerStats" + teamNum + "-" + playerIndex, games + "," + atBats + "," + runs + "," + hits + "," + doubles + "," + triples + "," + homeruns + "," + totalBases + "," + runsBattedIn + "," + walks + "," + strikeouts + "," + stolenBases + "," + caughtStealing + "," + sacrifices + "," + wins + "," + losses + "," + gamesStarted + "," + saves + "," + saveOpportunities + "," + inningsPitched + "," + atBatsAgainst + "," + hitsAgainst + "," + runsAgainst + "," + earnedRuns + "," + homerunsAgainst + "," + walksAgainst + "," + strikeoutsAgainst + "," + qualityStarts + "," + completeGames + "," + hitStreak + "," + reachedOnError + "," + hitByPitch + "," + longestHitStreak + "," + hitStreakYear); 
 	}
 
 	// Loads player and stats
-	public void LoadPlayer(int teamNum, int playerNum)
+	public void LoadPlayer(int teamNum, int index)
 	{
-		string player = PlayerPrefs.GetString("Player" + teamNum + "-" + playerNum), stats = PlayerPrefs.GetString("PlayerStats" + teamNum + "-" + playerNum);
+		string player = PlayerPrefs.GetString("Player" + teamNum + "-" + index), stats = PlayerPrefs.GetString("PlayerStats" + teamNum + "-" + index);
 		string[] playerSplit = player.Split (','), splitStats = stats.Split (',');
 		firstName = playerSplit [0];
 		lastName = playerSplit [1];
@@ -137,6 +223,7 @@ public class Player
 		salary = double.Parse (playerSplit [19]);
 		contractLength = int.Parse (playerSplit [20]);
 		injuryLength = int.Parse (playerSplit [21]);
+		country = playerSplit [22];
 
 		games = int.Parse (splitStats [0]);
 		atBats = int.Parse (splitStats [1]);
@@ -170,8 +257,10 @@ public class Player
 		hitStreak = int.Parse (splitStats [29]);
 		reachedOnError = int.Parse (splitStats [30]);
 		hitByPitch = int.Parse (splitStats [31]);
+		longestHitStreak = int.Parse (splitStats [32]);
+		hitStreakYear = int.Parse (splitStats [33]);
 
-		playerNumber = playerNum;
+		playerIndex = index;
 		team = teamNum;
 	}
 
@@ -185,7 +274,7 @@ public class Player
 
 		if (seriousness == 25 && location == 5)
 		{
-			allTeams.teams [team].players.RemoveAt (playerNumber);
+			allTeams.teams [team].players.RemoveAt (playerIndex);
 			allTeams.teams [team].OrderLineup ();
 			Debug.Log(firstName + " " + lastName + " " + allTeams.teams[team].shortform + "Ended");
 		}
