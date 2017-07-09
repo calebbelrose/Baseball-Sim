@@ -11,7 +11,6 @@ public class Calendar : MonoBehaviour
 	public List<GameObject> calendarSlots = new List<GameObject> ();
 	public Text monthText;
 
-	private AllTeams allTeams = null;
 	private Color fadedColour = new Color (Color.white.r, Color.white.g, Color.white.b, 0.5f);
 	private int selectedSlot;
 	private int currMonth;
@@ -19,14 +18,11 @@ public class Calendar : MonoBehaviour
 
 	void Start()
 	{
-		if(allTeams == null)
-			allTeams = GameObject.Find ("_Manager").GetComponent<AllTeams> ();
-		
-		startOfYear = DateTime.Parse (allTeams.Year + "/01/01");
+		startOfYear = DateTime.Parse (Manager.Instance.Year + "/01/01");
 
-		CreateSchedule.ScheduleEvents (allTeams.Days, DateTime.IsLeapYear(allTeams.Year));
+		CreateSchedule.ScheduleEvents (Manager.Instance.Days, DateTime.IsLeapYear(Manager.Instance.Year));
 
-		currMonth = allTeams.Days[allTeams.DayIndex].Date.Month;
+		currMonth = Manager.Instance.Days[Manager.Instance.DayIndex].Date.Month;
 		DisplayCalendar (currMonth);
 	}
 
@@ -37,43 +33,43 @@ public class Calendar : MonoBehaviour
 
 		calendarSlots.Clear ();
 
-		int startOfCalendar = (DateTime.Parse(allTeams.Year + "/" + month + "/01") - startOfYear).Days;
-		int endOfCalendar = startOfCalendar + DateTime.DaysInMonth(allTeams.Year, month) - 1;
-		int maxIndex = allTeams.Days.Count - 1;
+		int startOfCalendar = (DateTime.Parse(Manager.Instance.Year + "/" + month + "/01") - startOfYear).Days;
+		int endOfCalendar = startOfCalendar + DateTime.DaysInMonth(Manager.Instance.Year, month) - 1;
+		int maxIndex = Manager.Instance.Days.Count - 1;
 		int offset = 0;
 
 		monthText.text = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month);
 
-		while (allTeams.Days [startOfCalendar].Date.DayOfWeek != DayOfWeek.Sunday)
+		while (Manager.Instance.Days [startOfCalendar].Date.DayOfWeek != DayOfWeek.Sunday)
 		{
 			startOfCalendar--;
 			offset++;
 		}
 
-		while (endOfCalendar < maxIndex && allTeams.Days [endOfCalendar].Date.DayOfWeek != DayOfWeek.Saturday)
+		while (endOfCalendar < maxIndex && Manager.Instance.Days [endOfCalendar].Date.DayOfWeek != DayOfWeek.Saturday)
 			endOfCalendar++;
 
 		for (int day = startOfCalendar; day <= endOfCalendar; day++)
 		{
 			GameObject obj = Instantiate (slotPrefab, Vector3.zero, Quaternion.identity, transform);
 
-			if (allTeams.Days[day].Date.Month != month)
+			if (Manager.Instance.Days[day].Date.Month != month)
 			{
 				obj.GetComponent<Image> ().color = fadedColour;
-				obj.GetComponent<Slot> ().Setup(calendarSlots.Count, allTeams.Days[day], this, false);
+				obj.GetComponent<Slot> ().Setup(calendarSlots.Count, Manager.Instance.Days[day], this, false);
 			}
 			else
-				obj.GetComponent<Slot> ().Setup(calendarSlots.Count, allTeams.Days[day], this, true);
+				obj.GetComponent<Slot> ().Setup(calendarSlots.Count, Manager.Instance.Days[day], this, true);
 
-			obj.GetComponent<Slot> ().Display (allTeams.teams);
+			obj.GetComponent<Slot> ().Display (Manager.Instance.teams);
 			
 			calendarSlots.Add (obj);
 		}
 
-		if (currMonth != allTeams.Days [allTeams.DayIndex].Date.Month)
+		if (currMonth != Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month)
 			selectedSlot = -1;
 		else
-			SelectSlot(allTeams.Days [allTeams.DayIndex].Date.Day + offset - 1);
+			SelectSlot(Manager.Instance.Days [Manager.Instance.DayIndex].Date.Day + offset - 1);
 	}
 
 	public void Simulate()
@@ -82,10 +78,12 @@ public class Calendar : MonoBehaviour
 		{
 			DateTime date = calendarSlots [selectedSlot].GetComponent<Slot> ().Day.Date;
 
-			while (allTeams.Days [allTeams.DayIndex].Date <= date)
-				allTeams.SimulateDay ();
+			while (Manager.Instance.Days [Manager.Instance.DayIndex].Date <= date)
+				Manager.Instance.SimulateDay ();
 
-			DisplayCalendar (allTeams.Days [allTeams.DayIndex].Date.Month);
+			currMonth = Manager.Instance.Days[Manager.Instance.DayIndex].Date.Month;
+
+			DisplayCalendar (Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month);
 		}
 	}
 
@@ -119,7 +117,7 @@ public class Calendar : MonoBehaviour
 
 	public void SelectSlot(int index)
 	{
-		if(selectedSlot != -1)
+		if(selectedSlot != -1 && selectedSlot < calendarSlots.Count)
 			calendarSlots [selectedSlot].GetComponent<Image> ().color = Color.white;
 		
 		selectedSlot = index;

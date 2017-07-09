@@ -5,53 +5,32 @@ using System.Linq;
 
 public class Draft
 {
-    List<Player>[] newPlayers;
-	public static List<Player> draftPlayers;
+    List<int>[] newPlayers;
+	public static List<int> draftPlayers;
 	GameObject manager;
 	Transform draftList, header;
     RectTransform draftListRect, draftListParentRect;
-    AllTeams allTeams;
 	int currSortedStat = 0, currIndex = 0, initialPlayers;
 	bool ascending;
-	string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
 	List<int> pickOrder;
 
     // Use this for initialization
-	public Draft(AllTeams _allTeams)
+	public Draft()
 	{
-		allTeams = _allTeams;
-        newPlayers = new List<Player>[allTeams.GetNumTeams()];
-		draftPlayers = new List<Player> ();
+		int index = 0;
+
+        newPlayers = new List<int>[Manager.Instance.GetNumTeams()];
+		draftPlayers = new List<int> ();
 
         for (int i = 0; i < newPlayers.Length; i++)
-            newPlayers[i] = new List<Player>();
+            newPlayers[i] = new List<int>();
 
-		while (PlayerPrefs.HasKey("Draft" + draftPlayers.Count.ToString()))
+		while (PlayerPrefs.HasKey("Draft" + index))
         {
-			string playerString = PlayerPrefs.GetString("Draft" + draftPlayers.Count);
 			Player newPlayer = new Player();
-			string[] splitPlayer;
-			int current;
 
-			splitPlayer = playerString.Split(',');
-
-			newPlayer.firstName  = splitPlayer [0];
-			newPlayer.lastName  = splitPlayer [1];
-			newPlayer.position = splitPlayer [2];
-			newPlayer.potential = int.Parse(splitPlayer [3]);
-			newPlayer.age  = int.Parse(splitPlayer [4]);
-			newPlayer.potential = int.Parse(splitPlayer [5]);
-			current = 6;
-			for(int i = 0; i < newPlayer.skills.Length; i++)
-				newPlayer.skills [i] = int.Parse(splitPlayer [current++]);
-			newPlayer.offense = float.Parse(splitPlayer[current++]);
-			newPlayer.defense = float.Parse(splitPlayer[current++]);
-			newPlayer.overall= float.Parse(splitPlayer[current++]);
-			newPlayer.salary = double.Parse(splitPlayer[current++]);
-			newPlayer.contractLength = int.Parse(splitPlayer[current++]);
-			newPlayer.injuryLength = int.Parse(splitPlayer[current++]);
-			newPlayer.country = splitPlayer[current];
-			draftPlayers.Add (newPlayer);
+			newPlayer.LoadPlayer (PlayerPrefs.GetInt("Draft" + index++));
+			draftPlayers.Add (newPlayer.ID);
         }
 
 		if (draftPlayers.Count == 0)
@@ -60,9 +39,12 @@ public class Draft
 
 			for (int i = 0; i < initialPlayers; i++)
             {
-				Player newPlayer = new Player(positions[(int)(Random.value * positions.Length)], 18, 7);
-				draftPlayers.Add (newPlayer);
-				PlayerPrefs.SetString ("Draft" + i.ToString(), newPlayer.firstName + "," + newPlayer.lastName + "," + newPlayer.position + "," + newPlayer.potential + "," + newPlayer.age + "," + newPlayer.potential + "," + newPlayer.skills [0] + "," + newPlayer.skills [1] + "," + newPlayer.skills [2] + "," + newPlayer.skills [3] + "," + newPlayer.skills [4] + "," + newPlayer.skills [5] + "," + newPlayer.skills [6] + "," + newPlayer.skills [7] + "," + newPlayer.skills [8] + "," + newPlayer.skills [9] + "," + newPlayer.offense + "," + newPlayer.defense + "," + newPlayer.overall + "," + newPlayer.salary + "," + newPlayer.contractLength + "," + newPlayer.injuryLength + "," + newPlayer.country);
+				Player newPlayer = new Player(Player.Positions[(int)(Random.value * Player.Positions.Length)], 16, 9, Manager.Instance.Players.Count);
+				draftPlayers.Add (newPlayer.ID);
+				Manager.Instance.Players.Add (newPlayer);
+				newPlayer.SetDraftYear (Manager.Instance.Year);
+				newPlayer.SavePlayer ();
+				PlayerPrefs.SetInt ("Draft" + i.ToString(), newPlayer.ID);
             }
         }
         PlayerPrefs.Save();
@@ -70,25 +52,26 @@ public class Draft
 
 	public void StartDraft()
 	{
-		Sort(3);
 		SetPickOrder();
+		Sort(3);
 		Display ();
 
 		while (pickOrder [currIndex] != 0)
 			DraftPlayer (GameObject.Find ("player" + currIndex), 0);
+		
+		Manager.Instance.DisplayPlayers(draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 	}
 
 	public void SetPickOrder()
 	{
 		pickOrder = new List<int> ();
-		Team[] teams = new Team[allTeams.teams.Count];
+		Team[] teams = new Team[Manager.Instance.teams.Count];
 
-		allTeams.teams.CopyTo (teams);
+		Manager.Instance.teams.CopyTo (teams);
 		teams = teams.OrderBy (teamX => teamX.Pick).ToArray();
 
 		for (int i = 0; i < teams.Length; i++)
 			pickOrder.Add (teams [i].id);
-
 	}
 
 	public void Sort(int headerNum)
@@ -112,8 +95,8 @@ public class Draft
 		else
 			ascending = true;
 
-		draftPlayers = allTeams.Sort (headerNum, ascending, draftPlayers);
-		allTeams.DisplayPlayers(draftPlayers, draftList, draftListRect, draftListParentRect, true);
+		draftPlayers = Manager.Sort (headerNum, ascending, draftPlayers);
+		Manager.Instance.DisplayPlayers(draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 		currSortedStat = headerNum;
 	}
 
@@ -129,20 +112,20 @@ public class Draft
 		if (currSortedStat != 3 || ascending)
 		{
 			Sort (3);
-			if (allTeams.teams.Count > draftPlayers.Count)
-				count = draftPlayers.Count - 1;
+			if (Manager.Instance.teams.Count > draftPlayers.Count)
+				count = draftPlayers.Count;
 			else
-				count = allTeams.teams.Count - 1;
+				count = Manager.Instance.teams.Count - 1;
 
 			for (int i = 0; i < count; i++)
 				DraftPlayer (GameObject.Find ("draft" + i), 0);
 		}
 		else
 		{
-			if (allTeams.teams.Count > draftPlayers.Count)
-				count = draftPlayers.Count;
+			if (Manager.Instance.teams.Count > draftPlayers.Count)
+				count = draftPlayers.Count + 1;
 			else
-				count = allTeams.teams.Count;
+				count = Manager.Instance.teams.Count;
 
 			for (int i = 1; i < count; i++)
 				DraftPlayer (GameObject.Find ("draft" + i), 0);
@@ -157,57 +140,51 @@ public class Draft
 	// Draft a player
     public void DraftPlayer(GameObject player, int playerNum)
     {
-		if (pickOrder [currIndex] == 0)
-			Debug.Log (playerNum + " " + draftPlayers [playerNum].Name);
 		newPlayers[pickOrder[currIndex]].Add(draftPlayers[playerNum]);
 		draftPlayers.RemoveAt (playerNum);
 
-		if (pickOrder [currIndex] == 0)
-		{
-			Player test = newPlayers [0] [newPlayers [0].Count - 1];
-			Debug.Log (test.Name);
-		}
-
 		if (draftPlayers.Count == 0)
         {
-            int numTeams = allTeams.GetNumTeams();
+            int numTeams = Manager.Instance.GetNumTeams();
 
             for (int i = 0; i < numTeams; i++)
             {
-				Debug.Log (newPlayers[i].Count);
                 while (newPlayers[i].Count > 0)
                 {
-                    Player newPlayer = newPlayers[i].First();
-					newPlayer.PlayerIndex = allTeams.teams [i].players.Count;
-					newPlayer.SavePlayer (i);
-                    allTeams.teams[i].players.Add(newPlayer);
+					Manager.Instance.Players[newPlayers[i].First()].team = i;
+					Manager.Instance.Players[newPlayers[i].First()].SavePlayer ();
+					Manager.Instance.teams[i].DraftPicks.Add(newPlayers[i].First());
                     newPlayers[i].RemoveAt(0);
 				}
 
-                PlayerPrefs.SetInt("NumPlayers" + i, allTeams.teams[i].players.Count);
+				Manager.Instance.teams [i].AutomaticRoster ();
+                PlayerPrefs.SetInt("NumPlayers" + i, Manager.Instance.teams[i].players.Count);
             }
 
-            for (int i = 0; i < initialPlayers; i++)
+			for (int i = 0; i < initialPlayers - draftPlayers.Count; i++)
                 PlayerPrefs.DeleteKey("Draft" + i.ToString());
+
+			for(int i = 0; i < draftPlayers.Count; i++)
+				PlayerPrefs.SetInt ("Draft" + i.ToString(), Manager.Instance.Players[draftPlayers[i]].ID);
 
 			PlayerPrefs.SetInt("LongestFirstName", Player.longestFirstName);
 			PlayerPrefs.SetInt("LongestLastName", Player.longestLastName);
 
-            allTeams.needDraft = false;
-            PlayerPrefs.SetString("NeedDraft", allTeams.needDraft.ToString());
+            Manager.Instance.needDraft = false;
+            PlayerPrefs.SetString("NeedDraft", Manager.Instance.needDraft.ToString());
             PlayerPrefs.Save();
 
-            GameObject.Find("SceneManager").GetComponent<ChangeScene>().ChangeToScene(4);
+			Manager.ChangeToScene(4);
         }
 
-		currIndex = (currIndex + 1) % allTeams.teams.Count;
+		currIndex = (currIndex + 1) % Manager.Instance.teams.Count;
 		Object.Destroy(player);
     }
 
 	public void Display()
 	{
-		allTeams.DisplayHeaders (header, draftListParentRect, true);
-		allTeams.DisplayPlayers(draftPlayers, draftList, draftListRect, draftListParentRect, true);
+		Manager.Instance.DisplayHeaders (header, draftListParentRect, DisplayType.Draft);
+		Manager.Instance.DisplayPlayers(draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 	}
 
 	public void SetDraftPlayerObjects(Transform _draftList, Transform _header, RectTransform _draftListRect, RectTransform _draftListParentRect)
@@ -216,5 +193,10 @@ public class Draft
 		header = _header;
 		draftListRect = _draftListRect;
 		draftListParentRect = _draftListParentRect;
+	}
+
+	public static void ReturnToDraft(int playerID)
+	{
+		draftPlayers.Add (playerID);
 	}
 }

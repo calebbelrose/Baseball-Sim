@@ -18,7 +18,7 @@ public class PopulateStadiumTiers : MonoBehaviour {
 		cash = GameObject.Find ("txtCurrentCash").GetComponent<Text> ();
 		buyPrice = GameObject.Find ("txtNewBuyPrice").GetComponent<Text> ();
 		rentPrice = GameObject.Find ("txtNewRentPrice").GetComponent<Text> ();
-		team = GameObject.Find ("_Manager").GetComponent<AllTeams> ().teams [0];
+		team = Manager.Instance.teams [0];
 
 		// Displays the stadium tier and capacity
 		GameObject.Find ("txtCurrentTier").GetComponent<Text> ().text = team.stadiumTier.ToString();
@@ -45,7 +45,7 @@ public class PopulateStadiumTiers : MonoBehaviour {
 	{
 		int tier = int.Parse (dropdown.options [dropdown.value].text);
 		newCapacity.text = ((int)(50000 * System.Math.Pow (1.05, tier))).ToString();
-		cash.text = team.cash.ToString();
+		cash.text = team.Cash.ToString();
 		buyPrice.text = ((int)(5000000 * System.Math.Pow (1.05, tier))).ToString();
 		rentPrice.text = ((int)(250000 * System.Math.Pow (1.05, tier))).ToString();
 	}

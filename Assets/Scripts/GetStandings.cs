@@ -7,8 +7,6 @@ using System.Linq;
 public class GetStandings : MonoBehaviour {
 
     GameObject teamList;
-    GameObject manager;
-    AllTeams allTeams;
     string[] headers = new string[] { "Team Name", "Wins", "Losses", "Games Behind" };
     int currSortedStat = 3;
     char order = 'd';
@@ -18,16 +16,14 @@ public class GetStandings : MonoBehaviour {
     void Start()
     {
         teamList = GameObject.Find("TeamList");
-        manager = GameObject.Find("_Manager");
-        allTeams = manager.GetComponent<AllTeams>();
 
-        for (int i = 0; i < allTeams.teams.Count; i++)
+        for (int i = 0; i < Manager.Instance.teams.Count; i++)
         {
-            if (allTeams.teams[i].cityName.Length + allTeams.teams[i].teamName.Length + 1 > longestTeamName)
-                longestTeamName = allTeams.teams[i].cityName.Length + allTeams.teams[i].teamName.Length + 1;
+            if (Manager.Instance.teams[i].CityName.Length + Manager.Instance.teams[i].TeamName.Length + 1 > longestTeamName)
+                longestTeamName = Manager.Instance.teams[i].CityName.Length + Manager.Instance.teams[i].TeamName.Length + 1;
         }
 
-		teams = allTeams.teams.OrderBy(teamX => teamX.division).ThenBy (teamY => teamY.league).ThenBy(teamZ => teamZ.wins).ToList ();
+		teams = Manager.Instance.teams.OrderBy(teamX => teamX.Division).ThenBy (teamY => teamY.League).ThenBy(teamZ => teamZ.Wins).ToList ();
         DisplayHeader();
         DisplayTeams();
     }
@@ -129,8 +125,8 @@ public class GetStandings : MonoBehaviour {
 				newDivisionHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 				newDivisionHeader.GetComponent<Button> ().interactable = false;
 
-				leaderWins = teams [start].wins;
-				leaderLosses = teams [start].losses;
+				leaderWins = teams [start].Wins;
+				leaderLosses = teams [start].Losses;
 
 				for (int i = start; i < end; i++) {
 					Object teamButton = Resources.Load ("Team", typeof(GameObject));
@@ -139,7 +135,7 @@ public class GetStandings : MonoBehaviour {
 					newTeam.name = "team" + i.ToString ();
 					newTeam.transform.SetParent (teamList.transform);
 					teams [i].SetStats ();
-					string teamListing = teams [i].cityName + " " + teams [i].teamName;
+					string teamListing = teams [i].CityName + " " + teams [i].TeamName;
 
 					for (int j = teamListing.Length - 1; j < longestTeamName; j++)
 						teamListing += " ";
@@ -154,13 +150,13 @@ public class GetStandings : MonoBehaviour {
 					if (i == start)
 						teamListing += " -";
 					else
-						teamListing += " " + (((leaderWins - teams [i].wins) + (teams [i].losses - leaderLosses)) / 2.0).ToString ("0.0");
+						teamListing += " " + (((leaderWins - teams [i].Wins) + (teams [i].Losses - leaderLosses)) / 2.0).ToString ("0.0");
 
 
 					newTeam.transform.GetChild (0).gameObject.GetComponent<Text> ().text = teamListing;
 					newTeam.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 					newTeam.GetComponent<Button> ().interactable = false;
-					if (teams [i].teamName == allTeams.teams [0].teamName) {
+					if (teams [i].TeamName == Manager.Instance.teams [0].TeamName) {
 						Button b = newTeam.GetComponent<Button> ();
 						ColorBlock c = b.colors;
 						c.disabledColor = new Color (1.0f, 1.0f, 0.0f);

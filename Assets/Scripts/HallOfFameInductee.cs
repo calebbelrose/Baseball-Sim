@@ -4,17 +4,16 @@ using UnityEngine;
 
 public class HallOfFameInductee
 {
-	int year;
-	Player player;
+	int year, playerID;
 
-	public HallOfFameInductee(int _year, Player _player)
+	public HallOfFameInductee(int _year, int _playerID)
 	{
 		year = _year;
-		player = _player;
+		playerID = _playerID;
 	}
 
 	public override string ToString ()
 	{
-		return year + " - " + player.Name;
+		return year + " - " + Manager.Instance.Players[playerID].Name;
 	}
 }

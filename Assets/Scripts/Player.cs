@@ -1,23 +1,80 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 
 public class Player
 {
-	public int games, atBats, runs, hits, singles, doubles, triples, homeruns, totalBases, runsBattedIn, walks, strikeouts, stolenBases, caughtStealing, sacrifices, wins, losses, gamesStarted, saves, saveOpportunities, inningsPitched, atBatsAgainst, hitsAgainst, runsAgainst, earnedRuns, homerunsAgainst, walksAgainst, strikeoutsAgainst, qualityStarts, completeGames, hitStreak, reachedOnError, hitByPitch, longestHitStreak, hitStreakYear;
+	public List<int[]> stats = new List<int[]> (); //0games, 1atBats, 2runs, 3hits, 4singles, 5doubles, 6triples, 7homeruns, 8totalBases, 9runsBattedIn, 10walks, 11strikeouts, 12stolenBases, 13caughtStealing, 14sacrifices, 15wins, 16losses, 17gamesStarted, 18saves, 19saveOpportunities, 20inningsPitched, 21atBatsAgainst, 22hitsAgainst, 23runsAgainst, 24earnedRuns, 25homerunsAgainst, 26walksAgainst, 27strikeoutsAgainst, 28qualityStarts, 29completeGames, 30hitStreak, 31reachedOnError, 32hitByPitch, 33longestHitStreak, 34hitStreakYear, 35noHitters, 36errors;
 	public int potential, age, contractLength;
 	public int[] skills = new int[10]; // 0power, 1contact, 2eye, 3speed, 4catching, 5throwing power, 6accuracy, 7movement, 8energy, 9endurance
 	public float offense, defense, overall;
-	public double salary;
 	public string firstName, lastName, position;
-	static string[] firstNames = File.ReadAllLines("FirstNames.txt"), lastNames = File.ReadAllLines("LastNames.txt");
 	public int team, injuryLength;
-	private int playerIndex;
 	public static int longestFirstName = 10, longestLastName = 9;
 	public string injuryLocation, injurySeriousness;
 	public int[,,] runExpectancy = new int[2,3,8];
-	public string country;
+	public Country country;
+	public bool MajorLeagueContract = false;
+	public double Offer;
+
 	private static int year;
+	private static string[] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
+	private int playerID;
+	private int draftYear = -1;
+	private char bats, throws;
+	private float fieldingChance, catchingChance;
+	private double salary;
+
+	static string[] firstNames = File.ReadAllLines("FirstNames.txt"), lastNames = File.ReadAllLines("LastNames.txt");
+
+	public char Bats
+	{
+		get
+		{
+			return bats;
+		}
+	}
+
+	public char Throws
+	{
+		get
+		{
+			return throws;
+		}
+	}
+
+	public double Salary
+	{
+		get
+		{
+			return salary;
+		}
+	}
+
+	public float FieldingChance
+	{
+		get
+		{
+			return fieldingChance;
+		}
+	}
+
+	public float CatchingChance
+	{
+		get
+		{
+			return catchingChance;
+		}
+	}
+
+	public static string[] Positions
+	{
+		get
+		{
+			return positions;
+		}
+	}
 
 	public static int Year
 	{
@@ -35,15 +92,11 @@ public class Player
 		}
 	}
 
-	public int PlayerIndex
+	public int ID
 	{
 		get
 		{
-			return playerIndex;
-		}
-		set
-		{
-			playerIndex = value;
+			return playerID;
 		}
 	}
 
@@ -56,10 +109,11 @@ public class Player
 	{
 	}
 
-	// 1-arg constructor
-	public Player(string newPosition, int minAge, int ageRange, int index = 0)
+	// 1-arg constructor for new player
+	public Player(string newPosition, int minAge, int ageRange, int _playerID, int _team = -1)
 	{
-		float randomCountry = Random.value;
+		float random;
+
 		firstName = firstNames [(int)(Random.value * firstNames.Length)];
 		lastName = lastNames [(int)(Random.value * lastNames.Length)];
 		position = newPosition;
@@ -87,51 +141,26 @@ public class Player
 		salary = System.Math.Round((age + overall) * 100000 , 2);
 		contractLength = (int)(Random.value * 4) + 1;
 		injuryLength = 0;
+		RandomCountry ();
+		team = _team;
+		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 3.0f * 5;
+		catchingChance = 0.95f + (skills [3] + skills [4]) / 2.0f * 5;
 
-		if(randomCountry <= 0.5437956204f)
-			country = "United States";
-		else if(randomCountry <= 0.7761557178f)
-			country = "Dominican Republic";
-		else if(randomCountry <= 0.8613138686f)
-			country = "Venezuela";
-		else if(randomCountry <= 0.8917274939f)
-			country = "Puerto Rico";
-		else if(randomCountry <= 0.9160583942f)
-			country = "Cuba";
-		else if(randomCountry <= 0.9318734793f)
-			country = "Mexico";
-		else if(randomCountry <= 0.9416058394f)
-			country = "Japan";
-		else if(randomCountry <= 0.9513381995f)
-			country = "Canada";
-		else if(randomCountry <= 0.9598540146f)
-			country = "Panama";
-		else if(randomCountry <= 0.9671532847f)
-			country = "South Korea";
-		else if(randomCountry <= 0.9720194647f)
-			country = "Curaçao";
-		else if(randomCountry <= 0.9768856448f)
-			country = "Colombia";
-		else if(randomCountry <= 0.9805352798f)
-			country = "Germany";
-		else if(randomCountry <= 0.9841849149f)
-			country = "Nicaragua";
-		else if(randomCountry <= 0.9878345499f)
-			country = "Oceania";
-		else if(randomCountry <= 0.9902676399f)
-			country = "Taiwan";
-		else if(randomCountry <= 0.9927007299f)
-			country = "Virgin Islands";
-		else if(randomCountry <= 0.99513382f)
-			country = "Brazil";
-		else if(randomCountry <= 0.996350365f)
-			country = "South Africa";
-		else if(randomCountry <= 0.99756691f)
-			country = "Lithuania";
-		else if(randomCountry <= 0.998783455f)
-			country = "Netherlands";
+		random = Random.value;
+		if (random <= 0.425f)
+			bats = 'R';
+		else if (random <= 0.85f)
+			bats = 'L';
 		else
-			country = "Aruba";
+			bats = 'S';
+
+		random = Random.value;
+		if (random <= 0.495f)
+			throws = 'R';
+		else if (random <= 0.99f)
+			throws = 'L';
+		else
+			throws = 'S';
 
 		if (firstName.Length > longestFirstName)
 			longestFirstName = firstName.Length;
@@ -139,68 +168,68 @@ public class Player
 		if (lastName.Length > longestLastName)
 			longestLastName = lastName.Length;
 
-		playerIndex = index;
+		playerID = _playerID;
 
-		Reset ();
-	}
-
+		NewYear ();
+	}  
+ 
 	// Resets player's stats
-	void Reset()
+	void NewYear()
 	{
-		games = 0;
-		atBats = 0;
-		runs = 0;
-		hits = 0;
-		doubles = 0;
-		triples = 0;
-		homeruns = 0;
-		totalBases = 0;
-		runsBattedIn = 0;
-		walks = 0;
-		strikeouts = 0;
-		stolenBases = 0;
-		caughtStealing = 0;
-		sacrifices = 0;
-		wins = 0;
-		losses = 0;
-		gamesStarted = 0;
-		saves = 0;
-		saveOpportunities = 0;
-		inningsPitched = 0;
-		atBatsAgainst = 0;
-		hitsAgainst = 0;
-		runsAgainst = 0;
-		earnedRuns = 0;
-		homerunsAgainst = 0;
-		walksAgainst = 0;
-		strikeoutsAgainst = 0;
-		qualityStarts = 0;
-		completeGames = 0;
-		hitStreak = 0;
-		reachedOnError = 0;
-		hitByPitch = 0;
-		longestHitStreak = 0;
-		hitStreakYear = 0;
+		for(int i = 0; i < stats.Count; i++)
+		{
+			string stringStats = stats [i] [0].ToString();
+
+			for (int j = 1; j < stats [i].Length; j++)
+				stringStats += "," + stats [i] [j];
+
+			PlayerPrefs.SetString ("PlayerStats" + playerID + "-" + i, stringStats);
+		}
+
+		stats.Insert (0, new int[37]);
+
+		for (int i = 0; i < stats [0].Length; i++)
+			stats [0] [i] = 0;
 	}
 
 	// Saves player
-	public void SavePlayer(int teamNum)
+	public void SavePlayer()
 	{
-		PlayerPrefs.SetString ("Player" + teamNum + "-" + playerIndex, firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + potential + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + offense + "," + defense + "," + overall + "," + salary + "," + contractLength + "," + injuryLength + "," + country);
-		SaveStats (teamNum);
+		PlayerPrefs.SetString ("Player" + playerID, firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + potential + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + offense + "," + defense + "," + overall + "," + salary + "," + contractLength + "," + injuryLength + "," + (int)country + "," + team + "," + draftYear);
+		SaveStats ();
+	}
+
+	public void SetDraftYear(int year = -1)
+	{
+		if (year != -1)
+			draftYear = year;
+		else
+		{
+			draftYear = Manager.Instance.Year - age + (int)(Random.value * 9) + 16;
+
+			if (draftYear > Manager.Instance.Year)
+				draftYear = Manager.Instance.Year;
+		}
 	}
 
 	// Saves stats
-	public void SaveStats(int teamNum)
+	public void SaveStats()
 	{
-		PlayerPrefs.SetString ("PlayerStats" + teamNum + "-" + playerIndex, games + "," + atBats + "," + runs + "," + hits + "," + doubles + "," + triples + "," + homeruns + "," + totalBases + "," + runsBattedIn + "," + walks + "," + strikeouts + "," + stolenBases + "," + caughtStealing + "," + sacrifices + "," + wins + "," + losses + "," + gamesStarted + "," + saves + "," + saveOpportunities + "," + inningsPitched + "," + atBatsAgainst + "," + hitsAgainst + "," + runsAgainst + "," + earnedRuns + "," + homerunsAgainst + "," + walksAgainst + "," + strikeoutsAgainst + "," + qualityStarts + "," + completeGames + "," + hitStreak + "," + reachedOnError + "," + hitByPitch + "," + longestHitStreak + "," + hitStreakYear); 
+		string stringStats = stats [0] [0].ToString();
+
+		for (int i = 1; i < stats[0].Length; i++)
+			stringStats += "," + stats [0] [i];
+
+		PlayerPrefs.SetString ("PlayerStats" + playerID + "-0", stringStats);
 	}
 
 	// Loads player and stats
-	public void LoadPlayer(int teamNum, int index)
+	public void LoadPlayer(int _playerID)
 	{
-		string player = PlayerPrefs.GetString("Player" + teamNum + "-" + index), stats = PlayerPrefs.GetString("PlayerStats" + teamNum + "-" + index);
-		string[] playerSplit = player.Split (','), splitStats = stats.Split (',');
+		string player = PlayerPrefs.GetString ("Player" + _playerID);
+		string[] playerSplit = player.Split (',');
+		int index = 0;
+
 		firstName = playerSplit [0];
 		lastName = playerSplit [1];
 		position = playerSplit [2];
@@ -223,45 +252,26 @@ public class Player
 		salary = double.Parse (playerSplit [19]);
 		contractLength = int.Parse (playerSplit [20]);
 		injuryLength = int.Parse (playerSplit [21]);
-		country = playerSplit [22];
+		country = (Country)int.Parse(playerSplit [22]);
+		team = int.Parse(playerSplit [23]);
+		draftYear = int.Parse(playerSplit [23]);
 
-		games = int.Parse (splitStats [0]);
-		atBats = int.Parse (splitStats [1]);
-		runs = int.Parse (splitStats [2]);
-		hits = int.Parse (splitStats [3]);
-		doubles = int.Parse (splitStats [4]);
-		triples = int.Parse (splitStats [5]);
-		homeruns = int.Parse (splitStats [6]);
-		totalBases = int.Parse (splitStats [7]);
-		runsBattedIn = int.Parse (splitStats [8]);
-		walks = int.Parse (splitStats [9]);
-		strikeouts = int.Parse (splitStats [10]);
-		stolenBases = int.Parse (splitStats [11]);
-		caughtStealing = int.Parse (splitStats [12]);
-		sacrifices = int.Parse (splitStats [13]);
-		wins = int.Parse (splitStats [14]);
-		losses = int.Parse (splitStats [15]);
-		gamesStarted = int.Parse (splitStats [16]);
-		saves = int.Parse (splitStats [17]);
-		saveOpportunities = int.Parse (splitStats [18]);
-		inningsPitched = int.Parse (splitStats [19]);
-		atBatsAgainst = int.Parse (splitStats [20]);
-		hitsAgainst = int.Parse (splitStats [21]);
-		runsAgainst = int.Parse (splitStats [22]);
-		earnedRuns = int.Parse (splitStats [23]);
-		homerunsAgainst = int.Parse (splitStats [24]);
-		walksAgainst = int.Parse (splitStats [25]);
-		strikeoutsAgainst = int.Parse (splitStats [26]);
-		qualityStarts = int.Parse (splitStats [27]);
-		completeGames = int.Parse (splitStats [28]);
-		hitStreak = int.Parse (splitStats [29]);
-		reachedOnError = int.Parse (splitStats [30]);
-		hitByPitch = int.Parse (splitStats [31]);
-		longestHitStreak = int.Parse (splitStats [32]);
-		hitStreakYear = int.Parse (splitStats [33]);
+		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 3.0f * 5;
 
-		playerIndex = index;
-		team = teamNum;
+		while(PlayerPrefs.HasKey("PlayerStats" + _playerID + "-" + index))
+		{
+			string playerStats = PlayerPrefs.GetString("PlayerStats" + _playerID + "-" + index);
+			string[] splitStats = playerStats.Split (',');
+
+			stats.Add (new int[splitStats.Length]);
+
+			for (int i = 0; i < splitStats.Length; i++)
+				stats [index] [i] = int.Parse(splitStats [i]);
+
+			index++;
+		}
+
+		playerID = _playerID;
 	}
 
 	// Injures player
@@ -269,15 +279,9 @@ public class Player
 	{
 		float r1 = Random.value * 10 + 1, r2 = Random.value * 10 + 1, r3 = Random.value * 5 + 1;
 		int seriousness = (int)(r1 * r2), location = (int)r3;
-		AllTeams allTeams = GameObject.Find ("_Manager").GetComponent<AllTeams> ();
-
 
 		if (seriousness == 25 && location == 5)
-		{
-			allTeams.teams [team].players.RemoveAt (playerIndex);
-			allTeams.teams [team].OrderLineup ();
-			Debug.Log(firstName + " " + lastName + " " + allTeams.teams[team].shortform + "Ended");
-		}
+			Debug.Log(firstName + " " + lastName + " " + Manager.Instance.Players[playerID] + " Ended");
 		else
 		{
 			injuryLength = (int)(r3 * 2 / 3 * r1 * r2);
@@ -338,7 +342,7 @@ public class Player
 				injurySeriousness = "Very Serious";
 				break;
 			}
-			Debug.Log(firstName + " " + lastName + " " + allTeams.teams[team].shortform + " " + injurySeriousness + " " + injuryLocation + " " + injuryLength);
+			Debug.Log(firstName + " " + lastName + " " + Manager.Instance.Players[playerID] + " " + injurySeriousness + " " + injuryLocation + " " + injuryLength);
 		}
 	}
 
@@ -359,9 +363,9 @@ public class Player
 	// Calculates strikeout-to-walk ratio
 	public float BBToK()
 	{
-		if (strikeouts != 0)
-			return (float)walks / strikeouts;
-		else if (walks != 0)
+		if (stats[0][11] != 0)
+			return (float)stats[0][10] / stats[0][11];
+		else if (stats[0][10] != 0)
 			return 999.99f;
 		else
 			return 0.0f;
@@ -370,8 +374,8 @@ public class Player
 	// Calculates batting average against
 	public float BAA()
 	{
-		if (atBatsAgainst != 0)
-			return (float)hitsAgainst / atBatsAgainst;
+		if (stats[0][21] != 0)
+			return (float)stats[0][22] / stats[0][21];
 		else
 			return 1.0f;
 	}
@@ -379,8 +383,8 @@ public class Player
 	// Calculates isolated power
 	public float ISO()
 	{
-		if (atBats != 0)
-			return (float)(doubles + triples * 2 + homeruns * 3) / atBats;
+		if (stats[0][1] != 0)
+			return (float)(stats[0][5] + stats[0][6] * 2 + stats[0][7] * 3) / stats[0][1];
 		else
 			return 0.0f;
 	}
@@ -388,8 +392,8 @@ public class Player
 	// Calculates batting average
 	public float BA()
 	{
-		if (atBats != 0)
-			return (float)hits / atBats;
+		if (stats[0][1] != 0)
+			return (float)stats[0][3] / stats[0][1];
 		else
 			return 0.0f;
 	}
@@ -398,7 +402,7 @@ public class Player
 	public double LWR()
 	{
 		if (position.Length == 1 || (position.Length == 2 && position.Substring (1) != "P"))
-			return 0.47 * singles + 0.77 * doubles + 1.05 * triples + 1.40 * homeruns + 0.50 * reachedOnError + 0.31 * walks + 0.34 * hitByPitch - 0.27 * (atBats - hits - reachedOnError - strikeouts + sacrifices) - 0.29 * strikeouts;
+			return 0.47 * stats[0][4] + 0.77 * stats[0][5] + 1.05 * stats[0][6] + 1.40 * stats[0][7] + 0.50 * stats[0][31] + 0.31 * stats[0][10] + 0.34 * stats[0][32] - 0.27 * (stats[0][1] - stats[0][3] - stats[0][31] - stats[0][11] + stats[0][14]) - 0.29 * stats[0][11];
 		else
 			return 0.0;
 	}
@@ -406,9 +410,9 @@ public class Player
 	// Calculates power/speed number
 	public float PSN()
 	{
-		int denominator = homeruns + stolenBases;
+		int denominator = stats[0][7] + stats[0][12];
 		if (denominator != 0)
-			return (float)(2 * homeruns * stolenBases) / denominator;
+			return (float)(2 * stats[0][7] * stats[0][12]) / denominator;
 		else
 			return 0.0f;
 	}
@@ -416,8 +420,8 @@ public class Player
 	// Calculates walks and hits per innings pitched
 	public float WHIP()
 	{
-		if (inningsPitched != 0)
-			return (walksAgainst + hitsAgainst) / (inningsPitched / 3.0f);
+		if (stats[0][20] != 0)
+			return (stats[0][26] + stats[0][22]) / (stats[0][20] / 3.0f);
 		else
 			return 999.99f;
 	}
@@ -425,10 +429,120 @@ public class Player
 	// Calculates runs created per 27 outs (1 game)
 	public float RC27()
 	{
-		int denominator = atBats + walks;
+		int denominator = stats[0][1] + stats[0][10];
 		if(denominator != 0)
-			return (hits + walks - caughtStealing) * (totalBases + (0.55f * stolenBases)) / (float)(atBats + walks) / 27;
+			return (stats[0][3] + stats[0][10] - stats[0][13]) * (stats[0][8] + (0.55f * stats[0][12])) / (float)(stats[0][1] + stats[0][10]) / 27;
 		else
 			return 0.0f;
 	}
+
+	public void RandomCountry()
+	{
+		float randomCountry = Random.value;
+
+		if(randomCountry <= 0.5437956204f)
+			country = Country.UnitedStates;
+		else if(randomCountry <= 0.7761557178f)
+			country = Country.DominicanRepublic;
+		else if(randomCountry <= 0.8613138686f)
+			country = Country.Venezuela;
+		else if(randomCountry <= 0.8917274939f)
+			country = Country.PuertoRico;
+		else if(randomCountry <= 0.9160583942f)
+			country = Country.Cuba;
+		else if(randomCountry <= 0.9318734793f)
+			country = Country.Mexico;
+		else if(randomCountry <= 0.9416058394f)
+			country = Country.Japan;
+		else if(randomCountry <= 0.9513381995f)
+			country = Country.Canada;
+		else if(randomCountry <= 0.9598540146f)
+			country = Country.Panama;
+		else if(randomCountry <= 0.9671532847f)
+			country = Country.SouthKorea;
+		else if(randomCountry <= 0.9720194647f)
+			country = Country.Curaçao;
+		else if(randomCountry <= 0.9768856448f)
+			country = Country.Colombia;
+		else if(randomCountry <= 0.9805352798f)
+			country = Country.Germany;
+		else if(randomCountry <= 0.9841849149f)
+			country = Country.Nicaragua;
+		else if(randomCountry <= 0.9878345499f)
+			country = Country.Australia;
+		else if(randomCountry <= 0.9902676399f)
+			country = Country.Taiwan;
+		else if(randomCountry <= 0.9927007299f)
+			country = Country.VirginIslands;
+		else if(randomCountry <= 0.99513382f)
+			country = Country.Brazil;
+		else if(randomCountry <= 0.996350365f)
+			country = Country.SouthAfrica;
+		else if(randomCountry <= 0.99756691f)
+			country = Country.Lithuania;
+		else if(randomCountry <= 0.998783455f)
+			country = Country.Netherlands;
+		else
+			country = Country.Aruba;
+	}
+
+	public bool ConsiderOffer()
+	{
+		if (Offer < salary)
+			return false;
+		else
+			return true;
+	}
+}
+
+public enum Country
+{
+	UnitedStates = 0,
+	DominicanRepublic = 1,
+	Venezuela = 2,
+	PuertoRico = 3,
+	Cuba = 4,
+	Mexico = 5,
+	Japan = 6,
+	Canada = 7,
+	Panama = 8,
+	SouthKorea = 9,
+	Curaçao = 10,
+	Colombia = 11,
+	Germany = 12,
+	Nicaragua = 13,
+	Australia = 14,
+	Taiwan = 15,
+	VirginIslands = 16,
+	Brazil = 17,
+	SouthAfrica = 18,
+	Lithuania = 19,
+	Netherlands = 20,
+	Aruba = 21
+}
+
+public enum CountryShortforms
+{
+	USA = 0,
+	DOM = 1,
+	VEN = 2,
+	PRI = 3,
+	CUB = 4,
+	MEX = 5,
+	JPN = 6,
+	CAN = 7,
+	PAN = 8,
+	SKO = 9,
+	CUW = 10,
+	COL = 11,
+	GER = 12,
+	NCA = 13,
+	AUS = 14,
+	TWN = 15,
+	VIR = 16,
+	BRA = 17,
+	RSA = 18,
+	LTU = 19,
+	NED = 20,
+	ABW = 21
 }

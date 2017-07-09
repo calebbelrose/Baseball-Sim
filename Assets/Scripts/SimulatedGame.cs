@@ -41,4 +41,12 @@ public class SimulatedGame
 		shortforms[0] = shortform1;
 		shortforms[1] = shortform2;
 	}
+
+	public override string ToString()
+	{
+		if (scores [0] > scores [1])
+			return shortforms[0] + " " + scores[0] + " - " + scores[1] + " " + shortforms[1];
+		else
+			return shortforms[1] + " " + scores[1] + " - " + scores[0] + " " + shortforms[0];
+	}
 }

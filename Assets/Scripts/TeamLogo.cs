@@ -8,7 +8,7 @@ public class TeamLogo : MonoBehaviour
 
     void Start()
     {
-        teamInfo = GameObject.Find("_Manager").GetComponent<TeamInfo>();
+		teamInfo = Manager.Instance.gameObject.GetComponent<TeamInfo>();
         GetTeamLogo();
     }
 

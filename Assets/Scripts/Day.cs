@@ -7,7 +7,6 @@ public class Day
 	List<SimulatedGame> simulatedGames = new List<SimulatedGame>();
 	List<Event> events = new List<Event>();
 	DateTime date;
-	public static AllTeams allTeams;
 
 	public DateTime Date
 	{
@@ -46,11 +45,6 @@ public class Day
 		date = _date;
 	}
 
-	public static void SetAllTeams (AllTeams _allTeams)
-	{
-		allTeams = _allTeams;
-	}
-
 	public void SimulateDay ()
 	{
 		while(scheduledGames.Count > 0)
@@ -60,12 +54,23 @@ public class Day
 		}
 
 		for (int i = 0; i < events.Count; i++)
-			events [i].Action(allTeams);
+			events [i].Action();
+
+		for (int i = 0; i < Manager.Instance.teams.Count; i++)
+		{
+			for (int j = 0; j < Manager.Instance.teams [i].players.Count; j++)
+			{
+				Manager.Instance.Players[Manager.Instance.teams [i].players [j]].skills [8] = Manager.Instance.Players[Manager.Instance.teams [i].players [j]].skills [8] + 20;
+
+				if (Manager.Instance.Players[Manager.Instance.teams [i].players [j]].skills [8] > Manager.Instance.Players[Manager.Instance.teams [i].players [j]].skills [9])
+					Manager.Instance.Players[Manager.Instance.teams [i].players [j]].skills [8] = Manager.Instance.Players[Manager.Instance.teams [i].players [j]].skills [9];
+			}
+		}
 	}
 
 	public void AddGame(int team1, int team2)
 	{
-		scheduledGames.Add(new ScheduledGame(allTeams.teams[team1], allTeams.teams[team2]));
+		scheduledGames.Add(new ScheduledGame(Manager.Instance.teams[team1], Manager.Instance.teams[team2]));
 	}
 
 	public void AddEvent(Event newEvent)

@@ -7,8 +7,6 @@ using System.Linq;
 public class GetStats : MonoBehaviour {
 
     GameObject teamList;
-    GameObject manager;
-    AllTeams allTeams;
     string[] headers = new string[] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP" };
     string[] playerInfoHeaders = new string[] { "First Name", "Last Name", "Position", "Team" };
     int currSortedStat = 10;
@@ -20,8 +18,6 @@ public class GetStats : MonoBehaviour {
     void Start()
 	{
 		teamList = GameObject.Find ("TeamList");
-		manager = GameObject.Find ("_Manager");
-		allTeams = manager.GetComponent<AllTeams> ();
 		playerInfoLengths = new int[playerInfoHeaders.Length];
 		headerLengths = new int[headers.Length];
         
@@ -32,91 +28,88 @@ public class GetStats : MonoBehaviour {
 		for (int i = 0; i < headerLengths.Length; i++)
 			headerLengths [i] = headers [i].Length;
 
-		teams = new Team[allTeams.GetNumTeams ()];
-		allTeams.teams.CopyTo (teams, 0);
+		teams = new Team[Manager.Instance.GetNumTeams ()];
+		Manager.Instance.teams.CopyTo (teams, 0);
 
 		for (int i = 0; i < teams.Length; i++)
 			for (int j = 0; j < teams [i].players.Count; j++) {
 				string[] copy = new string[playerInfoHeaders.Length + headers.Length];
-				int currStat = 0, temp, tb;
+				int currStat = 0, temp;
 				double obp, slug;
 
-				copy [currStat++] = teams [i].players [j].firstName.ToString ();
-				copy [currStat++] = teams [i].players [j].lastName.ToString ();
-				copy [currStat++] = teams [i].players [j].position.ToString ();
-				copy [currStat++] = teams [i].shortform;
-				copy [currStat++] = teams [i].players [j].games.ToString ();
-				copy [currStat++] = teams [i].players [j].atBats.ToString ();
-				copy [currStat++] = teams [i].players [j].runs.ToString ();
-				copy [currStat++] = teams [i].players [j].hits.ToString ();
-				copy [currStat++] = teams [i].players [j].doubles.ToString ();
-				copy [currStat++] = teams [i].players [j].triples.ToString ();
-				copy [currStat++] = teams [i].players [j].homeruns.ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].firstName.ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].lastName.ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].position.ToString ();
+				copy [currStat++] = teams [i].Shortform;
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][0].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][1].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][2].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][3].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][6].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][7].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][8].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][9].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][10].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][11].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][12].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][13].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][14].ToString ();
 
-				tb = teams [i].players [j].singles + teams [i].players [j].doubles * 2 + teams [i].players [j].triples * 3 + teams [i].players [j].homeruns * 4;
-                
-				copy [currStat++] = tb.ToString ();
-				copy [currStat++] = teams [i].players [j].runsBattedIn.ToString ();
-				copy [currStat++] = teams [i].players [j].walks.ToString ();
-				copy [currStat++] = teams [i].players [j].strikeouts.ToString ();
-				copy [currStat++] = teams [i].players [j].stolenBases.ToString ();
-				copy [currStat++] = teams [i].players [j].caughtStealing.ToString ();
-				copy [currStat++] = teams [i].players [j].sacrifices.ToString ();
-
-				if (teams [i].players [j].atBats != 0)
-					copy [currStat++] = (teams [i].players [j].hits / (double)teams [i].players [j].atBats).ToString ("0.000");
+				if (Manager.Instance.Players[teams [i].players [j]].stats[0][1] != 0)
+					copy [currStat++] = (Manager.Instance.Players[teams [i].players [j]].stats[0][3] / (double)Manager.Instance.Players[teams [i].players [j]].stats[0][1]).ToString ("0.000");
 				else
 					copy [currStat++] = "0.000";
 
-				temp = (teams [i].players [j].atBats + teams [i].players [j].walks + teams [i].players [j].sacrifices);
+				temp = (Manager.Instance.Players[teams [i].players [j]].stats[0][1] + Manager.Instance.Players[teams [i].players [j]].stats[0][10] + Manager.Instance.Players[teams [i].players [j]].stats[0][14]);
 				if (temp != 0)
-					obp = (teams [i].players [j].hits + teams [i].players [j].walks) / (double)temp;
+					obp = (Manager.Instance.Players[teams [i].players [j]].stats[0][3] + Manager.Instance.Players[teams [i].players [j]].stats[0][10]) / (double)temp;
 				else
-					obp = (teams [i].players [j].hits + teams [i].players [j].walks) / (double)1;
+					obp = (Manager.Instance.Players[teams [i].players [j]].stats[0][3] + Manager.Instance.Players[teams [i].players [j]].stats[0][10]) / (double)1;
 				
 				copy [currStat++] = obp.ToString ("0.000");
 
-				if (teams [i].players [j].atBats != 0)
-					slug = tb / (double)teams [i].players [j].atBats;
+				if (Manager.Instance.Players[teams [i].players [j]].stats[0][1] != 0)
+					slug = Manager.Instance.Players[teams [i].players [j]].stats[0][8] / (double)Manager.Instance.Players[teams [i].players [j]].stats[0][1];
 				else
-					slug = tb / (double)1;
+					slug = Manager.Instance.Players[teams [i].players [j]].stats[0][8] / (double)1;
 				
 				copy [currStat++] = (slug).ToString ("0.000");
 				copy [currStat++] = (obp + slug).ToString ("0.000");
-				copy [currStat++] = teams [i].players [j].wins.ToString ();
-				copy [currStat++] = teams [i].players [j].losses.ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][15].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][16].ToString ();
 
-				if (teams [i].players [j].inningsPitched != 0)
-					copy [currStat++] = (teams [i].players [j].earnedRuns * 27 / (double)teams [i].players [j].inningsPitched).ToString ("0.00");
+				if (Manager.Instance.Players[teams [i].players [j]].stats[0][20] != 0)
+					copy [currStat++] = (Manager.Instance.Players[teams [i].players [j]].stats[0][24] * 27 / (double)Manager.Instance.Players[teams [i].players [j]].stats[0][20]).ToString ("0.00");
 				else
-					copy [currStat++] = (teams [i].players [j].earnedRuns * 27 / (double)1 / 3).ToString ("0.00");
+					copy [currStat++] = (Manager.Instance.Players[teams [i].players [j]].stats[0][24] * 27 / (double)1 / 3).ToString ("0.00");
 
-				copy [currStat++] = teams [i].players [j].gamesStarted.ToString ();
-				copy [currStat++] = teams [i].players [j].saves.ToString ();
-				copy [currStat++] = teams [i].players [j].saveOpportunities.ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][17].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][18].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][19].ToString ();
 
-				if (teams [i].players [j].inningsPitched != 0)
-					copy [currStat++] = (teams [i].players [j].inningsPitched / 3).ToString () + "." + (teams [i].players [j].inningsPitched % 3).ToString ();
+				if (Manager.Instance.Players[teams [i].players [j]].stats[0][20] != 0)
+					copy [currStat++] = (Manager.Instance.Players[teams [i].players [j]].stats[0][20] / 3).ToString () + "." + (Manager.Instance.Players[teams [i].players [j]].stats[0][20] % 3).ToString ();
 				else
 					copy [currStat++] = "0.0";
 
-				copy [currStat++] = teams [i].players [j].atBatsAgainst.ToString ();
-				copy [currStat++] = teams [i].players [j].hitsAgainst.ToString ();
-				copy [currStat++] = teams [i].players [j].runsAgainst.ToString ();
-				copy [currStat++] = teams [i].players [j].earnedRuns.ToString ();
-				copy [currStat++] = teams [i].players [j].homerunsAgainst.ToString ();
-				copy [currStat++] = teams [i].players [j].walksAgainst.ToString ();
-				copy [currStat++] = teams [i].players [j].strikeoutsAgainst.ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][21].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][22].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][23].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][24].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][25].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][26].ToString ();
+				copy [currStat++] = Manager.Instance.Players[teams [i].players [j]].stats[0][27].ToString ();
 
-				if (teams [i].players [j].inningsPitched != 0)
-					copy [currStat++] = (teams [i].players [j].hitsAgainst / (double)teams [i].players [j].atBatsAgainst).ToString ("0.000");
+				if (Manager.Instance.Players[teams [i].players [j]].stats[0][20] != 0)
+					copy [currStat++] = (Manager.Instance.Players[teams [i].players [j]].stats[0][22] / (double)Manager.Instance.Players[teams [i].players [j]].stats[0][21]).ToString ("0.000");
 				else
-					copy [currStat++] = (teams [i].players [j].hitsAgainst / (double)1).ToString ("0.000");
+					copy [currStat++] = (Manager.Instance.Players[teams [i].players [j]].stats[0][22] / (double)1).ToString ("0.000");
 
-				if (teams [i].players [j].inningsPitched != 0)
-					copy [currStat++] = ((teams [i].players [j].hitsAgainst + teams [i].players [j].homerunsAgainst) / (double)teams [i].players [j].inningsPitched / 3).ToString ("0.000");
+				if (Manager.Instance.Players[teams [i].players [j]].stats[0][20] != 0)
+					copy [currStat++] = ((Manager.Instance.Players[teams [i].players [j]].stats[0][22] + Manager.Instance.Players[teams [i].players [j]].stats[0][25]) / (double)Manager.Instance.Players[teams [i].players [j]].stats[0][20] / 3).ToString ("0.000");
 				else
-					copy [currStat++] = ((teams [i].players [j].hitsAgainst + teams [i].players [j].homerunsAgainst) / (double)1 / 3).ToString ("0.000");
+					copy [currStat++] = ((Manager.Instance.Players[teams [i].players [j]].stats[0][22] + Manager.Instance.Players[teams [i].players [j]].stats[0][25]) / (double)1 / 3).ToString ("0.000");
 
 				tempStats.Add (copy);
 			}
@@ -131,9 +124,9 @@ public class GetStats : MonoBehaviour {
 					headerLengths [j] = tempStats [i] [j + playerInfoLengths.Length].Length;
 		}
 
-		for (int i = 0; i < allTeams.teams.Count; i++)
-			if (allTeams.teams [i].shortform.Length > playerInfoLengths [playerInfoLengths.Length - 1])
-				playerInfoLengths [playerInfoLengths.Length - 1] = allTeams.teams [i].shortform.Length;
+		for (int i = 0; i < Manager.Instance.teams.Count; i++)
+			if (Manager.Instance.teams [i].Shortform.Length > playerInfoLengths [playerInfoLengths.Length - 1])
+				playerInfoLengths [playerInfoLengths.Length - 1] = Manager.Instance.teams [i].Shortform.Length;
 
 		for (int i = 0; i < playerInfoLengths.Length; i++)
 			playerInfoLengths [i]++;
@@ -245,7 +238,7 @@ public class GetStats : MonoBehaviour {
             newTeam.transform.GetChild(0).gameObject.GetComponent<Text>().text = playerListing;
             newTeam.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             newTeam.GetComponent<Button>().interactable = false;
-            if (tempStats[i][playerInfoHeaders.Length - 1] == allTeams.teams[0].shortform)
+            if (tempStats[i][playerInfoHeaders.Length - 1] == Manager.Instance.teams[0].Shortform)
             {
                 Button b = newTeam.GetComponent<Button>();
                 ColorBlock c = b.colors;

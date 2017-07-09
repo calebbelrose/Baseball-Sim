@@ -8,10 +8,9 @@ public class PopulateTeams : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         Dropdown dropdown = GetComponent<Dropdown>();
-        AllTeams allTeams = GameObject.Find("_Manager").GetComponent<AllTeams>();
 
-        for (int i = 1; i < allTeams.teams.Count; i++)
-            dropdown.options.Add(new Dropdown.OptionData() { text = allTeams.teams[i].cityName + " " + allTeams.teams[i].teamName });
+        for (int i = 1; i < Manager.Instance.teams.Count; i++)
+            dropdown.options.Add(new Dropdown.OptionData() { text = Manager.Instance.teams[i].CityName + " " + Manager.Instance.teams[i].TeamName });
 
         dropdown.value = 1;
         dropdown.value = 0;

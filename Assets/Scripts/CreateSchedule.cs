@@ -56,6 +56,7 @@ public class CreateSchedule
 		index++;
 
 		days[index].AddEvent(new AllStarGame());
+		days[index - 30].AddEvent(new FirstYearPlayerDraft());
 		allStarIndex = index;
 
 		index -= 2;
@@ -1595,6 +1596,8 @@ public class CreateSchedule
 		days[index].AddGame(23, 24);
 		days[index].AddGame(3, 4);
 		days [index].AddEvent (new OpeningDay ());
+
+		days [index - 27].AddEvent (new WorldBaseballClassic());
 
 		index = allStarIndex;
 		index++;
