@@ -8,12 +8,14 @@ public class DraftedPlayerDisplay
 	int currSortedStat = 3;
 	bool ascending;
 
+	// Displays the drafted players
 	public void Display()
 	{
 		Manager.Instance.DisplayHeaders(header, playerListParentRect, DisplayType.Signed);
-		Sort (3);
+		Sort (6);
 	}
 
+	// Sorts the drafted players
 	public void Sort(int headerNum)
 	{
 		bool notString;
@@ -36,16 +38,18 @@ public class DraftedPlayerDisplay
 		else
 			ascending = true;
 
-		players = Manager.Sort (headerNum, ascending, Manager.Instance.teams[0].DraftPicks);
+		players = Manager.Instance.Sort (headerNum, ascending, Manager.Instance.Teams [0] [0].DraftPicks);
 		Manager.Instance.DisplayPlayers (players, playerList, playerListRect, playerListParentRect, DisplayType.Signed);
 	}
 
+	// Shows a drafted player's stats
 	public void ShowDraftedPlayer(int id)
 	{
 		panel.SetActive (true);
-		panel.GetComponent<DisplayDraftPlayer> ().SetPlayerID (id);
+		panel.GetComponent<DisplayPlayer> ().SetPlayerID (id);
 	}
 
+	// Sets the objects to display the drafted players
 	public void SetPlayerDisplayObjects(UnityEngine.Transform _playerList, UnityEngine.Transform _header, UnityEngine.RectTransform _playerListRect, UnityEngine.RectTransform _playerListParentRect, UnityEngine.GameObject _panel)
 	{
 		playerList = _playerList;

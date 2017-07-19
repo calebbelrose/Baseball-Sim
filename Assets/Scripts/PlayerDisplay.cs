@@ -4,15 +4,17 @@ public class PlayerDisplay
 {
 	UnityEngine.Transform teamList, header;
 	UnityEngine.RectTransform teamListRect, teamListParentRect;
-    int currSortedStat = 3;
+	int currSortedStat = 3;
 	bool ascending;
 
+	// Displays players
 	public void Display()
 	{
 		Manager.Instance.DisplayHeaders(header, teamListParentRect, DisplayType.Team);
 		Sort (3);
 	}
 
+	// Sorts players
 	public void Sort(int headerNum)
 	{
 		bool notString;
@@ -35,11 +37,12 @@ public class PlayerDisplay
 		else
 			ascending = true;
 
-		players = Manager.Sort (headerNum, ascending, Manager.Instance.teams[0].players);
+		players = Manager.Instance.Sort (headerNum, ascending, Manager.Instance.Teams [0] [0].Players);
 		Manager.Instance.DisplayPlayers (players, teamList, teamListRect, teamListParentRect, DisplayType.Team);
 		currSortedStat = headerNum;
 	}
 
+	// Sets objects for displaying players
 	public void SetPlayerDisplayObjects(UnityEngine.Transform _teamList, UnityEngine.Transform _header, UnityEngine.RectTransform _teamListRect, UnityEngine.RectTransform _teamListParentRect)
 	{
 		teamList = _teamList;

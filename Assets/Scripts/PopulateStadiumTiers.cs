@@ -2,7 +2,8 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class PopulateStadiumTiers : MonoBehaviour {
+public class PopulateStadiumTiers : MonoBehaviour
+{
 	Team team;										// Your team
 	Dropdown dropdown;								// The dropdown of stadium tiers
 	int tier;										// The current tier
@@ -18,16 +19,16 @@ public class PopulateStadiumTiers : MonoBehaviour {
 		cash = GameObject.Find ("txtCurrentCash").GetComponent<Text> ();
 		buyPrice = GameObject.Find ("txtNewBuyPrice").GetComponent<Text> ();
 		rentPrice = GameObject.Find ("txtNewRentPrice").GetComponent<Text> ();
-		team = Manager.Instance.teams [0];
+		team = Manager.Instance.Teams [0] [0];
 
 		// Displays the stadium tier and capacity
-		GameObject.Find ("txtCurrentTier").GetComponent<Text> ().text = team.stadiumTier.ToString();
-		GameObject.Find ("txtCurrentCapacity").GetComponent<Text> ().text = team.stadiumCapacity.ToString();
+		GameObject.Find ("txtCurrentTier").GetComponent<Text> ().text = team.StadiumTier.ToString ();
+		GameObject.Find ("txtCurrentCapacity").GetComponent<Text> ().text = team.StadiumCapacity.ToString ();
 
 		// Gets the dropdown and sets the start of the tiers to display and the current tier
 		dropdown = GetComponent<Dropdown> ();
-		start = team.stadiumTier - 5;
-		tier = team.stadiumTier;
+		start = team.StadiumTier - 5;
+		tier = team.StadiumTier;
 
 		// Makes sure the tiers aren't too low
 		if (start < 1)
@@ -44,10 +45,10 @@ public class PopulateStadiumTiers : MonoBehaviour {
 	public void NewTier()
 	{
 		int tier = int.Parse (dropdown.options [dropdown.value].text);
-		newCapacity.text = ((int)(50000 * System.Math.Pow (1.05, tier))).ToString();
-		cash.text = team.Cash.ToString();
-		buyPrice.text = ((int)(5000000 * System.Math.Pow (1.05, tier))).ToString();
-		rentPrice.text = ((int)(250000 * System.Math.Pow (1.05, tier))).ToString();
+		newCapacity.text = ((int)(50000 * System.Math.Pow (1.05, tier))).ToString ();
+		cash.text = team.Cash.ToString ();
+		buyPrice.text = ((int)(5000000 * System.Math.Pow (1.05, tier))).ToString ();
+		rentPrice.text = ((int)(250000 * System.Math.Pow (1.05, tier))).ToString ();
 	}
 
 	// Buy the stadium

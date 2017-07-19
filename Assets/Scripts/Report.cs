@@ -16,7 +16,7 @@ public class Report : MonoBehaviour
 	}
 
 	// Generates a report to show worst/best players/teams
-	void GenerateReport()
+	void GenerateReport ()
 	{
 		List<Player> result;
 		List<Team> resultT;
@@ -28,42 +28,44 @@ public class Report : MonoBehaviour
 		for (int i = 1; i < 25; i++)
 			sections.Add (i);
 
-		while(Manager.Instance.tradeList.Count > 0)
+		while (Manager.Instance.tradeList.Count > 0)
 		{
 			//text += Manager.Instance.tradeList [0];
 			Manager.Instance.tradeList.RemoveAt (0);
 		}
 
-		for(int i = 0; i < Manager.Instance.teams.Count; i++)
-			for(int j = 0; j < Manager.Instance.teams[i].players.Count; j++)
-				players.Add(Manager.Instance.Players[Manager.Instance.teams[i].players[j]]);
+		for(int i = 0; i < Manager.Instance.Teams [0].Count; i++)
+			for(int j = 0; j < Manager.Instance.Teams [0] [i].Players.Count; j++)
+				players.Add(Manager.Instance.Players [Manager.Instance.Teams [0] [i].Players [j]]);
 
-		for (int k = 0; k < 1; k++) {
+		for (int k = 0; k < 1; k++)
+		{
 			int r = 24 + k;//(int)(Random.value * sections.Count);
 			int j, l;
 
-			switch (r) {
+			switch (r)
+			{
 			case 1:
 			// Power/Speed Number
 				text += "Highest Power/Speed Number\n";
 				result = players.OrderByDescending (playerX => playerX.PSN()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result[i].PSN().ToString ("0.00") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].PSN().ToString ("0.00") + "\n";
 				break;
 			case 2:
 			// Most Homeruns
 				text += "Most Homeruns\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][7]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [7]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][7] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [7] + "\n";
 				break;
 
 			case 3:
 			// Most Innings Pitcher
 				text += "Most Innings Pitched\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][20]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [20]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][20] / 3 + "." + result [i].stats[0][20] % 3 + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [20] / 3 + "." + result [i].Stats [0] [20] % 3 + "\n";
 				break;
 
 			case 4:
@@ -71,7 +73,7 @@ public class Report : MonoBehaviour
 				text += "Lowest WHIP\n";
 				result = players.OrderBy (playerX => playerX.WHIP()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + ((result [i].stats[0][26] + result [i].stats[0][22]) / (result [i].stats[0][20] / 3.0f)).ToString ("0.00") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + ((result [i].Stats [0] [26] + result [i].Stats [0] [22]) / (result [i].Stats [0] [20] / 3.0f)).ToString ("0.00") + "\n";
 				break;
 
 			case 5:
@@ -79,20 +81,20 @@ public class Report : MonoBehaviour
 				text += "Highest RC/27\n";
 				result = players.OrderByDescending (playerX => playerX.RC27()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result[i].RC27().ToString("0.00") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].RC27().ToString ("0.00") + "\n";
 				break;
 
 			case 6:
 			// Pitcher Appearances
 				text += "Most Pitcher Appearances\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][0]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [0]).ToList ();
 				j = 0;
 				l = 0;
 				while (j < 10 )
 				{
-					if (result [l].position.Length == 2 && result [l].position.Substring (1) == "P")
+					if (result [l].IsPitcher)
 					{
-						text += result [l].firstName.PadRight (Player.longestFirstName) + " " + result [l].lastName.PadRight (Player.longestLastName) + " " + result [l].stats[0][0] + "\n";
+						text += result [l].FirstName.PadRight (Player.longestFirstName) + " " + result [l].LastName.PadRight (Player.longestLastName) + " " + result [l].Stats [0] [0] + "\n";
 						j++;
 					}
 					l++;
@@ -101,9 +103,9 @@ public class Report : MonoBehaviour
 			case 7:
 			// RBIs
 				text += "Most RBIs\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][9]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [9]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][9] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [9] + "\n";
 				break;
 
 			case 8:
@@ -111,7 +113,7 @@ public class Report : MonoBehaviour
 				text += "Most Isolated Power\n";
 				result = players.OrderByDescending (playerX => playerX.ISO()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].ISO().ToString("0.000") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].ISO().ToString ("0.000") + "\n";
 				break;
 
 			case 9:
@@ -119,7 +121,7 @@ public class Report : MonoBehaviour
 				text += "Highest Batting Average\n";
 				result = players.OrderByDescending (playerX => playerX.BA()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result[i].BA().ToString("0.000") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].BA().ToString ("0.000") + "\n";
 				break;
 
 			case 10:
@@ -127,81 +129,81 @@ public class Report : MonoBehaviour
 				text += "Lowest Batting Average Against\n";
 				result = players.OrderBy (playerX => playerX.BAA()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result[i].BAA().ToString("0.000") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].BAA().ToString ("0.000") + "\n";
 				break;
 
 			case 11:
 			// Homeruns Against
 				text += "Least Homeruns Against\n";
-				result = players.OrderBy (playerX => playerX.stats[0][25]).ToList ();
+				result = players.OrderBy (playerX => playerX.Stats [0] [25]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][25] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [25] + "\n";
 				break;
 
 			case 12:
 			// Walks Against
 				text += "Lowest Walks Against\n";
-				result = players.OrderBy (playerX => playerX.stats[0][26]).ToList ();
+				result = players.OrderBy (playerX => playerX.Stats [0] [26]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][26] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [26] + "\n";
 				break;
 
 			case 13:
 			// Age
 				text += "Oldest Players\n";
-				result = players.OrderByDescending (playerX => playerX.age).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Age).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].age + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Age + "\n";
 				break;
 
 			case 14:
 			// Hits Allowed
 				text += "Most Hits Allowed\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][22]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [22]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][22] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [22] + "\n";
 				break;
 
 			case 15:
 			// ERA
 				text += "Lowest Earned Run Average\n";
-				result = players.OrderBy (playerX => (playerX.stats[0][24] / (playerX.stats[0][20] / 3.0f) * 9)).ToList ();
+				result = players.OrderBy (playerX => (playerX.Stats [0] [24] / (playerX.Stats [0] [20] / 3.0f) * 9)).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + (result [i].stats[0][24] / (result [i].stats[0][20] / 3.0f) * 9) + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + (result [i].Stats [0] [24] / (result [i].Stats [0] [20] / 3.0f) * 9) + "\n";
 				break;
 
 			case 16:
 			// Salary
 				text += "Most Paid Players\n";
-				result = players.OrderBy (playerX => playerX.Salary).ToList ();
+				result = players.OrderBy (playerX => playerX.ContractYears [0].Salary).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].Salary + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].ContractYears [0].Salary + "\n";
 				break;
 
 			case 17:
 			// Hit Streak
 				text += "Longest Hit Streaks (Currently " + Manager.Instance.longestHitStreak + " by " + Manager.Instance.hitStreakName + " in " + Manager.Instance.hitStreakYear + "\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][26]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [26]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][26] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [26] + "\n";
 				break;
 
 			case 18:
 			// Quality Starts
 				text += "Most Quality Starts\n";
-				result = players.OrderByDescending (playerX => playerX.stats[0][26]).ToList ();
+				result = players.OrderByDescending (playerX => playerX.Stats [0] [26]).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].stats[0][26] + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [26] + "\n";
 				break;
 
 			case 19:
 			// Injuries
 				text += "Injuries\n";
-				result = players.OrderByDescending (playerX => playerX.injuryLength).ToList ();
+				result = players.OrderByDescending (playerX => playerX.InjuryLength).ToList ();
 				j = 0;
-				while (result [j].injuryLength != 0)
+				while (result [j].InjuryLength != 0)
 				{
-					text += result [j].firstName.PadRight (Player.longestFirstName) + " " + result [j].lastName.PadRight (Player.longestLastName) + " is injured with a " + result [j].injurySeriousness + " " + result [j].injuryLocation + " for " + result [j].injuryLength + "\n";
+					text += result [j].FirstName.PadRight (Player.longestFirstName) + " " + result [j].LastName.PadRight (Player.longestLastName) + " is injured with a " + result [j].InjurySeriousness + " " + result [j].InjuryLocation + " for " + result [j].InjuryLength + "\n";
 					j++;
 				}
 				break;
@@ -210,25 +212,26 @@ public class Report : MonoBehaviour
 				text += "Highest Linear Weights Ratio\n";
 				result = players.OrderByDescending (playerX => playerX.LWR()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result[i].LWR().ToString("0.000") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].LWR().ToString ("0.000") + "\n";
 				break;
 			case 21:
 			// Walk-to-strikeout ratio
 				text += "Highest Walk-to-Strikeout Ratio\n";
 				result = players.OrderByDescending (playerX => playerX.BBToK ()).ToList ();
 				for (int i = 0; i < 10; i++)
-					text += result [i].firstName.PadRight (Player.longestFirstName) + " " + result [i].lastName.PadRight (Player.longestLastName) + " " + result [i].BBToK().ToString("0.00") + "\n";
+					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].BBToK ().ToString ("0.00") + "\n";
 				break;
 			case 22:
 			// Pitching Prospects
 				text += "Best Pitching Prospects\n";
-				result = players.OrderBy (playerX => playerX.stats[0][0]).ThenByDescending (playerY => (playerY.skills [0] + playerY.skills [1] + playerY.skills [2] + playerY.skills [3] + playerY.skills [4] + playerY.skills [5] + playerY.skills [6] + playerY.potential)).ToList ();
+				result = players.OrderBy (playerX => playerX.Stats [0] [0]).ThenByDescending (playerY => (playerY.Skills [0] + playerY.Skills [1] + playerY.Skills [2] + playerY.Skills [3] + playerY.Skills [4] + playerY.Skills [5] + playerY.Skills [6] + playerY.Potential)).ToList ();
 				j = 0;
 				l = 0;
-				while (j < 10 && result [l].stats[0][0] == 0) {
-					if (result [l].position.Length == 2 && result [l].position.Substring (1) == "P")
+				while (j < 10 && result [l].Stats [0] [0] == 0)
+				{
+					if (result [l].IsPitcher)
 					{
-						text += result [l].firstName.PadRight (Player.longestFirstName) + " " + result [l].lastName.PadRight (Player.longestLastName) + (result [l].skills [0] + result [l].skills [1] + result [l].skills [2] + result [l].skills [3] + result [l].skills [4] + result [l].skills [5] + result [l].skills [6] + result [l].potential) + "\n";
+						text += result [l].FirstName.PadRight (Player.longestFirstName) + " " + result [l].LastName.PadRight (Player.longestLastName) + (result [l].Skills [0] + result [l].Skills [1] + result [l].Skills [2] + result [l].Skills [3] + result [l].Skills [4] + result [l].Skills [5] + result [l].Skills [6] + result [l].Potential) + "\n";
 						j++;
 					}
 					l++;
@@ -237,14 +240,14 @@ public class Report : MonoBehaviour
 			case 23:
 			// Batting Prospects
 				text += "Best Batting Prospects\n";
-				result = players.OrderBy (playerX => playerX.stats[0][0]).ThenByDescending (playerY => (playerY.skills [0] + playerY.skills [1] + playerY.skills [2] + playerY.skills [3] + playerY.skills [4] + playerY.skills [5] + playerY.skills [6] + playerY.potential)).ToList ();
+				result = players.OrderBy (playerX => playerX.Stats [0] [0]).ThenByDescending (playerY => (playerY.Skills [0] + playerY.Skills [1] + playerY.Skills [2] + playerY.Skills [3] + playerY.Skills [4] + playerY.Skills [5] + playerY.Skills [6] + playerY.Potential)).ToList ();
 				j = 0;
 				l = 0;
-				while (j < 10 && result [l].stats[0][0] == 0)
+				while (j < 10 && result [l].Stats [0] [0] == 0)
 				{
-					if (result [l].position.Length == 1 || (result [l].position.Length == 2 && result [l].position.Substring (1) != "P"))
+					if (result [l].Position.Length == 1 || (result [l].Position.Length == 2 && result [l].Position.Substring (1) != "P"))
 					{
-						text += result [l].firstName.PadRight (Player.longestFirstName) + " " + result [l].lastName.PadRight (Player.longestLastName) + (result [l].skills [0] + result [l].skills [1] + result [l].skills [2] + result [l].skills [3] + result [l].skills [4] + result [l].skills [5] + result [l].skills [6] + result [l].potential) + "\n";
+						text += result [l].FirstName.PadRight (Player.longestFirstName) + " " + result [l].LastName.PadRight (Player.longestLastName) + (result [l].Skills [0] + result [l].Skills [1] + result [l].Skills [2] + result [l].Skills [3] + result [l].Skills [4] + result [l].Skills [5] + result [l].Skills [6] + result [l].Potential) + "\n";
 						j++;
 					}
 					l++;
@@ -254,7 +257,7 @@ public class Report : MonoBehaviour
 			// Projected Wins
 				text += "Projected Wins\n";
 				float total = 0;
-				resultT = Manager.Instance.teams.OrderByDescending (teamX => teamX.Overalls [0]).ToList ();
+				resultT = Manager.Instance.Teams [0].OrderByDescending (teamX => teamX.Overalls [0]).ToList ();
 				for (int i = 0; i < resultT.Count; i++)
 					total += resultT [i].Overalls [0];
 				total /= resultT.Count;
@@ -270,6 +273,6 @@ public class Report : MonoBehaviour
 		height = text.Split ('\n').Length * 30;
 		rect = report.GetComponent<RectTransform> ();
 		rect.sizeDelta = new Vector2 (500, height);
-		//rect.position = new Vector3 (rect.position.x, -height / 2 + 80, rect.position.z);
+		//rect.Position = new Vector3 (rect.Position.x, -height / 2 + 80, rect.Position.z);
 	}
 }

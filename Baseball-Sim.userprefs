@@ -1,11 +1,9 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\DisplayDraftPlayer.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Manager.cs">
     <Files>
-      <File FileName="Assets\Scripts\Trade.cs" Line="75" Column="5" />
-      <File FileName="Assets\Scripts\Player.cs" Line="487" Column="3" />
-      <File FileName="Assets\Scripts\DisplayDraftPlayer.cs" Line="20" Column="37" />
-      <File FileName="Assets\Scripts\ScheduledGame.cs" Line="137" Column="217" />
+      <File FileName="Assets\Scripts\WaiverPlayer.cs" Line="15" Column="3" />
+      <File FileName="Assets\Scripts\Manager.cs" Line="52" Column="19" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

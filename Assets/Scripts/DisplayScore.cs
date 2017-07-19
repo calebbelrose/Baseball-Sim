@@ -8,7 +8,7 @@ public class DisplayScore : MonoBehaviour
 	public Text textYourScore, textTheirScore, textResult, textWL;
 	private static Text txtYourScore, txtTheirScore, txtResult, txtWL;
 
-	void Awake()
+	void Awake ()
 	{
 		txtYourScore = textYourScore;
 		txtTheirScore = textTheirScore;
@@ -16,6 +16,7 @@ public class DisplayScore : MonoBehaviour
 		txtWL = textWL;
 	}
 
+	// Displays the score of a player's game
 	public static void Display(int yourWins, int yourLosses, int yourScore, int theirScore)
 	{
 		string result;

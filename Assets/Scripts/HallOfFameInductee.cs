@@ -6,7 +6,7 @@ public class HallOfFameInductee
 {
 	int year, playerID;
 
-	public HallOfFameInductee(int _year, int _playerID)
+	public HallOfFameInductee (int _year, int _playerID)
 	{
 		year = _year;
 		playerID = _playerID;
@@ -14,6 +14,6 @@ public class HallOfFameInductee
 
 	public override string ToString ()
 	{
-		return year + " - " + Manager.Instance.Players[playerID].Name;
+		return year + " - " + Manager.Instance.Players [playerID].Name;
 	}
 }

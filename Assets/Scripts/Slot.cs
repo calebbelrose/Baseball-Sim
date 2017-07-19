@@ -13,27 +13,20 @@ public class Slot : MonoBehaviour, IPointerDownHandler
 	private Calendar calendar;
 	private bool canSelect;
 
-	public Day Day
-	{
-		get
-		{
-			return day;
-		}
-	}
-
-	public void Display(List<Team> teams)
+	// Displays the 
+	public void Display()
 	{
 		List<string> eventText = new List<string> ();
 
-		dayText.text = day.Date.Day.ToString();
+		dayText.text = day.Date.Day.ToString ();
 
 		for (int i = 0; i < day.ScheduledGames.Count; i++)
 			if (day.ScheduledGames [i].ContainsTeam (0))
 			{
 				if (day.ScheduledGames [i].IsHomeGame (0))
-					eventText.Add("vs. " + day.ScheduledGames[i].Team1.Shortform);
+					eventText.Add("vs. " + day.ScheduledGames [i].Team1.Shortform);
 				else
-					eventText.Add("@" + day.ScheduledGames[i].Team2.Shortform);
+					eventText.Add("@" + day.ScheduledGames [i].Team2.Shortform);
 			}
 
 		for (int i = 0; i < day.SimulatedGames.Count; i++)
@@ -53,7 +46,8 @@ public class Slot : MonoBehaviour, IPointerDownHandler
 			}
 
 		for (int i = 0; i < day.Events.Count; i++)
-			eventText.Add(day.Events[i].ToString());
+			if (day.Events [i].ToString () != "")
+				eventText.Add(day.Events [i].ToString ());
 
 		if (eventText.Count > 0)
 		{
@@ -74,7 +68,16 @@ public class Slot : MonoBehaviour, IPointerDownHandler
 
 	public void OnPointerDown (PointerEventData eventData)
 	{
-		if(eventData.button == 0 && canSelect)
+		if (eventData.button == 0 && canSelect)
 			calendar.SelectSlot (index);
+	}
+
+	// Getter
+	public Day Day
+	{
+		get
+		{
+			return day;
+		}
 	}
 }

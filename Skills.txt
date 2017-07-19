@@ -14,5 +14,6 @@ Catching
 Throwing Power
 Accuracy
 Movement
+Durability
 Energy
 Endurance

@@ -1,15 +1,1012 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using UnityEngine;
+using System.Collections.Generic;
+using System.IO;
 
-public class ScheduledGame
+public class ScheduledGame
 {
-	Team[] teams;
+    static int id = 0;
+    public static int singles = 0, doubles = 0, triples = 0, homeruns = 0, strikeouts = 0, walks = 0, games = 0, innings = 0, runs = 0, lineouts = 0, groundouts = 0, flyouts = 0, popouts = 0, hbp = 0, errors = 0;
+    Team  [] teams = new Team[2];
+    bool trackStats;
+    GameType gameType;
+    TeamType teamType;
+    int dayIndex, gameID;
+    List<int>  [] pitchers = new List<int> [2];
+    List<int []> [] pitchingStats = new List<int []>[2];
+    List<int []> [] [] battingStats = new List<int []>[2] [];
+    int  [] batters = new int  [] { 0, 0 };
 
+	// 0-Arg Constructor
+    public ScheduledGame ()
+    {
+		string str = File.ReadAllLines (@"Save\ScheduledGame" + (gameID = id++) + ".txt") [0];
+        string  [] split = str.Split (',');
+
+        if (bool.Parse (split [5]))
+        {
+            int typeIndex = int.Parse (split [3]);
+
+            teamType = (TeamType)typeIndex;
+            teams [0] = Manager.Instance.Teams [typeIndex] [int.Parse (split [0])];
+            teams [1] = Manager.Instance.Teams [typeIndex] [int.Parse (split [1])];
+            gameType = (GameType)int.Parse (split [2]);
+            dayIndex = int.Parse (split [4]);
+
+            Manager.Instance.Days [dayIndex].ScheduledGames.Add (this);
+        }
+    }
+
+    // 2-Arg constructor
+    public ScheduledGame (Team _team1, Team _team2, GameType _gameType, TeamType _teamType, int _dayIndex)
+    {
+		StreamWriter sw;
+
+        gameID = id++;
+        teams = new Team [2];
+        teams [0] = _team1;
+        teams [1] = _team2;
+        gameType = _gameType;
+        teamType = _teamType;
+        dayIndex = _dayIndex;
+
+		sw = new StreamWriter (@"Save\ScheduledGame" + gameID + ".txt");
+		sw.WriteLine (teams  [0].ID  +  ","  +  teams  [1].ID  +  ","  +  (int)gameType  +  ","  +  (int)teamType  +  ","  +  dayIndex  +  ","  +  true);
+		sw.Close ();
+    }
+
+	// Plays the scheduled game
+    public SimulatedGame PlayGame ()
+    {
+        int inning = 1;
+        int  [] scores = new int  [] { 0, 0 }, relievers = new int  [] { 0, 0 };
+        List<bool> [] hit = new List<bool>[2];
+        bool [] noHitter = new bool [] {true, true};
+        float random;
+        bool designatedHitter;
+		List<string []> [] [] strBattingStats = new List<string []>[2] [];
+		List<string []> [] strPitchingStats = new List<string []>[2];
+		StreamWriter sw;
+
+        if (gameType == GameType.RegularSeason)
+            trackStats = true;
+        else
+            trackStats = false;
+
+        if (trackStats)
+            games += 2;
+
+        teams [0].AutomaticRoster ();
+        teams [1].AutomaticRoster ();
+        
+        if (teamType == TeamType.MLB && teams [1].League == League.National)
+            designatedHitter = false;
+        else
+            designatedHitter = true;
+
+        for (int j = 0; j < 2; j++)
+        {
+            hit [j] = new List<bool> ();
+            pitchers [j] = new List<int> ();
+            pitchingStats [j] = new List<int []> ();
+            battingStats [j] = new List<int []>[9];
+            ChangePitcher(j, teams [j].SP [teams [j].CurrStarter]);
+            Manager.Instance.Players [pitchers [j] [0]].Stats [0] [17]++;
+
+            if (designatedHitter)
+                Manager.Instance.Players [pitchers [j] [0]].Stats [0] [0]++;
+            else
+            {
+                int dhIndex = teams [j].Positions.IndexOf ("DH");
+                teams [j].Batters.RemoveAt (dhIndex);
+                teams [j].Positions.RemoveAt (dhIndex);
+                teams [j].Batters.Add (new List<int> ());
+                teams [j].Positions.Add ("SP");
+                teams [j].Batters[8].Add(pitchers [j] [0]);
+            }
+
+            for (int k = 0; k < teams [j].Batters.Count; k++)
+            {
+                Manager.Instance.Players [teams [j].Batters [k] [0]].Stats [0] [0]++;
+                battingStats [j] [k] = new List<int []> ();
+                battingStats [j] [k].Add (new int[10]);
+                battingStats [j] [k] [0] [0] = Manager.Instance.Players [teams [j].Batters [k] [0]].ID;
+            }
+
+            for (int k = 0; k < teams [j].Players.Count; k++)
+                hit [j].Add (false);
+        }
+
+        while (inning <= 9 || scores [0] == scores [1])
+        {
+            if (trackStats)
+                innings++;
+            for (int j = 0; j < 2; j++)
+            {
+                /*if (i == 0)
+            {
+                if (j == 0)
+                    Debug.Log ("Top of the " + (inning + 1));
+                else
+                    Debug.Log ("Bottom of the " + (inning + 1));
+            }*/
+                int outs = 0, thisTeam = j, otherTeam = (j + 1) % 2, strikes = 0, balls = 0, prevPitch = -1;
+                float multiplier = 1.0f;
+                Runner [] bases = new Runner[4] { null, null, null, null };
+
+                while (outs < 3)
+                {
+                    bool strike, swing, atBatter = false, wildPitch = false, error;
+                    float thisEye, thisContact, thisPower, thisAccuracy, thisLocation, accuracy = Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [6], pitchEffectiveness;
+                    int pitchIndex;
+
+                    if (balls == 0 && strikes == 0)
+                    {
+                        if (inning == 9 && pitchers [thisTeam] [0] != teams [thisTeam].SP [teams [thisTeam].CurrStarter] && scores [thisTeam] > scores [otherTeam])
+                        {
+                            ChangePitcher(thisTeam, teams [thisTeam].CP [0]);
+                            Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [0]++;
+                            prevPitch = -1;
+
+                            if (designatedHitter)
+                                ChangeBatter(thisTeam, 8, pitchers [thisTeam] [0]);
+                        }
+                        else if (!noHitter [thisTeam] && Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [9] <= 0 && strikes == 0 && balls == 0 && relievers [thisTeam] < 2)
+                        {
+                            if (pitchers [thisTeam] [0] == teams [thisTeam].SP [teams [thisTeam].CurrStarter] && inning > 6 && scores [otherTeam] <= 3)
+                                Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [28]++;
+
+                            ChangePitcher(thisTeam, teams [thisTeam].RP [relievers [thisTeam]]);
+                            Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [0]++;
+                            relievers [thisTeam]++;
+
+                            if (designatedHitter)
+                                ChangeBatter(thisTeam, 8, pitchers [thisTeam] [0]);
+                        }
+
+                        if (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [9] == 0)
+                        {
+                            int index = 0;
+                            bool substituteNotFound = true;
+
+                            if (Random.value > Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [8] / 100.0f)
+                                Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Injure ();
+
+                            do
+                            {
+                                if (((Manager.Instance.Players [teams [otherTeam].Players [index]].Position.Length == 1 || Manager.Instance.Players [teams [otherTeam].Players [index]].Position.Substring (1, 1) != "P") && !teams [otherTeam].IsBatter (Manager.Instance.Players [teams [otherTeam].Players [index]].ID)) && Manager.Instance.Players [teams [otherTeam].Players [index]].Skills [9] > 0)
+                                    substituteNotFound = false;
+                                else
+                                    index++;
+                            } while (substituteNotFound && index < teams [otherTeam].Players.Count);
+
+                            if (!substituteNotFound)
+                            {
+                                ChangeBatter (otherTeam, batters [otherTeam], index);
+                                Manager.Instance.Players [teams [otherTeam].Players [index]].Stats [0] [0]++;
+                            }
+                        }
+
+                        bases [0] = new Runner (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].ID, batters [otherTeam]);
+
+                        if (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Bats == 'S')
+                            multiplier = 1.0f;
+                        else if (Manager.Instance.Players [pitchers [thisTeam] [0]].Throws == 'S' || Manager.Instance.Players [pitchers [thisTeam] [0]].Throws == Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Bats)
+                            multiplier = 0.9f;
+                        else
+                            multiplier = 1.0f;
+                    }
+                    
+                    Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [9]--;
+                    Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [9]--;
+
+                    thisLocation = Random.value;
+
+                    if (balls == 3 && strikes <= 1)
+                    {
+                        if (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [1] * multiplier > 75 && (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [0] * multiplier > 75 || Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [3] > 75))
+                            strike = false;
+                        else
+                            strike = true;
+                    }
+                    else if (strikes == 2 && balls <= 3 && Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [2] * multiplier < 75)
+                        strike = false;
+                    else
+                    {
+                        if (thisLocation < 0.5f)
+                            strike = true;
+                        else
+                            strike = false;
+                    }
+
+                    if (strike)
+                        thisLocation *= 2;
+                    else
+                        thisLocation /= 2;
+
+                    thisAccuracy = Random.value;
+
+                    if (thisAccuracy > accuracy * (Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [9] / Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [10] / 5.0f + 0.95f))
+                    {
+                        if (thisAccuracy > 0.975f)
+                        {
+                            strike = false;
+                            if (Random.value > 0.5f)
+                                wildPitch = true;
+                            else
+                                atBatter = true;
+                        }
+                        else
+                            strike = !strike;
+                    }
+
+                    thisEye = Random.value * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [2] * multiplier / 100.0f;
+                    random = Random.value;
+                    pitchIndex = Random.Range (0, Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches.Count);
+
+                    if (pitchIndex != prevPitch)
+                        pitchEffectiveness = Random.value * Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches [pitchIndex].Effectiveness / 100.0f;
+                    else
+                        pitchEffectiveness = Random.value * Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches [pitchIndex].Effectiveness / 100.0f * 0.9f;
+
+                    prevPitch = pitchIndex;
+
+                    if (thisEye > pitchEffectiveness)
+                    {
+                        if (strike)
+                            swing = true;
+                        else
+                            swing = false;
+                    }
+                    else
+                    {
+                        if (thisEye > 0.5f)
+                            swing = false;
+                        else if (Random.value > 0.5f)
+                            swing = true;
+                        else
+                            swing = false;
+                    }
+
+                    if (swing)
+                    {
+                        if (atBatter)
+                            balls = 4;
+                        else
+                        {
+                            thisContact = Random.value * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [1] * multiplier / 100.0f;
+
+                            if (!strike)
+                                thisContact *= (1 - thisLocation) * 2 + thisLocation;
+
+                            if (thisContact > pitchEffectiveness)
+                            {
+                                int numBases;
+                                bool fly = false;
+                                float powerRandom = Random.value;
+
+                                thisPower = powerRandom * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [0] * multiplier / 100.0f;
+
+                                if (powerRandom > 0.95f || thisPower > 0.9f)
+                                {
+                                    /*if (i == 0)
+                                Debug.Log (strikes + "-" + balls + " Homerun");*/
+                                    if (trackStats)
+                                        homeruns++;
+                                    Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [7]++;
+                                    Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8] += 4;
+                                    Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
+                                    battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
+                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
+									pitchingStats [thisTeam] [0] [2]++;
+                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [25]++;
+									pitchingStats [thisTeam] [0] [7]++;
+                                    hit [otherTeam] [batters [otherTeam]] = true;
+                                    noHitter [thisTeam] = false;
+                                    numBases = 4;
+                                    error = false;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]++;
+									battingStats [otherTeam] [batters [otherTeam]] [0] [1]++;
+                                }
+                                else
+                                {
+                                    thisPower = thisPower * 2 / 3 + Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [3] / 300.0f;
+
+                                    if (thisPower > 0.8f)
+                                    {
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomOutfielder ())] [0];
+
+                                        /*if (i == 0)
+                                    Debug.Log (strikes + "-" + balls + " Triple");*/
+                                        if (trackStats)
+                                            triples++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [6]++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8] += 3;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
+                                        battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
+                                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
+										pitchingStats [thisTeam] [0] [2]++;
+                                        hit [otherTeam] [batters [otherTeam]] = true;
+                                        noHitter [thisTeam] = false;
+
+                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        {
+                                            numBases = 4;
+                                            Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
+                                            if (trackStats)
+                                                errors++;
+                                            error = true;
+                                        }
+                                        else
+                                        {
+                                            fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("2B")] [0];
+
+                                            if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                            {
+                                                numBases = 4;
+                                                Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
+                                                if (trackStats)
+                                                    errors++;
+                                                error = true;
+                                            }
+                                            else
+                                            {
+                                                fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("C")] [0];
+
+                                                if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
+                                                {
+                                                    numBases = 4;
+                                                    Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
+                                                    if (trackStats)
+                                                        errors++;
+                                                    error = true;
+                                                }
+                                                else
+                                                {
+                                                    numBases = 3;
+                                                    error = false;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (thisPower > 0.6f)
+                                    {
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomOutfielder ())] [0];
+
+                                        /*if (i == 0)
+                                    Debug.Log (strikes + "-" + balls + " Flyout");*/
+                                        if (trackStats)
+                                            flyouts++;
+
+                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        {
+                                            numBases = 2;
+                                            ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                            error = true;
+                                        }
+                                        else
+                                        {
+                                            fly = true;
+                                            outs++;
+											pitchingStats [thisTeam] [0] [1]++;
+											for(int k = 1; k < bases.Length; k++)
+												if(bases[k] != null)
+											 		battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
+                                            Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
+                                            numBases = 1;
+                                            error = false;
+                                        }
+                                    }
+                                    else if (thisPower > 0.575f)
+                                    {
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomOutfielder ())] [0];
+
+                                        /*if (i == 0)
+                                    Debug.Log (strikes + "-" + balls + " Double");*/
+                                        if (trackStats)
+                                            doubles++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [5]++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8] += 2;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
+                                        battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
+                                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
+										pitchingStats [thisTeam] [0] [2]++;
+                                        hit [otherTeam] [batters [otherTeam]] = true;
+                                        noHitter [thisTeam] = false;
+
+                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        {
+                                            numBases = 3;
+                                            Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
+                                            if (trackStats)
+                                                errors++;
+                                            error = true;
+                                        }
+                                        else
+                                        {
+                                            numBases = 2;
+                                            error = false;
+                                        }
+                                    }
+                                    else if (thisPower > 0.45f)
+                                    {
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomInfielder ())] [0];
+
+                                        /*if (i == 0)
+                                    Debug.Log (strikes + "-" + balls + " Popout");*/
+                                        if (trackStats)
+                                            popouts++;
+
+                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        {
+                                            numBases = 1;
+                                            ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                            error = true;
+                                        }
+                                        else
+                                        {
+                                            numBases = 0;
+                                            outs++;
+											pitchingStats [thisTeam] [0] [1]++;
+											for(int k = 1; k < bases.Length; k++)
+												if(bases[k] != null)
+													battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
+                                            Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
+                                            error = false;
+                                        }
+                                    }
+                                    else if (thisPower > 0.35f)
+                                    {
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomFielder ())] [0];
+
+                                        /*if (i == 0)
+                                    Debug.Log (strikes + "-" + balls + " Single");*/
+                                        if (trackStats)
+                                            singles++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [4]++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8]++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
+                                        battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
+                                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
+										pitchingStats [thisTeam] [0] [2]++;
+                                        hit [otherTeam] [batters [otherTeam]] = true;
+                                        noHitter [thisTeam] = false;
+
+                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        {
+                                            numBases = 2;
+                                            Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
+                                            if (trackStats)
+                                                errors++;
+                                            error = true;
+                                        }
+                                        else
+                                        {
+                                            numBases = 1;
+                                            error = false;
+                                        }
+                                    }
+                                    else if (thisPower > 0.3f)
+                                    {
+                                        string fielderPosition = RandomFielder ();
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0];
+
+                                        if (fielderPosition.Substring (1, 1) == "F")
+                                        {
+                                            if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                            {
+                                                numBases = 1;
+                                                ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                                error = true;
+                                            }
+                                            else
+                                            {
+                                                numBases = 0;
+                                                outs++;
+												pitchingStats [thisTeam] [0] [1]++;
+												for(int k = 1; k < bases.Length; k++)
+													if(bases[k] != null)
+														battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
+                                                Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
+                                                error = false;
+                                            }
+                                        }
+                                        else if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
+                                        {
+                                            numBases = 1;
+                                            ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                            error = true;
+                                        }
+                                        else
+                                        {
+                                            numBases = 0;
+                                            outs++;
+											pitchingStats [thisTeam] [0] [1]++;
+											for(int k = 1; k < bases.Length; k++)
+												if(bases[k] != null)
+													battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
+                                            Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
+                                            error = false;
+                                        }
+                                        /*if (i == 0)
+                                    Debug.Log ("Lineout");*/
+                                        if (trackStats)
+                                            lineouts++;
+                                    }
+                                    else
+                                    {
+                                        string fielderPosition = RandomFielder ();
+                                        int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0];
+
+                                        if (bases [1] != null)
+                                        {
+                                            if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                            {
+                                                numBases = 1;
+                                                ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                                error = true;
+                                            }
+                                            else
+                                            {
+                                                if (fielderPosition == "2B")
+                                                    fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("SS")] [0];
+                                                else
+                                                    fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("2B")] [0];
+
+                                                if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                                {
+                                                    numBases = 1;
+                                                    ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                                    error = true;
+                                                }
+                                                else
+                                                {
+                                                    if (fielderPosition == "1B")
+                                                        fielderIndex = pitchers [thisTeam] [0];
+                                                    else
+                                                        fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0];
+
+                                                    if (Random.value > Manager.Instance.Players [(fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0])].FieldingChance)
+                                                    {
+                                                        numBases = 1;
+                                                        ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                                        error = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        numBases = 0;
+                                                        outs += 2;
+														pitchingStats [thisTeam] [0] [1] += 2;
+                                                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20] += 2;
+                                                        bases [1] = null;
+                                                        error = false;
+                                                    }
+                                                }
+                                            }
+
+                                            /*if (i == 0)
+                                        Debug.Log ("Double Play");*/
+                                        }
+                                        else
+                                        {
+                                            if ((fielderPosition != "1B" && (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)) || Random.value > Manager.Instance.Players [teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0]].CatchingChance)
+                                            {
+                                                numBases = 1;
+                                                ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex);
+                                                error = true;
+                                            }
+                                            else
+                                            {
+                                                numBases = 0;
+                                                outs++;
+												pitchingStats [thisTeam] [0] [1]++;
+												for(int k = 1; k < bases.Length; k++)
+													if(bases[k] != null)
+														battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
+                                                Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
+                                                error = false;
+                                            }
+
+                                            /*if (i == 0)
+                                        Debug.Log ("Groundout");*/
+                                            if (trackStats)
+                                                groundouts++;
+                                        }
+                                    }
+
+                                    Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]++;
+                                    battingStats [otherTeam] [batters [otherTeam]] [0] [1]++;
+                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]++;
+                                }
+
+                                if (outs < 3)
+                                {
+                                    bool advanced = false;
+
+                                    for (int k = 3; k >= 0; k--)
+                                        if (bases [k] != null)
+                                        {
+                                            advanced = true;
+
+                                            Manager.Instance.Players [bases [k].PlayerID].Skills [9] -= numBases;
+
+                                            if (error)
+                                            {
+                                                int newBase = k + numBases;
+
+                                                if (newBase > 4)
+                                                {
+                                                    scores [otherTeam]++;
+
+                                                    if (bases [k] != null && !bases [k].Error)
+                                                    {
+                                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
+                                                        Manager.Instance.Players [bases [k].PlayerID].Stats [0] [2]++;
+                                                        battingStats [otherTeam] [bases [k].BatterIndex] [0] [2]++;
+                                                        battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
+                                                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [24]++;
+														pitchingStats [thisTeam] [0] [4]++;
+                                                    }
+
+                                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
+													pitchingStats [thisTeam] [0] [3]++;
+                                                }
+                                                else if (newBase > 3)
+                                                {
+                                                    scores [otherTeam]++;
+                                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
+													pitchingStats [thisTeam] [0] [3]++;
+                                                }
+                                                else
+                                                    (bases [k + numBases] = bases [k]).Error = true;
+
+                                                bases [k] = null;
+                                            }
+                                            else if (k + numBases > 3)
+                                            {
+                                                scores [otherTeam]++;
+                                                if (bases [k] != null && !bases [k].Error)
+                                                {
+                                                    Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
+                                                    Manager.Instance.Players [bases [k].PlayerID].Stats [0] [2]++;
+                                                    battingStats [otherTeam] [bases [k].BatterIndex] [0] [2]++;
+                                                    battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
+                                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [24]++;
+													pitchingStats [thisTeam] [0] [4]++;
+                                                }
+
+                                                Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
+												pitchingStats [thisTeam] [0] [3]++;
+                                            }
+                                            else
+                                                bases [k + numBases] = bases [k];
+                                        }
+                                    if (fly && advanced)
+                                    {
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [14]++;
+                                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]--;
+                                        battingStats [otherTeam] [batters [otherTeam]] [0] [1]--;
+                                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]--;
+                                    }
+                                }
+
+                                batters [otherTeam] = (batters [otherTeam] + 1) % 9;
+                                strikes = 0;
+                                balls = 0;
+                            }
+                            else
+                                strikes++;
+                        }
+                    }
+                    else
+                    {
+                        if (strike)
+                            strikes++;
+                        else
+                            balls++;
+                    }
+
+                    if (wildPitch)
+                    {
+                        for (int k = 3; k >= 1; k--)
+                            if (bases [k] != null)
+                            {
+                                Manager.Instance.Players [bases [k].PlayerID].Skills [9]--;
+
+                                if (k + 1 > 3)
+                                {
+                                    scores [otherTeam]++;
+                                    Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
+                                    Manager.Instance.Players [bases [k].PlayerID].Stats [0] [2]++;
+                                    battingStats [otherTeam] [bases [k].BatterIndex] [0] [2]++;
+                                    battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
+                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
+									pitchingStats [thisTeam] [0] [3]++;
+                                    Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [24]++;
+									pitchingStats [thisTeam] [0] [4]++;
+                                }
+                                else
+                                    bases [k + 1] = bases [k];
+
+                                bases [k] = null;
+                            }
+                    }
+
+                    if (strikes == 3)
+                    {
+                        outs++;
+						pitchingStats [thisTeam] [0] [1]++;
+						for(int k = 1; k < bases.Length; k++)
+							if(bases[k] != null)
+								battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
+                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
+                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]++;
+                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]++;
+                        battingStats [otherTeam] [batters [otherTeam]] [0] [1]++;
+                        /*if (i == 0)
+                        Debug.Log (strikes + "-" + balls + " Strikeout");*/
+                        if (trackStats)
+                            strikeouts++;
+
+                        batters [otherTeam] = (batters [otherTeam] + 1) % 9;
+                        Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [11]++;
+                        battingStats [otherTeam] [batters [otherTeam]] [0] [6]++;
+                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [27]++;
+						pitchingStats [thisTeam] [0] [6]++;
+                        strikes = 0;
+                        balls = 0;
+                    }
+                    else if (balls == 4)
+                    {
+                        int currBase = 0;
+
+                        while (currBase < bases.Length && bases [currBase] != null)
+                            currBase++;
+                    
+                        if (currBase == 4)
+                        {
+                            scores [otherTeam]++;
+                            Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
+                            Manager.Instance.Players [bases [3].PlayerID].Stats [0] [2]++;
+                            battingStats [otherTeam] [bases [3].BatterIndex] [0] [2]++;
+                            battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
+                        }
+                        else
+                        {
+                            for (int k = currBase; k > 0; k--)
+                            {
+                                bases [k] = bases [k - 1];
+                                bases [k - 1] = null;
+                            }
+                        }
+
+                        /*if (i == 0)
+                        Debug.Log (strikes + "-" + balls + " Walk");*/
+                    
+                        if (atBatter)
+                        {
+                            Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [32]++;
+                            if (trackStats)
+                                hbp++;
+                        }
+                        else
+                        {
+                            Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [10]++;
+                            battingStats [otherTeam] [batters [otherTeam]] [0] [5]++;
+                            if (trackStats)
+                                walks++;
+                        }
+                    
+                        Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [26]++;
+						pitchingStats [thisTeam] [0] [5]++;
+
+                        batters [otherTeam] = (batters [otherTeam] + 1) % 9;
+                        strikes = 0;
+                        balls = 0;
+                    }
+                }
+            }
+
+            inning++;
+        }
+
+        //Home team gains revenue and pays expenses
+        teams [1].AddRevenue (teams [0].Hype);
+        teams [0].SubtractExpenses ();
+
+        if (trackStats)
+            runs += scores [0] + scores [1];
+
+        if (scores [0] > scores [1])
+        {
+            teams [0].Win ();
+            teams [1].Loss ();
+        }
+        else
+        {
+            teams [1].Win ();
+            teams [0].Loss ();
+        }
+
+        for (int j = 0; j < teams.Length; j++)
+        {
+			strPitchingStats [j] = new List<string []> ();
+			strBattingStats [j] = new List<string []> [9];
+
+			for (int k = 0; k < battingStats [j].Length; k++)
+			{
+				strBattingStats [j] [k] = new List<string []> ();
+
+				for (int l = 0; l < battingStats [j] [k].Count; l++)
+				{
+					strBattingStats [j] [k].Add (new string[10]);
+
+					for (int m = 0; m < 8; m++)
+						strBattingStats [j] [k] [l] [m] = battingStats [j] [k] [l] [m].ToString ();
+
+					strBattingStats [j] [k] [l] [8] = Manager.Instance.Players [battingStats [j] [k] [l] [0]].BA ().ToString ("F3");
+					strBattingStats [j] [k] [l] [9] = (Manager.Instance.Players [battingStats [j] [k] [l] [0]].OBP () + Manager.Instance.Players [battingStats [j] [k] [l] [0]].SLUG ()).ToString ("F3");
+				}
+			}
+			
+			for (int k = 0; k < pitchingStats [j].Count; k++)
+			{
+				strPitchingStats [j].Add (new string[9]);
+				strPitchingStats [j] [k] [0] = pitchingStats [j] [k] [0].ToString ();
+				strPitchingStats [j] [k] [1] = pitchingStats [j] [k] [1] / 3 + "." + pitchingStats [j] [k] [1] % 3;
+
+				for (int l = 2; l < 8; l++)
+					strPitchingStats [j] [k] [l] = pitchingStats [j] [k] [l].ToString ();
+				
+				strPitchingStats [j] [k] [8] = Manager.Instance.Players [pitchingStats [j] [k] [0]].ERA ().ToString ("F");
+			}
+
+            if (noHitter [j])
+                Manager.Instance.Players [pitchers [j] [0]].Stats [0] [35]++;
+        
+            for (int k = 0; k < teams [j].Players.Count; k++)
+            {
+                if (hit [j] [k])
+                {
+                    Manager.Instance.Players [teams [j].Players [k]].Stats [0] [30]++;
+                    if (Manager.Instance.Players [teams [j].Players [k]].Stats [0] [30] > Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33])
+                    {
+                        Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33] = Manager.Instance.Players [teams [j].Players [k]].Stats [0] [30];
+                        Manager.Instance.Players [teams [j].Players [k]].Stats [0] [34] = Manager.Instance.Year;
+                    }
+                }
+                else
+                    Manager.Instance.Players [teams [j].Players [k]].Stats [0] [30] = 0;
+
+                if (Manager.Instance.Players [teams [j].Players [k]].InjuryLength > 0)
+                    Manager.Instance.Players [teams [j].Players [k]].ReduceInjuryLength ();
+
+                Manager.Instance.Players [teams [j].Players [k]].SaveStats ();
+            }
+        }
+
+        if (pitchers [0] [0] == teams [0].SP [teams [0].CurrStarter])
+            Manager.Instance.Players [pitchers [0] [0]].Stats [0] [29]++;
+
+        if (pitchers [1] [0] == teams [1].SP [teams [1].CurrStarter])
+            Manager.Instance.Players [pitchers [1] [0]].Stats [0] [29]++;
+
+        teams [0].UseStarter ();
+        teams [1].UseStarter ();
+
+		if (teams[0].Type == TeamType.MLB)
+		{
+			if(teams [0].ID == 0)
+	            DisplayScore.Display (teams [0].Wins, teams [0].Losses, scores [0], scores [1]);
+	        else if (teams [1].ID == 0)
+	            DisplayScore.Display (teams [1].Wins, teams [1].Losses, scores [1], scores [0]);
+		}
+
+		sw = new StreamWriter (@"Save\ScheduledGame" + gameID + ".txt");
+		sw.WriteLine (teams  [0].ID  +  ","  +  teams  [1].ID  +  ","  +  (int)gameType  +  ","  +  (int)teamType  +  ","  +  dayIndex  +  ","  +  false);
+		sw.Close ();
+
+		return new SimulatedGame (scores, teams [0].ID, teams [1].ID, teams [0].Shortform, teams [1].Shortform, gameType, dayIndex, strBattingStats, strPitchingStats);
+    }
+
+	// Determines whether the game contained a team
+    public bool ContainsTeam(int team)
+    {
+        if (team == teams [0].ID || team == teams [1].ID)
+            return true;
+        else
+            return false;
+    }
+
+	// Determines whether a team was playing at home
+    public bool IsHomeGame (int team)
+    {
+        if (team == teams [0].ID)
+            return false;
+        else
+            return true;
+    }
+
+	// Selects a random outfielder
+    string RandomOutfielder()
+    {
+        float random = Random.value;
+
+        if (random <= 1 / 3)
+            return "LF";
+        else if (random <= 2 / 3)
+            return "CF";
+        else
+            return "RF";
+    }
+
+	// Selects a random infielder
+    string RandomInfielder()
+    {
+        float random = Random.value;
+
+        if (random <= 0.25f)
+            return "1B";
+        else if (random <= 0.5f)
+            return "2B";
+        else if (random <= 0.75f)
+            return "3B";
+        else
+            return "SS";
+    }
+
+	// Selects a random fielder
+    string RandomFielder()
+    {
+        float random = Random.value;
+
+        if (random <= 1 / 7)
+            return "LF";
+        else if (random <= 2 / 7)
+            return "CF";
+        else if (random <= 3 / 7)
+            return "RF";
+        else if (random <= 4 / 7)
+            return "1B";
+        else if (random <= 5 / 7)
+            return "2B";
+        else if (random <= 6 / 7)
+            return "3B";
+        else
+            return "SS";
+    }
+
+	// Adds a reached on error to the stats
+    void ReachedOnError(int batterIndex, int fielderIndex)
+    {
+		Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
+		Manager.Instance.Players [batterIndex].Stats [0] [31]++;
+
+		if (trackStats)
+			errors++;
+    }
+
+	// Changes a team's batter
+    void ChangeBatter(int teamIndex, int batterIndex, int playerIndex)
+    {
+        teams [teamIndex].Batters [batterIndex].Insert (0, playerIndex);
+        battingStats [teamIndex] [batterIndex].Insert (0, new int[10]);
+        battingStats [teamIndex] [batterIndex] [0] [0] = Manager.Instance.Players [teams [teamIndex].Batters [batterIndex] [0]].ID;
+    }
+
+	// Changes a team's pitcher
+    void ChangePitcher(int teamIndex, int playerIndex)
+    {
+        pitchers [teamIndex].Insert (0, playerIndex);
+        pitchingStats [teamIndex].Insert (0, new int[9]);
+        pitchingStats [teamIndex] [0] [0] = Manager.Instance.Players [pitchers [teamIndex] [0]].ID;
+    }
+
+	// Getters
 	public Team Team1
 	{
 		get
 		{
-			return teams[0];
+			return teams [0];
 		}
 	}
 
@@ -17,755 +1014,17 @@ public class ScheduledGame
 	{
 		get
 		{
-			return teams[1];
+			return teams [1];
 		}
-	}
-
-	// 2-arg constructor
-	public ScheduledGame(Team _team1, Team _team2)
-	{
-		teams = new Team[2];
-		teams[0] = _team1;
-		teams[1] = _team2;
-	}
-
-	public SimulatedGame PlayGame()
-	{
-		int inning = 1;
-		int[] scores = new int[] { 0, 0 };
-		int[] batters = new int[] { 0, 0 };
-		int[] relievers = new int[] { 0, 0 };
-		int[] pitchers = new int[] { 0, 0 };
-		List<bool>[] hit = new List<bool>[2];
-		bool[] noHitter = new bool[] {true, true};
-
-		if(teams[0].MinorLeagueIndexes.Count > 0)
-			teams[0].AutomaticRoster ();
-
-		if(teams[1].MinorLeagueIndexes.Count > 0)
-			teams[1].AutomaticRoster ();
-
-		for (int j = 0; j < 2; j++)
-		{
-			hit [j] = new List<bool> ();
-			pitchers [j] = teams[j].SP [teams[j].CurrStarter];
-			Manager.Instance.Players[pitchers [j]].stats[0][0]++;
-			Manager.Instance.Players[pitchers [j]].stats[0][17]++;
-
-			if (teams [j].League == League.National)
-			{
-				List<int> batterSlot = new List<int> ();
-				batterSlot.Add (pitchers [j]);
-				teams [j].Batters.Add (batterSlot);
-			}
-
-			for (int k = 0; k < teams [j].Batters.Count; k++)
-				Manager.Instance.Players[teams [j].Batters [k][0]].stats[0][0]++;
-
-			for (int k = 0; k < teams [j].players.Count; k++)
-				hit [j].Add (false);
-		}
-
-		while (inning <= 9 || scores [0] == scores [1]) {
-			for (int j = 0; j < 2; j++)
-			{
-				/*if (i == 0)
-                {
-                    if (j == 0)
-                        Debug.Log("Top of the " + (inning + 1));
-                    else
-                        Debug.Log("Bottom of the " + (inning + 1));
-                }*/
-				int outs = 0, thisTeam = j, otherTeam = (j + 1) % 2, strikes = 0, balls = 0;
-				float multiplier = 1.0f;
-				Runner[] bases = new Runner[4] { null, null, null, null };
-
-				if (inning == 9 && pitchers [thisTeam] != teams [thisTeam].SP [teams [thisTeam].CurrStarter] && scores [thisTeam] > scores [otherTeam])
-				{
-					pitchers [thisTeam] = teams [thisTeam].CP [0];
-					Manager.Instance.Players[pitchers [thisTeam]].stats[0][0]++;
-
-					if(teams[thisTeam].League == League.National)
-						teams[j].Batters[8].Add(pitchers [thisTeam]);
-				}
-
-				while (outs < 3)
-				{
-					bool strike, swing, atBatter = false, wildPitch = false, error;
-					float thisEye, thisContact, thisPower, thisPitchPower, thisMovement, thisAccuracy, thisLocation;
-					float accuracy = Manager.Instance.Players[pitchers [thisTeam]].skills [6];
-
-					if (!noHitter [thisTeam] && Manager.Instance.Players[pitchers [thisTeam]].skills [8] <= 0 && strikes == 0 && balls == 0 && relievers [thisTeam] < 2)
-					{
-						if (pitchers [thisTeam] == teams [thisTeam].SP [teams[thisTeam].CurrStarter] && inning > 6 && scores [otherTeam] <= 3)
-							Manager.Instance.Players[pitchers [thisTeam]].stats[0][26]++;
-						
-						pitchers [thisTeam] = teams [thisTeam].RP [relievers [thisTeam]];
-						Manager.Instance.Players[pitchers [thisTeam]].stats[0][0]++;
-						relievers [thisTeam]++;
-
-						if(teams[thisTeam].League == League.National)
-							teams[j].Batters[8].Add(pitchers [thisTeam]);
-					}
-
-					if (Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [8] == 0)
-					{
-						int index = 0;
-						bool substituteNotFound = true;
-
-						do
-						{
-							if(((Manager.Instance.Players[teams[otherTeam].players[index]].position.Length == 1 || Manager.Instance.Players[teams[otherTeam].players[index]].position.Substring(1,1) != "P") && !teams[otherTeam].IsBatter(Manager.Instance.Players[teams[otherTeam].players[index]].ID)) && Manager.Instance.Players[teams[otherTeam].players[index]].skills [8] > 0)
-								substituteNotFound = false;
-							else
-								index++;
-						} while(substituteNotFound && index < teams[otherTeam].players.Count);
-
-						if (!substituteNotFound)
-						{
-							teams [otherTeam].Batters [batters [otherTeam]].Insert (0, index);
-							Manager.Instance.Players[teams [otherTeam].players [index]].stats[0][0]++;
-						}
-					}
-
-					if (balls == 0 && strikes == 0)
-					{
-						bases [0] = new Runner (batters [otherTeam]);
-
-						if (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Bats == 'S')
-							multiplier = 1.0f;
-						else if (Manager.Instance.Players [pitchers [thisTeam]].Throws == 'S' || Manager.Instance.Players [pitchers [thisTeam]].Throws == Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Bats)
-							multiplier = 0.9f;
-						else
-							multiplier = 1.0f;
-					}
-						
-					Manager.Instance.Players[pitchers [thisTeam]].skills [8]--;
-					Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [8]--;
-
-					thisLocation = Random.value;
-
-					if (balls == 3 && strikes <= 1)
-					{
-						if (Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [1] * multiplier > 75 && (Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [0] * multiplier > 75 || Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [3] > 75))
-						{
-							thisLocation /= 2;
-							strike = false;
-						}
-						else
-						{
-							thisLocation *= 2;
-							strike = true;
-						}
-					}
-					else if (strikes == 2 && balls <= 3 && Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [2] * multiplier < 75)
-					{
-						strike = false;
-						thisLocation /= 2;
-					}
-					else
-					{
-						if (thisLocation < 0.5f)
-							strike = true;
-						else
-							strike = false;
-					}
-
-					thisAccuracy = Random.value;
-
-					if (thisAccuracy > accuracy * (Manager.Instance.Players[pitchers [thisTeam]].skills [8] / Manager.Instance.Players[pitchers [thisTeam]].skills [9] / 5.0f + 0.95f))
-							{
-						if (thisAccuracy > 0.975f)
-						{
-							strike = false;
-							if (Random.value > 0.5f)
-								wildPitch = true;
-							else
-								atBatter = true;
-						}
-						else
-							strike = !strike;
-					}
-
-					thisEye = Random.value * Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [2] * multiplier / 100.0f;
-					thisPitchPower = Random.value * Manager.Instance.Players[pitchers [thisTeam]].skills [5] / 100.0f;
-					thisMovement = Random.value * Manager.Instance.Players[pitchers [thisTeam]].skills [7] / 100.0f;
-
-					if (thisEye > thisPitchPower && thisEye > thisMovement)
-					{
-						if (strike)
-							swing = true;
-						else
-							swing = false;
-					}
-					else
-					{
-						if (thisEye > 0.5f)
-							swing = false;
-						else if (thisMovement > 0.5f && thisPitchPower > 0.5f)
-							swing = true;
-						else if (Random.value > 0.5f)
-							swing = true;
-						else
-							swing = false;
-					}
-
-					if (swing)
-					{
-						if (atBatter)
-							balls = 4;
-						else
-						{
-							thisContact = Random.value * Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [1] * multiplier / 100.0f;
-							if (!strike)
-								thisContact *= (1 - thisLocation) * 2 + thisLocation;
-
-							if (thisContact > thisMovement && thisContact > thisPitchPower)
-							{
-								int numBases;
-								bool fly = false;
-								float powerRandom = Random.value;
-
-								thisPower = powerRandom * Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [0] * multiplier / 100.0f;
-
-								if (powerRandom > 0.95f || thisPower > 0.8f)
-								{
-									/*if (i == 0)
-                                    Debug.Log(strikes + "-" + balls + " Homerun");*/
-									Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][7]++;
-									Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][8] += 4;
-									Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][3]++;
-									Manager.Instance.Players[pitchers [thisTeam]].stats[0][22]++;
-									Manager.Instance.Players[pitchers [thisTeam]].stats[0][25]++;
-									hit [otherTeam] [batters [otherTeam]] = true;
-									noHitter [thisTeam] = false;
-									numBases = 4;
-									error = false;
-								}
-								else
-								{
-									thisPower = thisPower * 2 / 3 + Manager.Instance.Players[teams [otherTeam].Batters [batters [otherTeam]][0]].skills [3] / 300.0f;
-
-									if (thisPower > 0.75f)
-									{
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomOutfielder ())] [0];
-
-										/*if (i == 0)
-                                        Debug.Log(strikes + "-" + balls + " Triple");*/
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][6]++;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][8] += 3;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][3]++;
-										Manager.Instance.Players[pitchers [thisTeam]].stats[0][22]++;
-										hit [otherTeam] [batters [otherTeam]] = true;
-										noHitter [thisTeam] = false;
-
-										if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance|| Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-										{
-											numBases = 4;
-											Manager.Instance.Players [fielderIndex].stats [0] [36]++;
-											error = true;
-										}
-										else
-										{
-											fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("2B")] [0];
-
-											if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-											{
-												numBases = 4;
-												Manager.Instance.Players [fielderIndex].stats [0] [36]++;
-												error = true;
-											}
-											else
-											{
-												fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("C")] [0];
-
-												if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
-												{
-													numBases = 4;
-													Manager.Instance.Players [fielderIndex].stats [0] [36]++;
-													error = true;
-												}
-												else
-												{
-													numBases = 3;
-													error = false;
-												}
-											}
-										}
-									}
-									else if (thisPower > 0.65f)
-									{
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomOutfielder ())] [0];
-
-										/*if (i == 0)
-                                        Debug.Log(strikes + "-" + balls + " Flyout");*/
-
-										if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-										{
-											numBases = 2;
-											ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-											error = true;
-										}
-										else
-										{
-											fly = true;
-											outs++;
-											Manager.Instance.Players[pitchers [thisTeam]].stats[0][20]++;
-											numBases = 1;
-											error = false;
-										}
-									}
-									else if (thisPower > 0.6f)
-									{
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomOutfielder ())] [0];
-
-										/*if (i == 0)
-                                        Debug.Log(strikes + "-" + balls + " Double");*/
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][5]++;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][8] += 2;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][3]++;
-										Manager.Instance.Players[pitchers [thisTeam]].stats[0][22]++;
-										hit [otherTeam] [batters [otherTeam]] = true;
-										noHitter [thisTeam] = false;
-
-										if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-										{
-											numBases = 3;
-											Manager.Instance.Players [fielderIndex].stats [0] [36]++;
-											error = true;
-										}
-										else
-										{
-											numBases = 2;
-											error = false;
-										}
-									}
-									else if (thisPower > 0.45f)
-									{
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomInfielder ())] [0];
-
-										/*if (i == 0)
-                                        Debug.Log(strikes + "-" + balls + " Popout");*/
-
-										if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-										{
-											numBases = 1;
-											ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-											error = true;
-										}
-										else
-										{
-											numBases = 0;
-											outs++;
-											Manager.Instance.Players[pitchers [thisTeam]].stats[0][20]++;
-											error = false;
-										}
-									}
-									else if (thisPower > 0.35f)
-									{
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (RandomFielder ())] [0];
-
-										/*if (i == 0)
-                                        Debug.Log(strikes + "-" + balls + " Single");*/
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][4]++;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][8]++;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][3]++;
-										Manager.Instance.Players[pitchers [thisTeam]].stats[0][22]++;
-										hit [otherTeam] [batters [otherTeam]] = true;
-										noHitter [thisTeam] = false;
-
-										if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-										{
-											numBases = 2;
-											Manager.Instance.Players [fielderIndex].stats [0] [36]++;
-											error = true;
-										}
-										else
-										{
-											numBases = 1;
-											error = false;
-										}
-									}
-									else if (thisPower > 0.25f)
-									{
-										string fielderPosition = RandomFielder ();
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0];
-
-										if (fielderPosition.Substring (1, 1) == "F")
-										{
-											if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-											{
-												numBases = 1;
-												ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-												error = true;
-											}
-											else
-											{
-												numBases = 0;
-												outs++;
-												Manager.Instance.Players [pitchers [thisTeam]].stats [0] [20]++;
-												error = false;
-											}
-										}
-										else if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
-										{
-											numBases = 1;
-											ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-											error = true;
-										}
-										else
-										{
-											numBases = 0;
-											outs++;
-											Manager.Instance.Players [pitchers [thisTeam]].stats [0] [20]++;
-											error = false;
-										}
-										/*if (i == 0)
-                                        Debug.Log("Lineout");*/
-									}
-									else
-									{
-										string fielderPosition = RandomFielder ();
-										int fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0];
-
-										if (bases [1] != null)
-										{
-											if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-											{
-												numBases = 1;
-												ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-												error = true;
-											}
-											else
-											{
-												if (fielderPosition == "2B")
-													fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("SS")] [0];
-												else
-													fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("2B")] [0];
-
-												if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
-												{
-													numBases = 1;
-													ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-													error = true;
-												}
-												else
-												{
-													if (fielderPosition == "1B")
-														fielderIndex = pitchers[thisTeam];
-													else
-														fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0];
-
-													if (Random.value > Manager.Instance.Players [(fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0])].FieldingChance)
-													{
-														numBases = 1;
-														ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-														error = true;
-													}
-													else
-													{
-														numBases = 0;
-														outs += 2;
-														Manager.Instance.Players[pitchers [thisTeam]].stats[0][20] += 2;
-														bases [1] = null;
-														error = false;
-													}
-												}
-											}
-
-											/*if (i == 0)
-                                            Debug.Log("Double Play");*/
-										}
-										else
-										{
-											if ((fielderPosition != "1B" && (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)) || Random.value > Manager.Instance.Players [teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0]].CatchingChance)
-											{
-												numBases = 1;
-												ReachedOnError (teams [otherTeam].players [batters [otherTeam]], fielderIndex);
-												error = true;
-											}
-											else
-											{
-												numBases = 0;
-												outs++;
-												Manager.Instance.Players[pitchers [thisTeam]].stats[0][20]++;
-												error = false;
-											}
-
-											/*if (i == 0)
-                                            Debug.Log("Groundout");*/
-										}
-									}
-
-									Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][1]++;
-									Manager.Instance.Players[pitchers [thisTeam]].stats[0][21]++;
-								}
-
-								if (outs < 3)
-								{
-									bool advanced = false;
-									for (int k = 3; k >= 0; k--)
-										if (bases [k] != null)
-										{
-											advanced = true;
-											bases [k] = null;
-
-											if (error)
-											{
-												int newBase = k + numBases;
-												if(newBase > 4)
-												{
-													scores [otherTeam]++;
-
-													if (bases[k] != null && !bases [k].Error)
-													{
-														Manager.Instance.Players [teams [otherTeam].players [batters [otherTeam]]].stats [0] [9]++;
-														Manager.Instance.Players [pitchers [thisTeam]].stats [0] [24]++;
-													}
-
-													Manager.Instance.Players [pitchers [thisTeam]].stats [0] [23]++;
-												}
-												else if (newBase > 3)
-												{
-													scores [otherTeam]++;
-													Manager.Instance.Players[pitchers [thisTeam]].stats[0][23]++;
-												}
-												else
-													(bases [k + numBases] = bases [k]).Error = true;
-											}
-											else if (k + numBases > 3)
-											{
-												scores [otherTeam]++;
-												if (bases[k] != null && !bases [k].Error)
-												{
-													Manager.Instance.Players [teams [otherTeam].players [batters [otherTeam]]].stats [0] [9]++;
-													Manager.Instance.Players [pitchers [thisTeam]].stats [0] [24]++;
-												}
-
-												Manager.Instance.Players [pitchers [thisTeam]].stats [0] [23]++;
-											}
-											else
-												bases [k + numBases] = bases [k];
-										}
-									if (fly && advanced)
-									{
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][14]++;
-										Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][1]--;
-										Manager.Instance.Players[pitchers [thisTeam]].stats[0][21]--;
-									}
-								}
-
-								batters [otherTeam] = (batters [otherTeam] + 1) % 9;
-								strikes = 0;
-								balls = 0;
-							}
-							else
-								strikes++;
-						}
-					}
-					else
-					{
-						if (strike)
-							strikes++;
-						else
-							balls++;
-					}
-
-					if (wildPitch) {
-						for (int k = 3; k >= 1; k--)
-							if (bases [k] != null)
-							{
-								bases [k] = null;
-								if (k + 1 > 3)
-								{
-									scores [otherTeam]++;
-									Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][9]++;
-									Manager.Instance.Players[pitchers [thisTeam]].stats[0][23]++;
-									Manager.Instance.Players[pitchers [thisTeam]].stats[0][24]++;
-								}
-								else
-									bases [k + 1] = bases [k];
-							}
-					}
-
-					if (strikes == 3)
-					{
-						outs++;
-						Manager.Instance.Players[pitchers [thisTeam]].stats[0][20]++;
-						Manager.Instance.Players[pitchers [thisTeam]].stats[0][21]++;
-						Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][1]++;
-						/*if (i == 0)
-                            Debug.Log(strikes + "-" + balls + " Strikeout");*/
-						batters [otherTeam] = (batters [otherTeam] + 1) % 9;
-						Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][11]++;
-						Manager.Instance.Players[pitchers [thisTeam]].stats[0][27]++;
-						strikes = 0;
-						balls = 0;
-					}
-					else if (balls == 4)
-					{
-						int currBase = 0;
-
-						while (currBase < bases.Length && bases [currBase] != null)
-							currBase++;
-						
-						if (currBase == 4)
-						{
-							scores [otherTeam]++;
-							Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][9]++;
-						}
-						else
-							for (int k = currBase; k > 0; k--)
-							{
-								bases [k] = bases [k - 1];
-								bases [k - 1] = null;
-							}
-
-						/*if (i == 0)
-                            Debug.Log(strikes + "-" + balls + " Walk");*/
-
-						if (atBatter)
-							Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][32]++;
-						else
-							Manager.Instance.Players[teams [otherTeam].players [batters [otherTeam]]].stats[0][10]++;
-						
-						Manager.Instance.Players[pitchers [thisTeam]].stats[0][26]++;
-
-						batters [otherTeam] = (batters [otherTeam] + 1) % 9;
-						strikes = 0;
-						balls = 0;
-					}
-				}
-			}
-
-			inning++;
-		}
-
-		//Home team gains revenue and pays expenses
-		teams[1].AddRevenue (teams[0].Hype);
-		teams[0].SubtractExpenses ();
-
-		if (scores [0] > scores [1])
-		{
-			teams[0].Win ();
-			teams[1].Loss ();
-		}
-		else
-		{
-			teams[1].Win ();
-			teams[0].Loss ();
-		}
-
-		for (int j = 0; j < teams.Length; j++)
-		{
-			if (noHitter [j])
-				Manager.Instance.Players [pitchers[j]].stats [0] [35]++;
-			
-			for (int k = 0; k < teams [j].players.Count; k++)
-			{
-				if (hit [j] [k])
-				{
-					Manager.Instance.Players [teams [j].players [k]].stats [0] [30]++;
-					if (Manager.Instance.Players [teams [j].players [k]].stats [0] [30] > Manager.Instance.Players [teams [j].players [k]].stats [0] [33])
-					{
-						Manager.Instance.Players [teams [j].players [k]].stats [0] [33] = Manager.Instance.Players [teams [j].players [k]].stats [0] [30];
-						Manager.Instance.Players [teams [j].players [k]].stats [0] [34] = Manager.Instance.Year;
-					}
-				}
-				else
-					Manager.Instance.Players [teams [j].players [k]].stats [0] [30] = 0;
-
-				if (Manager.Instance.Players [teams [j].players [k]].injuryLength > 0)
-					Manager.Instance.Players [teams [j].players [k]].injuryLength--;
-
-				Manager.Instance.Players [teams [j].players [k]].SaveStats ();
-			}
-		}
-
-		if (pitchers [0] == teams[0].SP [teams[0].CurrStarter])
-			Manager.Instance.Players[pitchers [0]].stats[0][26]++;
-
-		if (pitchers [1] == teams[1].SP [teams[1].CurrStarter])
-			Manager.Instance.Players[pitchers [1]].stats[0][26]++;
-
-		teams [0].UseStarter ();
-		teams [1].UseStarter ();
-
-		if (teams [0].id == 0)
-			DisplayScore.Display (teams [0].Wins, teams [0].Losses, scores [0], scores [1]);
-		else if (teams [1].id == 0)
-			DisplayScore.Display (teams [1].Wins, teams [1].Losses, scores [1], scores [0]);
-
-		PlayerPrefs.Save();
-
-		return new SimulatedGame (scores, teams[0].id, teams[1].id, teams[0].Shortform, teams[1].Shortform);
-	}
-
-	public bool ContainsTeam(int team)
-	{
-		if(team == teams[0].id || team == teams[1].id)
-			return true;
-		else
-			return false;
-	}
-
-	public bool IsHomeGame(int team)
-	{
-		if (team == teams[0].id)
-			return false;
-		else
-			return true;
-	}
-
-	string RandomOutfielder()
-	{
-		float random = Random.value;
-
-		if (random <= 1 / 3)
-			return "LF";
-		else if (random <= 2 / 3)
-			return "CF";
-		else
-			return "RF";
-	}
-
-	string RandomInfielder()
-	{
-		float random = Random.value;
-
-		if (random <= 0.25f)
-			return "1B";
-		else if (random <= 0.5f)
-			return "2B";
-		else if (random <= 0.75f)
-			return "3B";
-		else
-			return "SS";
-	}
-
-	string RandomFielder()
-	{
-		float random = Random.value;
-
-		if (random <= 1 / 7)
-			return "LF";
-		else if (random <= 2 / 7)
-			return "CF";
-		else if (random <= 3 / 7)
-			return "RF";
-		else if (random <= 4 / 7)
-			return "1B";
-		else if (random <= 5 / 7)
-			return "2B";
-		else if (random <= 6 / 7)
-			return "3B";
-		else
-			return "SS";
-	}
-
-	void ReachedOnError(int batterIndex, int fielderIndex)
-	{
-		Manager.Instance.Players [fielderIndex].stats [0] [36]++;
-		Manager.Instance.Players [batterIndex].stats [0] [31]++;
 	}
 }
+
+public enum GameType
+{
+    RegularSeason = 0,
+    SpringTraining = 1,
+    WorldSeries = 2,
+    AllStar = 3,
+    Futures = 4,
+    WorldBaseballClassic = 5
+} 
