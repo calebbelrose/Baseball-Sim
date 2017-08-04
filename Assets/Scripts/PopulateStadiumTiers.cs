@@ -42,23 +42,23 @@ public class PopulateStadiumTiers : MonoBehaviour
 	}
 
 	// Calculates and displays the capacity and prices for the specified tier
-	public void NewTier()
+	public void NewTier ()
 	{
 		int tier = int.Parse (dropdown.options [dropdown.value].text);
-		newCapacity.text = ((int)(50000 * System.Math.Pow (1.05, tier))).ToString ();
+		newCapacity.text = ((int) (50000 * System.Math.Pow (1.05, tier))).ToString ();
 		cash.text = team.Cash.ToString ();
-		buyPrice.text = ((int)(5000000 * System.Math.Pow (1.05, tier))).ToString ();
-		rentPrice.text = ((int)(250000 * System.Math.Pow (1.05, tier))).ToString ();
+		buyPrice.text = ((int) (5000000 * System.Math.Pow (1.05, tier))).ToString ();
+		rentPrice.text = ((int) (250000 * System.Math.Pow (1.05, tier))).ToString ();
 	}
 
 	// Buy the stadium
-	public void BuyStadium()
+	public void BuyStadium ()
 	{
 		team.BuyStadium (tier);
 	}
 
 	// Rent the stadium
-	public void RentStadium()
+	public void RentStadium ()
 	{
 		team.RentStadium (tier);
 	}

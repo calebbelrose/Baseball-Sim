@@ -8,27 +8,29 @@ using System.Linq;
 
 public class Manager : MonoBehaviour
 {
-	public string [] Skills = File.ReadAllLines("Skills.txt");
+	public string [] Skills = File.ReadAllLines ("Skills.txt");
 	public List<string> tradeList;
 	public List<string> injuries;
-	public int longestHitStreak = 0, hitStreakYear, FYPDIndex;
+	public int longestHitStreak, hitStreakYear, FYPDIndex;
 	public string hitStreakName;
 	public TradeDeadline tradeDeadline;
 	public List<int> hallOfFameCandidates;
-	public List<HallOfFameInductee> hallOfFameInductees = new List<HallOfFameInductee>();
+	public List<HallOfFameInductee> hallOfFameInductees = new List<HallOfFameInductee> ();
 
 	private float newWidth;
 	private Draft draft;
 	private PlayerDisplay playerDisplay;
 	private DraftedPlayerDisplay draftedPlayerDisplay;
+	private FreeAgentDisplay freeAgentDisplay;
+	private InternationalFreeAgentDisplay internationalFreeAgentDisplay;
 	private int year;
 	private List<Player> players;
 	private int [] finalsTeams = new int [8];
 	private List<int []> finalsRounds;
-	private List<int> cyWinners, mvpWinners;
+	private List<int> cyWinners, mvpWinners, freeAgents, internationalFreeAgents;
 	private DateTime startOfYear;
 	private GameObject panel;
-	private List<Team> [] teams = new List<Team>[Enum.GetNames(typeof (TeamType)).Length];				// List of all teams
+	private List<Team> [] teams = new List<Team>[Enum.GetNames (typeof (TeamType)).Length];				// List of all teams
 	private List<WaiverPlayer> waivers = new List<WaiverPlayer> (0);
 
 	private static List<Day> days;
@@ -50,7 +52,7 @@ public class Manager : MonoBehaviour
 	}
 
 	// Loads the game
-	public void Load()
+	public void Load ()
 	{
 		for (int i = 0; i < teams.Length; i++)
 			teams [i] = new List<Team> ();
@@ -65,6 +67,8 @@ public class Manager : MonoBehaviour
 		Manager.Instance.Teams [3] [0].Shortform = "A.L.";
 		Manager.Instance.Teams [3] [1].Shortform = "N.L.";
 		finalsRounds = new List<int []> ();
+		freeAgents = new List<int> ();
+		internationalFreeAgents = new List<int> ();
 
 		// Loads everything after starting the game after having already played
 		if (PlayerPrefs.HasKey ("Year"))
@@ -74,8 +78,11 @@ public class Manager : MonoBehaviour
 			players = new List<Player> ();
 			string [] lines;
 
-			year = PlayerPrefs.GetInt("Year");
+			year = PlayerPrefs.GetInt ("Year");
 			dayIndex = PlayerPrefs.GetInt ("DayIndex");
+			longestHitStreak = PlayerPrefs.GetInt ("LongestHitStreak");
+			hitStreakYear = PlayerPrefs.GetInt ("HitStreakYear");
+			hitStreakName = PlayerPrefs.GetString ("HitStreakName");
 
 			CreateDays ();
 
@@ -91,27 +98,30 @@ public class Manager : MonoBehaviour
 			for (int j = 0; j < 22; j++)
 			{
 				Team team = new Team (TeamType.WorldBaseballClassic, index++);
-				team.LoadTeam ();
+
+				if (File.Exists (@"Save\TeamPlayers1-" + j + ".txt"))
+					team.LoadTeam ();
+				
 				teams [1].Add (team);
 			}
 
 			index = 0;
 
-			while(File.Exists (@"Save\Player" + index + ".txt"))
+			while (File.Exists (@"Save\Player" + index + ".txt"))
 			{
 				Player player = new Player ();
 				player.LoadPlayer (index++);
-				NewPlayer (player);
+				players.Add (player);
 			}
 
 			index = 0;
 
-			while(File.Exists (@"Save\ScheduledGame" + index++ + ".txt"))
+			while (File.Exists (@"Save\ScheduledGame" + index++ + ".txt"))
 				new ScheduledGame ();
 
 			lines = File.ReadAllLines (@"Save\SimulatedGames.txt");
 
-			for(int i = 0; i < lines.Length; i++)
+			for (int i = 0; i < lines.Length; i++)
 				new SimulatedGame (lines [i]);
 
 			lines = File.ReadAllLines (@"Save\Events.txt");
@@ -127,8 +137,19 @@ public class Manager : MonoBehaviour
 			for (int i = 0; i < teams [0].Count; i++)
 				teams [0] [i].SetExpenses ();
 
+			lines = File.ReadAllLines (@"Save\FreeAgents.txt");
+
+			for (int i = 0; i < lines.Length; i++)
+				freeAgents.Add (int.Parse(lines [i]));
+
+			lines = File.ReadAllLines (@"Save\InternationalFreeAgents.txt");
+
+			for (int i = 0; i < lines.Length; i++)
+				internationalFreeAgents.Add (int.Parse(lines [i]));
+
 			Player.longestFirstName = PlayerPrefs.GetInt ("LongestFirstName");
 			Player.longestLastName = PlayerPrefs.GetInt ("LongestLastName");
+			Player.MinSalary = PlayerPrefs.GetFloat ("MinSalary");
 		}
 		// Creates a new game if it is the first time playing
 		else
@@ -139,27 +160,37 @@ public class Manager : MonoBehaviour
 		draft = new Draft ();
 		playerDisplay = new PlayerDisplay ();
 		draftedPlayerDisplay = new DraftedPlayerDisplay ();
+		freeAgentDisplay = new FreeAgentDisplay ();
+		internationalFreeAgentDisplay = new InternationalFreeAgentDisplay ();
 	}
 
 	// Returns the number of teams
-	public int GetNumTeams()
+	public int GetNumTeams ()
 	{
 		return numTeams;
 	}
 
 	// Restarts the game
-	public void Restart ()
+	void Restart ()
 	{
 		List<int> picksLeft = new List<int> ();	// List of picks left for the draft
+		StreamWriter sw = new StreamWriter (@"Save\FreeAgents.txt");
 
-		players = new List<Player>();
-
+		players = new List<Player> ();
 		year = DateTime.Now.Year;
 		PlayerPrefs.SetInt ("Year", year);
+		longestHitStreak = 0;
+		hitStreakYear = year;
+		hitStreakName = "Nobody";
+		PlayerPrefs.SetInt ("LongestHitStreak", 0);
+		PlayerPrefs.SetInt ("HitStreakYear", hitStreakYear);
+		PlayerPrefs.SetString ("HitStreakName", "Nobody");
 		CreateDays ();
 		tradeList = new List<string> ();
+		Player.MinSalary = 535000.00;
+		PlayerPrefs.SetFloat ("MinSalary", 535000);
 
-		for (int i = 0; i < Enum.GetNames(typeof (Country)).Length; i++)
+		for (int i = 0; i < Enum.GetNames (typeof (Country)).Length; i++)
 		{
 			Team newTeam = new Team (TeamType.WorldBaseballClassic, i);
 
@@ -170,6 +201,27 @@ public class Manager : MonoBehaviour
 			newTeam.SaveWLHC ();
 		}
 
+		for (int i = 0; i < 125 + (int)(UnityEngine.Random.value * 50); i++)
+		{
+			Player newPlayer = new Player (Player.Positions [(int)(UnityEngine.Random.value * Player.Positions.Length)], 23, 22, players.Count);
+
+			newPlayer.RandomCountry ();
+			newPlayer.SavePlayer ();
+			newPlayer.SaveContract ();
+			newPlayer.SaveStats ();
+			NewPlayer (newPlayer);
+			freeAgents.Add (newPlayer.ID);
+			sw.WriteLine (newPlayer.ID);
+		}
+
+		sw.Close ();
+		sw = new StreamWriter (@"Save\InternationalFreeAgents.txt");
+
+		for (int i = 0; i < 125 + (int)(UnityEngine.Random.value * 50); i++)
+			sw.WriteLine (NewInternationalFreeAgent ());
+
+		sw.Close ();
+
 		// Adds the draft picks to the list
 		for (int i = 0; i < numTeams; i++)
 			picksLeft.Add (i);
@@ -179,14 +231,14 @@ public class Manager : MonoBehaviour
 		{
 			Team team = new Team (TeamType.MLB, i);
 			string [] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
-			string [] splitName = (team.CityName + " " + team.TeamName).Split(' ');
-			int pickIndex = (int)(UnityEngine.Random.value * picksLeft.Count);
+			string [] splitName = (team.CityName + " " + team.TeamName).Split (' ');
+			int pickIndex = (int) (UnityEngine.Random.value * picksLeft.Count);
 
 			team.Pick = picksLeft [pickIndex];
 			picksLeft.RemoveAt (pickIndex);
 
 			for (int j = 0; j < splitName.Length; j++)
-				if (System.Char.IsLetter(splitName [j] [0]) && System.Char.IsUpper(splitName [j] [0]))
+				if (Char.IsLetter (splitName [j] [0]) && Char.IsUpper (splitName [j] [0]))
 					team.Shortform += splitName [j] [0];
 
 			for (int j = 3; j < positions.Length; j++)
@@ -201,30 +253,27 @@ public class Manager : MonoBehaviour
 			team.AddPlayer (CreateStartingPlayer (new Player ("CP", 23, 22, players.Count, i)));
 
 			for (int j = team.Players.Count; j < Team.RosterSize; j++)
-				team.AddPlayer (CreateStartingPlayer (new Player (Player.Positions [(int)(UnityEngine.Random.value * Player.Positions.Length)], 23, 22, players.Count, i)));
+				team.AddPlayer (CreateStartingPlayer (new Player (Player.Positions [ (int) (UnityEngine.Random.value * Player.Positions.Length)], 23, 22, players.Count, i)));
 
-			team.AutomaticRoster ();
+			team.SetRoster ();
 			team.Save ();
-
 			team.SaveOveralls ();
 			team.SaveWLHC ();
-
 			teams [0].Add (team);
 		}
 			
 		dayIndex = 0;
 		PlayerPrefs.SetInt ("DayIndex", dayIndex);
-		CreateSchedule.ScheduleEvents (days, DateTime.IsLeapYear(year));
-
-		// Stores the length of the longest first and last name to be able to display them properly
-		PlayerPrefs.SetInt("LongestFirstName", Player.longestFirstName);
-		PlayerPrefs.SetInt("LongestLastName", Player.longestLastName);
+		CreateSchedule.ScheduleEvents (days, DateTime.IsLeapYear (year));
+		PlayerPrefs.SetInt ("LongestFirstName", Player.longestFirstName);
+		PlayerPrefs.SetInt ("LongestLastName", Player.longestLastName);
+		PlayerPrefs.SetString ("NeedDraft", false.ToString ());
 
 		PlayerPrefs.Save ();
 	}
 
 	// Displays the headers
-	public void DisplayHeaders(Transform headerTrans, RectTransform parentsParentRect, DisplayType displayType)
+	public void DisplayHeaders (Transform headerTrans, RectTransform parentsParentRect, DisplayType displayType)
 	{
 		int skillHeaderLength = 0;
 		float characterWidth = 8.03f;
@@ -236,7 +285,7 @@ public class Manager : MonoBehaviour
 		for (int i = 2; i < Skills.Length; i++)
 			skillHeaderLength += Skills [i].Length + 1;
 
-		UnityEngine.Object header = Resources.Load("Header", typeof (GameObject));
+		UnityEngine.Object header = Resources.Load ("Header", typeof (GameObject));
 		float prevWidth = 5.0f;
 		float totalWidth = (characterWidth * (skillHeaderLength + 1.0f));
 		totalWidth /= -2.0f;
@@ -247,16 +296,20 @@ public class Manager : MonoBehaviour
 			int headerNum = i;
 
 			statHeader.name = "header" + i.ToString ();
-			statHeader.transform.SetParent(headerTrans);
-			statHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-			statHeader.transform.GetChild(0).gameObject.GetComponent<Text>().text = Skills [i];
+			statHeader.transform.SetParent (headerTrans);
+			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
+			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Skills [i];
 
 			if (displayType == DisplayType.Draft)
-				statHeader.GetComponent<Button>().onClick.AddListener(() => draft.Sort(headerNum));
-			else if (displayType == DisplayType.Signed)
-				statHeader.GetComponent<Button>().onClick.AddListener(() => draftedPlayerDisplay.Sort(headerNum));
+				statHeader.GetComponent<Button> ().onClick.AddListener (() => draft.Sort (headerNum));
+			else if (displayType == DisplayType.Drafted)
+				statHeader.GetComponent<Button> ().onClick.AddListener (() => draftedPlayerDisplay.Sort (headerNum));
+			else if (displayType == DisplayType.FreeAgent)
+				statHeader.GetComponent<Button> ().onClick.AddListener (() => freeAgentDisplay.Sort (headerNum));
+			else if (displayType == DisplayType.InternationalFreeAgent)
+				statHeader.GetComponent<Button> ().onClick.AddListener (() => internationalFreeAgentDisplay.Sort (headerNum));
 			else
-				statHeader.GetComponent<Button>().onClick.AddListener(() => playerDisplay.Sort(headerNum));
+				statHeader.GetComponent<Button> ().onClick.AddListener (() => playerDisplay.Sort (headerNum));
 
 			float currWidth;
 			if (i > 1)
@@ -269,15 +322,15 @@ public class Manager : MonoBehaviour
 			newWidth += currWidth;
 			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
 			prevWidth = currWidth;
-			statHeader.GetComponent<RectTransform>().sizeDelta = new Vector2(currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform>().transform.localPosition = new Vector3(totalWidth, 0.0f, 0.0f);
+			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
+			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
 		newWidth -= parentsParentRect.rect.width;
 	}
 
 	// Displays the players
-	public void DisplayPlayers(List<int> playersToDisplay, Transform parentTrans, RectTransform parentRect, RectTransform parentsParentRect, DisplayType displayType)
+	public void DisplayPlayers (List<int> playersToDisplay, Transform parentTrans, RectTransform parentRect, RectTransform parentsParentRect, DisplayType displayType)
 	{
 		GameObject [] currPlayers;
 		UnityEngine.Object playerButton;
@@ -285,19 +338,19 @@ public class Manager : MonoBehaviour
 
 		if (displayType == DisplayType.Draft)
 		{
-			playerButton= Resources.Load("DraftPlayer", typeof (GameObject));
+			playerButton= Resources.Load ("DraftPlayer", typeof (GameObject));
 			currPlayers = GameObject.FindGameObjectsWithTag ("DraftPlayer");
 			playerName = "draft";
 		}
 		else
 		{
-			playerButton = Resources.Load("Player", typeof (GameObject));
+			playerButton = Resources.Load ("Player", typeof (GameObject));
 			currPlayers = GameObject.FindGameObjectsWithTag ("Player");
 			playerName = "player";
 		}
 
 		for (int i = 0; i < currPlayers.Length; i++)
-			Destroy(currPlayers [i]);
+			Destroy (currPlayers [i]);
 
 		for (int i = 0; i < playersToDisplay.Count; i++)
 		{
@@ -305,7 +358,7 @@ public class Manager : MonoBehaviour
 			string playerListing;
 
 			newPlayer.name = playerName + i.ToString ();
-			newPlayer.transform.SetParent(parentTrans);
+			newPlayer.transform.SetParent (parentTrans);
 
 			playerListing = players [playersToDisplay[i]].FirstName;
 
@@ -357,8 +410,8 @@ public class Manager : MonoBehaviour
 
 			playerListing += " " + players [playersToDisplay[i]].Skills [players [playersToDisplay[i]].Skills.Length - 1]; 
 
-			newPlayer.transform.GetChild(0).gameObject.GetComponent<Text>().text = playerListing;
-			newPlayer.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+			newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerListing;
+			newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 
 			if (displayType == DisplayType.Draft)
 				newPlayer.GetComponent<Button> ().onClick.AddListener (() => draft.PlayerDraft (newPlayer, playerListing));
@@ -366,19 +419,23 @@ public class Manager : MonoBehaviour
 			{
 				int id = playersToDisplay [i];
 
-				if (displayType == DisplayType.Signed)
+				if (displayType == DisplayType.Drafted)
 					newPlayer.GetComponent<Button> ().onClick.AddListener (() => draftedPlayerDisplay.ShowDraftedPlayer (id));
+				else if (displayType == DisplayType.FreeAgent)
+					newPlayer.GetComponent<Button> ().onClick.AddListener (() => freeAgentDisplay.ShowFreeAgent (id));
+				else if (displayType == DisplayType.InternationalFreeAgent)
+					newPlayer.GetComponent<Button> ().onClick.AddListener (() => internationalFreeAgentDisplay.ShowInternationalFreeAgent (id));
 				else
-					newPlayer.GetComponent<Button> ().onClick.AddListener (() => DisplayPlayer(id));
+					newPlayer.GetComponent<Button> ().onClick.AddListener (() => DisplayPlayer (id));
 			}
 		}
 
-		parentRect.offsetMin = new Vector2(0, -(20 * (playersToDisplay.Count + 1) - parentsParentRect.rect.height));
-		parentRect.offsetMax = new Vector2(newWidth, 0);
+		parentRect.offsetMin = new Vector2 (0, - (20 * (playersToDisplay.Count + 1) - parentsParentRect.rect.height));
+		parentRect.offsetMax = new Vector2 (newWidth, 0);
 	}
 
 	// Sorts the players
-	public List<int> Sort(int headerNum, bool ascending, List<int> playersToSort)
+	public List<int> Sort (int headerNum, bool ascending, List<int> playersToSort)
 	{
 		if (ascending)
 			switch (headerNum)
@@ -447,23 +504,27 @@ public class Manager : MonoBehaviour
 	}
 
 	// Creates a starting player
-	public int CreateStartingPlayer(Player newPlayer)
+	public int CreateStartingPlayer (Player newPlayer)
 	{
-		for(int k = 0; k < UnityEngine.Random.value * 4 + 1; k++)
+		for (int k = 0; k < UnityEngine.Random.value * 4 + 1; k++)
 			if (k != 0 && newPlayer.ContractYears [k - 1].Type != ContractType.NoOption)
-				newPlayer.ContractYears.Add(new ContractYear(newPlayer.ContractYears [k - 1].Type, newPlayer.ExpectedSalary * 1.1));
+				newPlayer.ContractYears.Add (new ContractYear (newPlayer.ContractYears [k - 1].Type, Math.Round(newPlayer.ExpectedSalary * 1.1, 2)));
 			else if (UnityEngine.Random.value > 0.5f)
-				newPlayer.ContractYears.Add(new ContractYear(ContractType.NoOption, newPlayer.ExpectedSalary * 0.9));
+				newPlayer.ContractYears.Add (new ContractYear (ContractType.NoOption, Math.Round(newPlayer.ExpectedSalary * 0.9, 2)));
 			else
-				newPlayer.ContractYears.Add(new ContractYear((ContractType)(int)(UnityEngine.Random.value * 2), newPlayer.ExpectedSalary * 1.1));
+				newPlayer.ContractYears.Add (new ContractYear ((ContractType) (int) (UnityEngine.Random.value * 2), Math.Round(newPlayer.ExpectedSalary * 1.1, 2)));
 
+		newPlayer.RandomCountry ();
 		newPlayer.SavePlayer ();
+		newPlayer.SaveContract ();
+		newPlayer.SaveStats ();
 		NewPlayer (newPlayer);
+
 		return newPlayer.ID;
 	}
 
 	// Sets the objects for displaying the draft players
-	public void SetDraftPlayerObjects(Transform draftList, Transform header, RectTransform draftListRect, RectTransform draftListParentRect)
+	public void SetDraftPlayerObjects (Transform draftList, Transform header, RectTransform draftListRect, RectTransform draftListParentRect)
 	{
 		draft.SetDraftPlayerObjects (draftList, header, draftListRect, draftListParentRect);
 	}
@@ -475,31 +536,55 @@ public class Manager : MonoBehaviour
 	}
 
 	// Sets the objects for displaying the team's players
-	public void SetPlayerDisplayObjects(Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect)
+	public void SetPlayerDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect)
 	{
 		playerDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect);
 	}
 
 	// Dispplays the team's players
-	public void DisplayPlayers()
+	public void DisplayPlayers ()
 	{
 		playerDisplay.Display ();
 	}
 
 	// Sets the objects for displaying the drafted players
-	public void SetDraftedPlayerDisplayObjects(Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
+	public void SetDraftedPlayerDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
 	{
 		draftedPlayerDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect, panel);
 	}
 
 	// Displays the drafted players
-	public void DisplayDraftedPlayers()
+	public void DisplayDraftedPlayers ()
 	{
 		draftedPlayerDisplay.Display ();
 	}
 
+	// Sets the objects for displaying the drafted players
+	public void SetFreeAgentsDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
+	{
+		freeAgentDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect, panel);
+	}
+
+	// Displays the drafted players
+	public void DisplayFreeAgents ()
+	{
+		freeAgentDisplay.Display ();
+	}
+
+	// Sets the objects for displaying the drafted players
+	public void SetInternationalFreeAgentsDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
+	{
+		internationalFreeAgentDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect, panel);
+	}
+
+	// Displays the drafted players
+	public void DisplayInternationalFreeAgents ()
+	{
+		internationalFreeAgentDisplay.Display ();
+	}
+
 	// Displays the player
-	public void DisplayPlayer(int id)
+	public void DisplayPlayer (int id)
 	{
 		panel.SetActive (true);
 		panel.GetComponent<DisplayPlayer> ().SetPlayerID (id);
@@ -512,12 +597,34 @@ public class Manager : MonoBehaviour
 	}
 
 	// Simulates the day
-	public void SimulateDay()
+	public void SimulateDay ()
 	{
 		days [dayIndex].SimulateDay ();
 
 		for (int i = 0; i < waivers.Count; i++)
 			waivers [i].AdvanceDay ();
+
+		for(int i = 0; i < freeAgents.Count; )
+		{
+			if (players [freeAgents [i]].OfferTime > 0 && --players [freeAgents [i]].OfferTime == 0)
+			{
+				teams [0] [players [freeAgents [i]].Team].AddPlayer (players [freeAgents [i]].ID);
+				freeAgents.RemoveAt (i);
+			}
+			else
+				i++;
+		}
+
+		for(int i = 0; i < internationalFreeAgents.Count; )
+		{
+			if (players [internationalFreeAgents [i]].OfferTime > 0 && --players [internationalFreeAgents [i]].OfferTime == 0)
+			{
+				teams [0] [players [internationalFreeAgents [i]].Team].AddPlayer (players [internationalFreeAgents [i]].ID);
+				internationalFreeAgents.RemoveAt (i);
+			}
+			else
+				i++;
+		}
 
 		dayIndex++;
 		PlayerPrefs.SetInt ("DayIndex", dayIndex);
@@ -525,7 +632,7 @@ public class Manager : MonoBehaviour
 	}
 
 	// Creates all of the days for the current year
-	public void CreateDays()
+	public void CreateDays ()
 	{
 		startOfYear = DateTime.Parse (year + "/01/01");
 		int numDays = (DateTime.Parse (year + "/12/31") - startOfYear).Days;
@@ -541,11 +648,16 @@ public class Manager : MonoBehaviour
 	}
 
 	// Starts a new year
-	public void NewYear()
+	public void NewYear ()
 	{
+		StreamWriter sw = File.AppendText (@"Save\InternationalFreeAgents.txt");
+
+		for (int i = 0; i < 40 + (int)(UnityEngine.Random.value * 20); i++)
+			sw.WriteLine (NewInternationalFreeAgent ());
+		
+		sw.Close ();
 		year++;
 		PlayerPrefs.SetInt ("Year", year);
-
 		finalsRounds = new List<int []> ();
 
 		for (int i = 0; i < teams [0].Count; i++)
@@ -556,22 +668,24 @@ public class Manager : MonoBehaviour
 			teams [0] [i].NewYear ();
 		}
 
+		Player.MinSalary += 10000;
+		PlayerPrefs.SetFloat ("MinSalary", (float)Player.MinSalary);
 		CreateDays ();
 		dayIndex = 0;
 		PlayerPrefs.SetInt ("DayIndex", dayIndex);
 		PlayerPrefs.Save ();
-		CreateSchedule.ScheduleEvents (days, DateTime.IsLeapYear(year));
+		CreateSchedule.ScheduleEvents (days, DateTime.IsLeapYear (year));
 		Calendar.ActivateNextButton ();
 	}
 
 	// Puts a player on waivers
-	public void PutOnWaivers(int id)
+	public void PutOnWaivers (int id)
 	{
-		waivers.Add (new WaiverPlayer(id));
+		waivers.Add (new WaiverPlayer (id));
 	}
 
 	// Takes a player off waivers
-	public void TakeOffWaivers(int id)
+	public void TakeOffWaivers (int id)
 	{
 		int index = 0;
 
@@ -582,7 +696,7 @@ public class Manager : MonoBehaviour
 			waivers.RemoveAt (index);
 	}
 
-	public void ScheduleFinalsGames(int team1, int team2, int offset, int round)
+	public void ScheduleFinalsGames (int team1, int team2, int offset, int round)
 	{
 		teams [0] [finalsTeams [team1]].ResetWins ();
 		teams [0] [finalsTeams [team2]].ResetWins ();
@@ -591,20 +705,19 @@ public class Manager : MonoBehaviour
 		days [dayIndex + offset + 1].ScheduledGames.Add (new ScheduledGame (teams [0] [finalsTeams [team1]], teams [0] [finalsTeams [team2]], GameType.WorldSeries, TeamType.MLB, dayIndex + offset + 1));
 		days [dayIndex + offset + 3].ScheduledGames.Add (new ScheduledGame (teams [0] [finalsTeams [team2]], teams [0] [finalsTeams [team1]], GameType.WorldSeries, TeamType.MLB, dayIndex + offset + 3));
 		days [dayIndex + offset + 4].ScheduledGames.Add (new ScheduledGame (teams [0] [finalsTeams [team2]], teams [0] [finalsTeams [team1]], GameType.WorldSeries, TeamType.MLB, dayIndex + offset + 4));
-
 		days [dayIndex + offset + 4].AddEvent (new FinalsCheck (team1, team2, round), dayIndex + offset + 4);
 	}
 
 	// Determines who the MVP and Cy Young award winners are
-	public void DetermineMVP()
+	public void DetermineMVP ()
 	{
 		double mvpWorth, cyWorth, bestMVP = 0.0, bestCY = 0.0;
 		int mvpWinner = 0, cyWinner = 0;
 
 		for (int i = 0; i < teams [0].Count; i++)
-			for(int j = 0; j < teams [0] [i].Players.Count; j++)
+			for (int j = 0; j < teams [0] [i].Players.Count; j++)
 			{
-				if (players [teams [0] [i].Players [j]].Position.Contains("P"))
+				if (players [teams [0] [i].Players [j]].Position.Contains ("P"))
 				{
 					double era = players [teams [0] [i].Players [j]].Stats [0] [24] * 27 / (double)players [teams [0] [i].Players [j]].Stats [0] [20];
 					cyWorth = (6.0 - era) * 5 + players [teams [0] [i].Players [j]].Stats [0] [20] / (double)8;
@@ -616,7 +729,7 @@ public class Manager : MonoBehaviour
 				}
 				else
 				{
-					double ops = (players [teams [0] [i].Players [j]].Stats [0] [3] + players [teams [0] [i].Players [j]].Stats [0] [10]) / (double)(players [teams [0] [i].Players [j]].Stats [0] [1] + players [teams [0] [i].Players [j]].Stats [0] [10] + players [teams [0] [i].Players [j]].Stats [0] [14]) + (players [teams [0] [i].Players [j]].Stats [0] [3] + players [teams [0] [i].Players [j]].Stats [0] [5] * 2 + players [teams [0] [i].Players [j]].Stats [0] [6] * 3 + players [teams [0] [i].Players [j]].Stats [0] [7] * 4) / (double)players [teams [0] [i].Players [j]].Stats [0] [1];
+					double ops = (players [teams [0] [i].Players [j]].Stats [0] [3] + players [teams [0] [i].Players [j]].Stats [0] [10]) / (double) (players [teams [0] [i].Players [j]].Stats [0] [1] + players [teams [0] [i].Players [j]].Stats [0] [10] + players [teams [0] [i].Players [j]].Stats [0] [14]) + (players [teams [0] [i].Players [j]].Stats [0] [3] + players [teams [0] [i].Players [j]].Stats [0] [5] * 2 + players [teams [0] [i].Players [j]].Stats [0] [6] * 3 + players [teams [0] [i].Players [j]].Stats [0] [7] * 4) / (double)players [teams [0] [i].Players [j]].Stats [0] [1];
 					mvpWorth = players [teams [0] [i].Players [j]].Stats [0] [7] / 40.0 + ops * 25;
 					if (mvpWorth > bestMVP)
 					{
@@ -635,6 +748,20 @@ public class Manager : MonoBehaviour
 	{
 		teams [1] [(int)newPlayer.Country].AddPlayer (newPlayer.ID);
 		players.Add (newPlayer);
+	}
+
+	public int NewInternationalFreeAgent ()
+	{
+		Player newPlayer = new Player (Player.Positions [(int)(UnityEngine.Random.value * Player.Positions.Length)], 23, 22, players.Count);
+
+		newPlayer.InternationalCountry ();
+		newPlayer.SavePlayer ();
+		newPlayer.SaveContract ();
+		newPlayer.SaveStats ();
+		NewPlayer (newPlayer);
+		internationalFreeAgents.Add (newPlayer.ID);
+
+		return newPlayer.ID;
 	}
 
 	// Getters
@@ -659,6 +786,22 @@ public class Manager : MonoBehaviour
 		get
 		{
 			return finalsRounds;
+		}
+	}
+
+	public List<int> FreeAgents
+	{
+		get
+		{
+			return freeAgents;
+		}
+	}
+
+	public List<int> InternationalFreeAgents
+	{
+		get
+		{
+			return internationalFreeAgents;
 		}
 	}
 
@@ -715,11 +858,25 @@ public class Manager : MonoBehaviour
 	{
 		UnityEngine.SceneManagement.SceneManager.LoadScene (sceneToChangeTo);
 	}
+
+	// Clears save
+	public static void Clear ()
+	{
+		PlayerPrefs.DeleteAll ();
+
+		if (Directory.Exists ("Save"))
+			Directory.Delete ("Save", true);
+
+		Directory.CreateDirectory ("Save");
+		File.Create (@"Save\SimulatedGames.txt").Close ();
+	}
 }
 
 public enum DisplayType
 {
 	Team,
 	Draft,
-	Signed
+	Drafted,
+	FreeAgent,
+	InternationalFreeAgent
 }

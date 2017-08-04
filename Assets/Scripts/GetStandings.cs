@@ -12,11 +12,11 @@ public class GetStandings : MonoBehaviour
 	int currSortedStat = 3;
 	char order = 'd';
 	int longestTeamName = 0;
-	List<Team> teams = new List<Team>();
+	List<Team> teams = new List<Team> ();
 
 	void Start ()
 	{
-		teamList = GameObject.Find("TeamList");
+		teamList = GameObject.Find ("TeamList");
 
 		for (int i = 0; i < Manager.Instance.Teams [0].Count; i++)
 		{
@@ -24,16 +24,16 @@ public class GetStandings : MonoBehaviour
 				longestTeamName = Manager.Instance.Teams [0] [i].CityName.Length + Manager.Instance.Teams [0] [i].TeamName.Length + 1;
 		}
 
-		teams = Manager.Instance.Teams [0].OrderBy(teamX => teamX.Division).ThenBy (teamY => teamY.League).ThenBy(teamZ => teamZ.Wins).ToList ();
-		DisplayHeader();
-		DisplayTeams();
+		teams = Manager.Instance.Teams [0].OrderBy (teamX => teamX.Division).ThenBy (teamY => teamY.League).ThenBy (teamZ => teamZ.Wins).ToList ();
+		DisplayHeader ();
+		DisplayTeams ();
 		}
 
 	// Displays header
-	void DisplayHeader()
+	void DisplayHeader ()
 	{
 		int standingsHeaderLength = longestTeamName;
-		GameObject teamListHeader = GameObject.Find("StandingsHeader");
+		GameObject teamListHeader = GameObject.Find ("StandingsHeader");
 		int [] headerLengths = new int [headers.Length];
 
 		for (int i = 1; i < headers.Length; i++)
@@ -46,10 +46,10 @@ public class GetStandings : MonoBehaviour
 		for (int i = 1; i < headers.Length; i++)
 			headerLengths [i] = headers [i].Length + 1;
 
-		Object header = Resources.Load("Header", typeof (GameObject));
+		Object header = Resources.Load ("Header", typeof (GameObject));
 		float prevWidth = -10.0f, newWidth = 0.0f;
-		float totalWidth = (8.04f * (standingsHeaderLength));
-		teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (teams.Count + 8) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
+		float totalWidth = (8.03f * (standingsHeaderLength));
+		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, - (20 * (teams.Count + 8) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
 		totalWidth /= -2.0f;
 
 		for (int i = 0; i < headers.Length; i++)
@@ -61,7 +61,7 @@ public class GetStandings : MonoBehaviour
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = headers [i];
 			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader.name));
 
-			float currWidth = (8.04f * (headerLengths [i]));
+			float currWidth = (8.03f * (headerLengths [i]));
 			newWidth += currWidth;
 			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
 			prevWidth = currWidth;
@@ -69,11 +69,11 @@ public class GetStandings : MonoBehaviour
 			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
-		teamList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
+		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (newWidth - 160.0f, 0);
 	}
 
 	// Displays teams
-	public void DisplayTeams()
+	public void DisplayTeams ()
 	{
 		GameObject [] currTeams = GameObject.FindGameObjectsWithTag ("Team");
 
@@ -157,7 +157,7 @@ public class GetStandings : MonoBehaviour
 					if (i == start)
 						teamListing += " -";
 					else
-						teamListing += " " + (((leaderWins - teams [i].Wins) + (teams [i].Losses - leaderLosses)) / 2.0).ToString ("0.0");
+						teamListing += " " + (( (leaderWins - teams [i].Wins) + (teams [i].Losses - leaderLosses)) / 2.0).ToString ("0.0");
 
 					newTeam.transform.GetChild (0).gameObject.GetComponent<Text> ().text = teamListing;
 					newTeam.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
@@ -179,7 +179,7 @@ public class GetStandings : MonoBehaviour
 	public void StartSorting (string name)
 	{
 		int left = 0, right = teams.Count - 1, statNum = int.Parse (name.Remove (0, 6));
-		string pivot = teams [(int)(left + (right - left) / 2)].GetStats () [statNum];
+		string pivot = teams [ (int) (left + (right - left) / 2)].GetStats () [statNum];
 		int test;
 		bool notString = int.TryParse (pivot, out test);
 

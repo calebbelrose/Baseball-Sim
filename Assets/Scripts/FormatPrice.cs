@@ -10,8 +10,8 @@ public class FormatPrice : MonoBehaviour
 		double value = double.Parse (text);
 
 		if (value <= 0.00)
-			gameObject.GetComponent<InputField>().text = "0.00";
+			gameObject.GetComponent<InputField> ().text = "0.00";
 		else
-			gameObject.GetComponent<InputField>().text = double.Parse (text).ToString ("F");
+			gameObject.GetComponent<InputField> ().text = double.Parse (text).ToString ("F");
 	}
 }

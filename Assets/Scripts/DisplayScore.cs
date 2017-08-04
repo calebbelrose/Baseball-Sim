@@ -17,7 +17,7 @@ public class DisplayScore : MonoBehaviour
 	}
 
 	// Displays the score of a player's game
-	public static void Display(int yourWins, int yourLosses, int yourScore, int theirScore)
+	public static void Display (int yourWins, int yourLosses, int yourScore, int theirScore)
 	{
 		string result;
 

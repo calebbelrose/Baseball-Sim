@@ -1,9 +1,15 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Manager.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Restart.cs">
     <Files>
-      <File FileName="Assets\Scripts\WaiverPlayer.cs" Line="15" Column="3" />
-      <File FileName="Assets\Scripts\Manager.cs" Line="52" Column="19" />
+      <File FileName="Assets\Scripts\LoadPitchers.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\PitcherSlot.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Team.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\LoadMajorLeaguePlayers.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\BatterSlot.cs" Line="33" Column="52" />
+      <File FileName="Assets\Scripts\GetStandings.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\SetAutomaticRoster.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Restart.cs" Line="10" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

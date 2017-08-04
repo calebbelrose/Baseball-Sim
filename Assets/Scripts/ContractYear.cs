@@ -8,7 +8,7 @@ public class ContractYear
 	double salary;
 
 	// 2-Arg Constructor
-	public ContractYear(ContractType _type, double _salary)
+	public ContractYear (ContractType _type, double _salary)
 	{
 		type = _type;
 		salary = _salary;

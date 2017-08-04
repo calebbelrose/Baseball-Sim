@@ -7,13 +7,14 @@ using System.Linq;
 public class GetStats : MonoBehaviour
 {
 	GameObject teamList;
-	string [] headers = new string [] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "AVG", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "AVG", "WHIP" };
+	//                                   0    1     2    3    4     5     6     7     8      9     10    11    12    13     14    15     16     17     18  19    20     21    22    23     24    25    26   27   28    29    30    31    32     33
+	string [] headers = new string [] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "BA", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "BAA", "WHIP" };
 	string [] playerInfoHeaders = new string [] { "First Name", "Last Name", "Position", "Team" };
 	int currSortedStat = 10;
 	char order = 'd';
 	Team [] teams;
 	int [] playerInfoLengths, headerLengths;
-	List<string []> tempStats = new List<string []>();
+	List<string []> tempStats = new List<string []> ();
 
 	void Start ()
 	{
@@ -34,78 +35,50 @@ public class GetStats : MonoBehaviour
 			for (int j = 0; j < teams [i].Players.Count; j++)
 			{
 				string [] copy = new string [playerInfoHeaders.Length + headers.Length];
-				int currStat = 0, temp;
-				double obp, slug;
+				int currStat = 0;
+				float obp, slug;
 
 				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].FirstName.ToString ();
 				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].LastName.ToString ();
 				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Position.ToString ();
 				copy [currStat++] = teams [i].Shortform;
 
-				for(int k = 1; k < 4; k++)
-					copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [k].ToString ();
-				
-				//copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].ToString ();
-				for(int k = 5; k < 15; k++)
+				for (int k = 0; k < 14; k++)
 					copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [k].ToString ();
 
-				if (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [1] != 0)
-					copy [currStat++] = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [3] / (double)Manager.Instance.Players [teams [i].Players [j]].Stats [0] [1]).ToString ("0.000");
-				else
-					copy [currStat++] = "0.000";
+				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].BA.ToString ("0.000");
 
-				temp = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [1] + Manager.Instance.Players [teams [i].Players [j]].Stats [0] [10] + Manager.Instance.Players [teams [i].Players [j]].Stats [0] [14]);
-				if (temp != 0)
-					obp = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [3] + Manager.Instance.Players [teams [i].Players [j]].Stats [0] [10]) / (double)temp;
-				else
-					obp = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [3] + Manager.Instance.Players [teams [i].Players [j]].Stats [0] [10]) / (double)1;
+				obp = Manager.Instance.Players [teams [i].Players [j]].OBP;
 				
 				copy [currStat++] = obp.ToString ("0.000");
 
-				if (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [1] != 0)
-					slug = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [8] / (double)Manager.Instance.Players [teams [i].Players [j]].Stats [0] [1];
-				else
-					slug = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [8] / (double)1;
+				slug = Manager.Instance.Players [teams [i].Players [j]].SLUG;
 				
 				copy [currStat++] = (slug).ToString ("0.000");
 				copy [currStat++] = (obp + slug).ToString ("0.000");
 				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [15].ToString ();
 				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [16].ToString ();
+				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].ERA.ToString ("F");
 
-				if (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] != 0)
-					copy [currStat++] = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [24] * 27 / (double)Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20]).ToString ("0.00");
-				else
-					copy [currStat++] = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [24] * 27 / (double)1 / 3).ToString ("0.00");
+				for (int k = 17; k < 20; k++)
+					copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [k].ToString ();
+				
+				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].InningsPitched;
 
-				for(int k = 17; k < 20; k++)
+				for (int k = 21; k < 28; k++)
 					copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [k].ToString ();
 
-				if (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] != 0)
-					copy [currStat++] = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] / 3).ToString () + "." + (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] % 3).ToString ();
-				else
-					copy [currStat++] = "0.0";
-
-				for(int k = 21; k < 28; k++)
-					copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].Stats [0] [k].ToString ();
-
-				if (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] != 0)
-					copy [currStat++] = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [22] / (double)Manager.Instance.Players [teams [i].Players [j]].Stats [0] [21]).ToString ("0.000");
-				else
-					copy [currStat++] = (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [22] / (double)1).ToString ("0.000");
-
-				if (Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] != 0)
-					copy [currStat++] = ((Manager.Instance.Players [teams [i].Players [j]].Stats [0] [22] + Manager.Instance.Players [teams [i].Players [j]].Stats [0] [25]) / (double)Manager.Instance.Players [teams [i].Players [j]].Stats [0] [20] / 3).ToString ("0.000");
-				else
-					copy [currStat++] = ((Manager.Instance.Players [teams [i].Players [j]].Stats [0] [22] + Manager.Instance.Players [teams [i].Players [j]].Stats [0] [25]) / (double)1 / 3).ToString ("0.000");
+				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].BAA.ToString ("0.000");
+				copy [currStat++] = Manager.Instance.Players [teams [i].Players [j]].WHIP.ToString ("0.000");
 
 				tempStats.Add (copy);
 			}
 
-			for (int i = 0; i < tempStats.Count; i++)
+		for (int i = 0; i < tempStats.Count; i++)
 		{
-				for (int j = 0; j < playerInfoLengths.Length - 1; j++)
-					if (tempStats [i] [j].Length > playerInfoLengths [j])
-						playerInfoLengths [j] = tempStats [i] [j].Length;
+			for (int j = 0; j < playerInfoLengths.Length; j++)
+				if (tempStats [i] [j].Length > playerInfoLengths [j])
+					playerInfoLengths [j] = tempStats [i] [j].Length;
 
 			for (int j = 0; j < headers.Length; j++)
 				if (tempStats [i] [j + playerInfoLengths.Length].Length > headerLengths [j])
@@ -128,7 +101,7 @@ public class GetStats : MonoBehaviour
 	}
 
 	// Displays header
-	void DisplayHeader()
+	void DisplayHeader ()
 	{
 		int standingsHeaderLength = -1;
 		GameObject teamListHeader = GameObject.Find ("StandingsHeader");
@@ -143,10 +116,10 @@ public class GetStats : MonoBehaviour
 		for (int i = 0; i < teams.Length; i++)
 			totalPlayers += teams [i].Players.Count;
 
-		Object header = Resources.Load ("Header", typeof(GameObject));
+		Object header = Resources.Load ("Header", typeof (GameObject));
 		float prevWidth = -10.0f, newWidth = 0.0f;
-		float totalWidth = (8.04f * (standingsHeaderLength));
-		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, -(20 * (totalPlayers) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
+		float totalWidth = (8.03f * (standingsHeaderLength));
+		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, - (20 * (totalPlayers) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
 		totalWidth /= -2.0f;
 
 		for (int i = 0; i < playerInfoHeaders.Length; i++)
@@ -158,7 +131,7 @@ public class GetStats : MonoBehaviour
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerInfoHeaders [i];
 			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader.name));
 
-			float currWidth = (8.04f * (playerInfoLengths [i]));
+			float currWidth = (8.03f * (playerInfoLengths [i]));
 			newWidth += currWidth;
 			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
 			prevWidth = currWidth;
@@ -175,7 +148,7 @@ public class GetStats : MonoBehaviour
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = headers [i];
 			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader.name));
 
-			float currWidth = (8.04f * (headerLengths [i]));
+			float currWidth = (8.03f * (headerLengths [i]));
 			newWidth += currWidth;
 			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
 			prevWidth = currWidth;
@@ -187,10 +160,10 @@ public class GetStats : MonoBehaviour
 	}
 
 	// Displays players from all teams
-	public void DisplayTeams()
+	public void DisplayTeams ()
 	{
 		GameObject [] currTeams = GameObject.FindGameObjectsWithTag ("Player");
-		Object teamButton = Resources.Load ("Player", typeof(GameObject));
+		Object teamButton = Resources.Load ("Player", typeof (GameObject));
 
 		for (int i = 0; i < currTeams.Length; i++)
 			Destroy (currTeams [i]);
@@ -278,10 +251,10 @@ public class GetStats : MonoBehaviour
 	}
 
 	// Sorts the players for string stats
-	void Sort(int statNum, int left, int right)
+	void Sort (int statNum, int left, int right)
 	{
 		int i = left, j = right;
-		string pivot = tempStats [(int)(left + (right - left) / 2)] [statNum];
+		string pivot = tempStats [ (int) (left + (right - left) / 2)] [statNum];
 
 		if (order == 'a')
 			while (i <= j)
@@ -334,10 +307,10 @@ public class GetStats : MonoBehaviour
 	}
 
 	// Sorts the players for integer stats
-	void IntSort(int statNum, int left, int right)
+	void IntSort (int statNum, int left, int right)
 	{
 		int i = left, j = right;
-		int pivot = int.Parse (tempStats [(int)(left + (right - left) / 2)] [statNum]);
+		int pivot = int.Parse (tempStats [ (int) (left + (right - left) / 2)] [statNum]);
 
 		if (order == 'a')
 			while (i <= j)
@@ -390,10 +363,10 @@ public class GetStats : MonoBehaviour
 	}
 
 	// Sorts the players for float stats
-	void FloatSort(int statNum, int left, int right)
+	void FloatSort (int statNum, int left, int right)
 	{
 		int i = left, j = right;
-		float pivot = float.Parse (tempStats [(int)(left + (right - left) / 2)] [statNum]);
+		float pivot = float.Parse (tempStats [ (int) (left + (right - left) / 2)] [statNum]);
 
 		if (order == 'a')
 			while (i <= j)

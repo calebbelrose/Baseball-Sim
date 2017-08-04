@@ -8,7 +8,7 @@ public class WaiverPlayer
 	private List<int> teamsToClaim;
 
 	// 1-Arg Constructor
-	public WaiverPlayer(int _id)
+	public WaiverPlayer (int _id)
 	{
 		id = _id;
 		length = 10;
@@ -21,7 +21,7 @@ public class WaiverPlayer
 	}
 
 	// Advances the day
-	public void AdvanceDay()
+	public void AdvanceDay ()
 	{
 		for (int i = 0; i < teamsToClaim.Count; i++)
 		{
@@ -39,7 +39,7 @@ public class WaiverPlayer
 	}
 
 	// Claims the player
-	public void Claim(int team)
+	public void Claim (int team)
 	{
 		teamsToClaim.Remove (team);
 
@@ -53,7 +53,7 @@ public class WaiverPlayer
 	}
 
 	// Takes player off waivers
-	public void TakeOffWaivers()
+	public void TakeOffWaivers ()
 	{
 		Manager.Instance.Teams [0] [Manager.Instance.Players [id].Team].TakeOffWaivers (id);
 	}

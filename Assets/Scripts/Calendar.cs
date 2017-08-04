@@ -15,7 +15,7 @@ public class Calendar : MonoBehaviour
 	private Color fadedColour = new Color (Color.white.r, Color.white.g, Color.white.b, 0.5f);
 	private int selectedSlot = -1, selectedMonth, currMonth;
 
-	void Start()
+	void Start ()
 	{
 		if (button == null)
 			button = nextButton;
@@ -25,7 +25,7 @@ public class Calendar : MonoBehaviour
 	}
 
 	// Displays the calendar
-	void DisplayCalendar(int month)
+	void DisplayCalendar (int month)
 	{
 		foreach (GameObject slot in calendarSlots)
 			Destroy (slot.gameObject);
@@ -39,7 +39,7 @@ public class Calendar : MonoBehaviour
 
 		monthText.text = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName (month);
 
-		while (Manager.Instance.Days [startOfCalendar].Date.AddDays(-offset).DayOfWeek != DayOfWeek.Sunday)
+		while (Manager.Instance.Days [startOfCalendar].Date.AddDays (-offset).DayOfWeek != DayOfWeek.Sunday)
 			offset++;
 
 		startOfCalendar -= offset;
@@ -47,7 +47,7 @@ public class Calendar : MonoBehaviour
 		while (startOfCalendar < 0)
 		{
 			GameObject obj = Instantiate (slotPrefab, Vector3.zero, Quaternion.identity, transform);
-			Day day = new Day(Manager.Instance.Days [0].Date.AddDays(startOfCalendar));
+			Day day = new Day (Manager.Instance.Days [0].Date.AddDays (startOfCalendar));
 
 			obj.GetComponent<Image> ().color = fadedColour;
 			obj.GetComponent<Slot> ().Setup (calendarSlots.Count, day, this, false);
@@ -65,10 +65,10 @@ public class Calendar : MonoBehaviour
 			if (Manager.Instance.Days [day].Date.Month != month)
 			{
 				obj.GetComponent<Image> ().color = fadedColour;
-				obj.GetComponent<Slot> ().Setup(calendarSlots.Count, Manager.Instance.Days [day], this, false);
+				obj.GetComponent<Slot> ().Setup (calendarSlots.Count, Manager.Instance.Days [day], this, false);
 			}
 			else
-				obj.GetComponent<Slot> ().Setup(calendarSlots.Count, Manager.Instance.Days [day], this, true);
+				obj.GetComponent<Slot> ().Setup (calendarSlots.Count, Manager.Instance.Days [day], this, true);
 
 			obj.GetComponent<Slot> ().Display ();
 			
@@ -78,17 +78,17 @@ public class Calendar : MonoBehaviour
 		if (currMonth == selectedMonth)
 			HighlightSlot ();
 		else if (selectedSlot == -1 && currMonth == Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month)
-			SelectSlot(Manager.Instance.Days [Manager.Instance.DayIndex].Date.Day + offset - 1);
+			SelectSlot (Manager.Instance.Days [Manager.Instance.DayIndex].Date.Day + offset - 1);
 
 		offset = 0;
 
-		while (Manager.Instance.Days [endOfCalendar].Date.AddDays(offset).DayOfWeek != DayOfWeek.Saturday)
+		while (Manager.Instance.Days [endOfCalendar].Date.AddDays (offset).DayOfWeek != DayOfWeek.Saturday)
 			offset++;
 
-		for(int i = 0; i < offset; i++)
+		for (int i = 0; i < offset; i++)
 		{
 			GameObject obj = Instantiate (slotPrefab, Vector3.zero, Quaternion.identity, transform);
-			Day day = new Day(Manager.Instance.Days [maxIndex].Date.AddDays(i));
+			Day day = new Day (Manager.Instance.Days [maxIndex].Date.AddDays (i));
 
 			obj.GetComponent<Image> ().color = fadedColour;
 			obj.GetComponent<Slot> ().Setup (calendarSlots.Count, day, this, false);
@@ -103,8 +103,8 @@ public class Calendar : MonoBehaviour
 		{
 			DateTime date = calendarSlots [selectedSlot].GetComponent<Slot> ().Day.Date;
 
-			if (Manager.Instance.DayIndex < Manager.Instance.FYPDIndex && date > Manager.Instance.Days [Manager.Instance.FYPDIndex].Date)
-				date = Manager.Instance.Days [Manager.Instance.FYPDIndex].Date;
+			//if (Manager.Instance.DayIndex < Manager.Instance.FYPDIndex && date > Manager.Instance.Days [Manager.Instance.FYPDIndex].Date)
+			//	date = Manager.Instance.Days [Manager.Instance.FYPDIndex].Date;
 			
 			while (Manager.Instance.Days [Manager.Instance.DayIndex].Date <= date)
 				Manager.Instance.SimulateDay ();
@@ -140,13 +140,13 @@ public class Calendar : MonoBehaviour
 	}
 
 	// Activates the next button
-	public static void ActivateNextButton()
+	public static void ActivateNextButton ()
 	{
 		button.SetActive (true);
 	}
 
 	// Destroys all of the slots in the calendar
-	void DestroySlots()
+	void DestroySlots ()
 	{
 		foreach (GameObject slot in calendarSlots)
 			Destroy (slot.gameObject);
@@ -155,7 +155,7 @@ public class Calendar : MonoBehaviour
 	}
 
 	// Selects a slot in the calendar
-	public void SelectSlot(int index)
+	public void SelectSlot (int index)
 	{
 		if (selectedSlot != -1 && currMonth == selectedMonth)
 			calendarSlots [selectedSlot].GetComponent<Image> ().color = Color.white;
@@ -166,7 +166,7 @@ public class Calendar : MonoBehaviour
 	}
 
 	// Highlights the selected slot in the calendar
-	public void HighlightSlot()
+	public void HighlightSlot ()
 	{
 		calendarSlots [selectedSlot].GetComponent<Image> ().color = Color.yellow;
 	}

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class CreateSchedule
 {
 	// Schedules all of the games and events for the year
-	public static void ScheduleEvents(List<Day> days, bool leapYear)
+	public static void ScheduleEvents (List<Day> days, bool leapYear)
 	{
 		int index= days.Count - 1;
 		int allStarIndex;
@@ -24,7 +24,7 @@ public class CreateSchedule
 			days [index].AddEvent (new HallOfFameInduction (), index);
 
 			days [241].AddEvent (new WaiverTradeDeadline (), 241);
-			days [242].AddEvent (new ActiveRosterExpansion(), 242);
+			days [242].AddEvent (new ActiveRosterExpansion (), 242);
 
 			index = 181;
 		}
@@ -50,15 +50,15 @@ public class CreateSchedule
 
 		index += 7;
 
-		days [index].AddEvent(new FuturesGame (), index);
+		days [index].AddEvent (new FuturesGame (), index);
 		index++;
 
-		days [index].AddEvent(new HomerunDerby(), index);
+		days [index].AddEvent (new HomerunDerby (), index);
 		index++;
 
-		days [index].AddEvent(new AllStarGame (), index);
+		days [index].AddEvent (new AllStarGame (), index);
 		Manager.Instance.FYPDIndex = index - 30;
-		days [Manager.Instance.FYPDIndex].AddEvent(new FirstYearPlayerDraft (), Manager.Instance.FYPDIndex);
+		//days [Manager.Instance.FYPDIndex].AddEvent (new FirstYearPlayerDraft (), Manager.Instance.FYPDIndex);
 		allStarIndex = index;
 
 		index -= 2;
@@ -1599,7 +1599,7 @@ public class CreateSchedule
 		days [index].AddGame (3, 4);
 		days [index].AddEvent (new OpeningDay (), index);
 
-		days [index - 27].AddEvent (new WorldBaseballClassic(), index -27);
+		days [index - 27].AddEvent (new WorldBaseballClassic (), index -27);
 
 		index = allStarIndex;
 		index++;

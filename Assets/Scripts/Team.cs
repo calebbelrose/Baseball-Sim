@@ -8,14 +8,15 @@ public class Team
 {
 	public string Shortform, CityName, TeamName;
 	public int Pick;
+	public bool AutomaticRoster = true;
 
 	private int id, stadiumCapacity = 50000, stadiumTier = 0;
 	private Division division;
 	private League league;
 	private float [] overalls;
 	private double cash, revenues = 0, expenses = 0, profit = 0, ticketPrice = 100.00, drinkPrice = 10.00, foodPrice = 10.00, uniformPrice = 100.00, newStadiumPrice = 5000000.00, hype = 0.5, currentSalary;
-	private int drinksSold = 0, foodSold = 0, uniformsSold = 0, ticketsSold = 0, currStarter = 0, wins, losses, streak = 0;
-	private List<int> majorLeagueIndexes, minorLeagueIndexes, FortyManRoster, waivers, players, sp, rp, cp, offensiveSubstitutes, defensiveSubstitutes, draftPicks = new List<int> ();
+	private int drinksSold = 0, foodSold = 0, uniformsSold = 0, ticketsSold = 0, currStarter = 0, wins, losses, streak = 0, cp;
+	private List<int> majorLeagueIndexes, minorLeagueIndexes, FortyManRoster, waivers, players, sp, rp, offensiveSubstitutes, defensiveSubstitutes, pinchRunners, draftPicks = new List<int> ();
 	private string [] stats;
 	private List<string> positions;
 	private List<List<int>> batters;
@@ -23,12 +24,12 @@ public class Team
 
 	public static int longestCityName = 0, longestTeamName = 0;
 
-	private static string [] cityNames = File.ReadAllLines("CityNames.txt"), teamNames = File.ReadAllLines("TeamNames.txt");
+	private static string [] cityNames = File.ReadAllLines ("CityNames.txt"), teamNames = File.ReadAllLines ("TeamNames.txt");
 	private static League sLeague = League.American;
 	private static Division sDivision = Division.East;
 	private static int rosterSize = 25;
 
-	public Team(TeamType _teamType, int _id)
+	public Team (TeamType _teamType, int _id)
 	{
 		Reset ();
 		id = _id;
@@ -36,26 +37,26 @@ public class Team
 	}
 
 	// Resets team
-	void Reset()
+	void Reset ()
 	{
 		players = new List<int> ();
 		majorLeagueIndexes = new List<int> ();
 		minorLeagueIndexes = new List<int> ();
 		sp = new List<int> ();
 		rp = new List<int> ();
-		cp = new List<int> ();
 		batters = new List<List<int>> ();
 		positions = new List<string> ();
 		offensiveSubstitutes = new List<int> ();
 		defensiveSubstitutes = new List<int> ();
+		pinchRunners = new List<int> ();
 		FortyManRoster = new List<int> ();
 		wins = 0;
 		losses = 0;
 		overalls = new float [3];
 		stats = new string [3];
 
-		CityName = cityNames [(int)(Random.value * cityNames.Length)];
-		TeamName = teamNames [(int)(Random.value * teamNames.Length)];
+		CityName = cityNames [ (int) (Random.value * cityNames.Length)];
+		TeamName = teamNames [ (int) (Random.value * teamNames.Length)];
 
 		if (CityName.Length > longestCityName)
 			longestCityName = CityName.Length;
@@ -82,7 +83,7 @@ public class Team
 	}
 
 	// Sets the stats for the team
-	public void SetStats()
+	public void SetStats ()
 	{
 		stats [0] = CityName + " " + TeamName;
 		stats [1] = wins.ToString ();
@@ -90,23 +91,24 @@ public class Team
 	}
 
 	// Gets the stats for the team
-	public string [] GetStats()
+	public string [] GetStats ()
 	{
 		return stats;
 	}
 
 	// Sets the order for the starting rotation and batting order
-	public void OrderLineup()
+	public void OrderLineup ()
 	{
-		batters = batters.OrderByDescending (playerX => Manager.Instance.Players [playerX[0]].Offense).ToList();
-		sp = sp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList();
-		rp = rp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList();
-		offensiveSubstitutes = offensiveSubstitutes.OrderByDescending (playerX => Manager.Instance.Players [playerX].Offense).ToList();
-		defensiveSubstitutes = defensiveSubstitutes.OrderByDescending (playerX => Manager.Instance.Players [playerX].Defense).ToList();
+		batters = batters.OrderByDescending (playerX => Manager.Instance.Players [playerX[0]].Offense).ToList ();
+		sp = sp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList ();
+		rp = rp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList ();
+		offensiveSubstitutes = offensiveSubstitutes.OrderByDescending (playerX => Manager.Instance.Players [playerX].Offense).ToList ();
+		defensiveSubstitutes = defensiveSubstitutes.OrderByDescending (playerX => Manager.Instance.Players [playerX].Defense).ToList ();
+		pinchRunners = pinchRunners.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [3]).ToList ();
 	}
 
 	// Saves the team's Wins, Losses, Hype and Cash
-	public void SaveWLHC()
+	public void SaveWLHC ()
 	{
 		StreamWriter sw = new StreamWriter (@"Save\WLHC" + (int)teamType + "-" + id + ".txt");
 
@@ -115,7 +117,7 @@ public class Team
 	}
 
 	// Saves the team's overall skill
-	public void SaveOveralls()
+	public void SaveOveralls ()
 	{
 		StreamWriter sw = new StreamWriter (@"Save\Overalls" + id + ".txt");
 
@@ -124,7 +126,7 @@ public class Team
 	}
 
 	// Adds a win
-	public void Win()
+	public void Win ()
 	{
 		if (streak < 0)
 			streak = 1;
@@ -142,7 +144,7 @@ public class Team
 	}
 
 	// Adds a loss
-	public void Loss()
+	public void Loss ()
 	{
 		if (streak > 0)
 			streak = -1;
@@ -166,7 +168,7 @@ public class Team
 		if (ticketPrice == 0)
 			ticketsSold= stadiumCapacity;
 		else
-			ticketsSold = (int)System.Math.Round(50000 * 100 / ticketPrice * thisHype);
+			ticketsSold = (int)System.Math.Round (50000 * 100 / ticketPrice * thisHype);
 		
 		if (ticketsSold > stadiumCapacity)
 			ticketsSold = stadiumCapacity;
@@ -174,12 +176,12 @@ public class Team
 		if (foodPrice == 0)
 			foodSold = ticketsSold * 2;
 		else
-			foodSold = (int)System.Math.Round(ticketsSold * (Random.value / 4 + Random.value / 4 + Random.value / 4 + 0.25) / (foodPrice / 10 * (0.75 + thisHype / 2)));
+			foodSold = (int)System.Math.Round (ticketsSold * (Random.value / 4 + Random.value / 4 + Random.value / 4 + 0.25) / (foodPrice / 10 * (0.75 + thisHype / 2)));
 
 		if (drinkPrice == 0)
 			drinksSold = ticketsSold * 2 + foodSold;
 		else
-			drinksSold = (int)System.Math.Round((ticketsSold * (Random.value / 4 + Random.value / 4 + Random.value / 4 + 0.25) + foodSold) / (drinkPrice / 10 * (0.75 + thisHype / 2)));
+			drinksSold = (int)System.Math.Round ((ticketsSold * (Random.value / 4 + Random.value / 4 + Random.value / 4 + 0.25) + foodSold) / (drinkPrice / 10 * (0.75 + thisHype / 2)));
 
 		uniformsSold += (int)System.Math.Round (ticketsSold * hype * 100 / uniformPrice);
 
@@ -193,11 +195,9 @@ public class Team
 	}
 
 	// Subtracts expenses
-	public void SubtractExpenses()
+	public void SubtractExpenses ()
 	{
 		double thisExpense = (10000000 + currentSalary) / 162 + ticketsSold * 0.25 + foodSold + drinksSold + uniformsSold * 10;
-
-
 
 		expenses += thisExpense;
 		profit -= thisExpense;
@@ -210,52 +210,52 @@ public class Team
 	}
 
 	// Buys a stadium
-	public void BuyStadium(int tier)
+	public void BuyStadium (int tier)
 	{
-		stadiumCapacity = (int)(stadiumCapacity * 1.05);
+		stadiumCapacity = (int) (stadiumCapacity * 1.05);
 		cash -= newStadiumPrice;
 		newStadiumPrice *= 1.25;
 		stadiumTier++;
 	}
 
 	// Rents a stadium
-	public void RentStadium(int tier)
+	public void RentStadium (int tier)
 	{
 		double price = 250000 * System.Math.Pow (1.25, tier);
 
 		cash -= price;
-		stadiumCapacity = (int)(50000 * System.Math.Pow (1.05, tier));
+		stadiumCapacity = (int) (50000 * System.Math.Pow (1.05, tier));
 		stadiumTier = tier;
 
 	}
 
 	// Automatically sets the roster
-	public List<string> AutomaticRoster()
+	public List<string> SetRoster ()
 	{
-		List<string> starters = new List<string>();
+		List<string> starters = new List<string> ();
 		int benchSpace;
 
 		majorLeagueIndexes.Clear ();
 		minorLeagueIndexes.Clear ();
 
-		starters.Add("SP");
-		starters.Add("SP");
-		starters.Add("SP");
-		starters.Add("SP");
-		starters.Add("SP");
-		starters.Add("RP");
-		starters.Add("RP");
-		starters.Add("RP");
-		starters.Add("CP");
-		starters.Add("C");
-		starters.Add("1B");
-		starters.Add("2B");
-		starters.Add("3B");
-		starters.Add("SS");
-		starters.Add("LF");
-		starters.Add("CF");
-		starters.Add("RF");
-		starters.Add("DH");
+		starters.Add ("SP");
+		starters.Add ("SP");
+		starters.Add ("SP");
+		starters.Add ("SP");
+		starters.Add ("SP");
+		starters.Add ("RP");
+		starters.Add ("RP");
+		starters.Add ("RP");
+		starters.Add ("CP");
+		starters.Add ("C");
+		starters.Add ("1B");
+		starters.Add ("2B");
+		starters.Add ("3B");
+		starters.Add ("SS");
+		starters.Add ("LF");
+		starters.Add ("CF");
+		starters.Add ("RF");
+		starters.Add ("DH");
 
 		benchSpace = Team.RosterSize - starters.Count;
 
@@ -263,30 +263,29 @@ public class Team
 		positions.Clear ();
 		sp.Clear ();
 		rp.Clear ();
-		cp.Clear ();
 		offensiveSubstitutes.Clear ();
 		defensiveSubstitutes.Clear ();
+		pinchRunners.Clear ();
 
-		List<int> result = players.OrderBy(playerX => Manager.Instance.Players [playerX].InjuryLength).ThenByDescending (playerX => Manager.Instance.Players [playerX].Position).ThenByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList<int>();
+		List<int> result = players.OrderBy (playerX => Manager.Instance.Players [playerX].InjuryLength).ThenByDescending (playerX => Manager.Instance.Players [playerX].Position).ThenByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList<int> ();
 
-		for(int j = 0; j < result.Count; j++)
+		for (int j = 0; j < result.Count; j++)
 		{
-			if (starters.Contains (Manager.Instance.Players [result [j]].Position) && AddToMajors(Manager.Instance.Players [result [j]].ID))
+			if (starters.Contains (Manager.Instance.Players [result [j]].Position) && AddToMajors (Manager.Instance.Players [result [j]].ID))
 			{
 				if (Manager.Instance.Players [result [j]].Position == "SP")
 				{
 					sp.Add (Manager.Instance.Players [result [j]].ID);
 					starters.Remove ("SP");
 				}
-					else if (Manager.Instance.Players [result [j]].Position == "RP")
+				else if (Manager.Instance.Players [result [j]].Position == "RP")
 				{
 					rp.Add (Manager.Instance.Players [result [j]].ID);
 					starters.Remove ("RP");
 				}
-						else if (Manager.Instance.Players [result [j]].Position == "CP")
+				else if (Manager.Instance.Players [result [j]].Position == "CP")
 				{
-
-					cp.Add (Manager.Instance.Players [result [j]].ID);
+					cp = Manager.Instance.Players [result [j]].ID;
 					starters.Remove ("CP");
 				}
 				else
@@ -298,10 +297,17 @@ public class Team
 					starters.Remove (Manager.Instance.Players [result [j]].Position);
 				}
 			}
-			else if (benchSpace > 0 && AddToMajors(Manager.Instance.Players [result [j]].ID))
+			else if (benchSpace > 0 && AddToMajors (Manager.Instance.Players [result [j]].ID))
 			{
-				offensiveSubstitutes.Add (Manager.Instance.Players [result [j]].ID);
-				defensiveSubstitutes.Add (Manager.Instance.Players [result [j]].ID);
+				if (Manager.Instance.Players [result [j]].IsPitcher)
+					rp.Add (Manager.Instance.Players [result [j]].ID);
+				else
+				{
+					offensiveSubstitutes.Add (Manager.Instance.Players [result [j]].ID);
+					defensiveSubstitutes.Add (Manager.Instance.Players [result [j]].ID);
+					pinchRunners.Add (Manager.Instance.Players [result [j]].ID);
+				}
+
 				benchSpace--;
 			}
 			else
@@ -314,7 +320,7 @@ public class Team
 	}
 
 	// Adds a new year to the team
-	public void NewYear()
+	public void NewYear ()
 	{
 		ResetWins ();
 		ResetLosses ();
@@ -323,12 +329,33 @@ public class Team
 		for (int i = 0; i < players.Count; i++)
 		{
 			Manager.Instance.Players [players [i]].NewYear ();
+
+			if (Manager.Instance.Players [players [i]].ContractYears.Count > 0)
+			{
+				Manager.Instance.Players [players [i]].ContractYears.RemoveAt (0);
+
+				if (Manager.Instance.Players [players [i]].ContractYears.Count == 0)
+				{
+					Manager.Instance.Players [players [i]].Team = -1;
+					Manager.Instance.Players [players [i]].Offer = 0;
+					Manager.Instance.Teams [0] [Manager.Instance.Players [players [i]].Team].RemovePlayer (players [i]);
+					Manager.Instance.FreeAgents.Add (players [i]);
+				}
+			}
+
 			Manager.Instance.Players [players [i]].CalculatePotential ();
 		}
+
+		StreamWriter sw = new StreamWriter (@"Save\FreeAgents.txt");
+
+		for (int i = 0; i < Manager.Instance.FreeAgents.Count; i++)
+			sw.WriteLine (Manager.Instance.FreeAgents [i]);
+
+		sw.Close ();
 	}
 
 	// Calculates the overall skill for the team
-	public void CalculateOveralls()
+	public void CalculateOveralls ()
 	{
 		float totalOverall = 0.0f, totalOffense = 0.0f, totalDefense = 0.0f;
 
@@ -347,7 +374,7 @@ public class Team
 	}
 
 	// Adds a player to the major leagues
-	public bool AddToMajors(int index)
+	public bool AddToMajors (int index)
 	{
 		if (teamType == TeamType.MLB)
 		{
@@ -369,7 +396,7 @@ public class Team
 	}
 
 	// Determines whether a player is in the forty man roster
-	public bool IsInFortyManRoster(int index)
+	public bool IsInFortyManRoster (int index)
 	{
 		if (FortyManRoster.Contains (index))
 			return true;
@@ -383,7 +410,7 @@ public class Team
 	}
 
 	// Adds a player to the minor leagues
-	public void AddToMinors(int index)
+	public void AddToMinors (int index)
 	{
 		int startIndex = majorLeagueIndexes.IndexOf (index);
 
@@ -394,7 +421,7 @@ public class Team
 	}
 
 	// Uses the current starter
-	public void UseStarter()
+	public void UseStarter ()
 	{
 		currStarter = (currStarter + 1) % 5;
 		PlayerPrefs.SetInt ("CurrStarter" + id, currStarter);
@@ -411,14 +438,14 @@ public class Team
 	{
 		StreamWriter sw = new StreamWriter (@"Save\Team" + (int)teamType + "-" + id + ".txt");
 
-		sw.Write(CityName + "," + TeamName + "," + Pick + "," + cash);
+		sw.Write (CityName + "," + TeamName + "," + Pick + "," + cash);
 		sw.Close ();
 	}
 
 	// Loads the team's information
-	public void LoadTeamInfo()
+	public void LoadTeamInfo ()
 	{
-		string [] teamInfoSplit = File.ReadAllLines(@"Save\Team" + (int)teamType + "-" + id + ".txt") [0].Split(',');
+		string [] teamInfoSplit = File.ReadAllLines (@"Save\Team" + (int)teamType + "-" + id + ".txt") [0].Split (',');
 
 		CityName = teamInfoSplit [0];
 		TeamName = teamInfoSplit [1];
@@ -427,28 +454,26 @@ public class Team
 	}
 
 	// Loads the team
-	public void LoadTeam()
+	public void LoadTeam ()
 	{
 		string [] split = File.ReadAllLines (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
 
 		LoadTeamInfo ();
 
-		for (int i = 1; i < split.Length; i++)
-			players.Add (int.Parse(split [i]));
+		for (int i = 0; i < split.Length - 1; i++)
+			players.Add (int.Parse (split [i]));
 
-		split = File.ReadAllLines (@"Save\Overalls" + id + ".txt") [0].Split(',');
-
+		split = File.ReadAllLines (@"Save\Overalls" + id + ".txt") [0].Split (',');
 		overalls [0] = float.Parse (split [0]);
 		overalls [1] = float.Parse (split [1]);
 		overalls [2] = float.Parse (split [2]);
-		split = (CityName + " " + TeamName).Split(' ');
+		split = (CityName + " " + TeamName).Split (' ');
 
 		for (int i = 0; i < split.Length; i++)
-			if (System.Char.IsLetter(split[i] [0]) && System.Char.IsUpper(split [i] [0]))
+			if (System.Char.IsLetter (split[i] [0]) && System.Char.IsUpper (split [i] [0]))
 				Shortform += split [i] [0];
 
-		split = File.ReadAllLines(@"Save\WLHC" + (int)teamType + "-" + id + ".txt") [0].Split(',');
-
+		split = File.ReadAllLines (@"Save\WLHC" + (int)teamType + "-" + id + ".txt") [0].Split (',');
 		wins = int.Parse (split [0]);
 		losses = int.Parse (split [1]);
 		hype = double.Parse (split [2]);
@@ -456,7 +481,7 @@ public class Team
 	}
 
 	// Determines whether a player is currently in the batting order
-	public bool IsBatter(int id)
+	public bool IsBatter (int id)
 	{
 		int index = 0;
 		bool notBatter = true;
@@ -469,44 +494,43 @@ public class Team
 	}
 
 	// Signed a draft player to the team
-	public void SignDraftPlayer(int id)
+	public void SignDraftPlayer (int id)
 	{
 		AddPlayer (id);
-		minorLeagueIndexes.Add (id);
-		Manager.Instance.Players [id].ContractYears.Add (new ContractYear(ContractType.MinorLeague, 0.0));
+		Manager.Instance.Players [id].ContractYears.Add (new ContractYear (ContractType.MinorLeague, 0.0));
 		cash -= Manager.Instance.Players [id].Offer;
 	}
 
 	// Adds a player to the team
-	public void AddPlayer(int playerID)
+	public void AddPlayer (int playerID)
 	{
 		StreamWriter sw = File.AppendText (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
 
 		players.Add (playerID);
-		sw.Write ("\n" + playerID);
+		sw.WriteLine (playerID);
 		sw.Close ();
 	}
 
 	// Removes a player from the team
-	public void RemovePlayer(int playerID)
+	public void RemovePlayer (int playerID)
 	{
 		players.RemoveAt (players.IndexOf (playerID));
 		SavePlayers ();
 	}
 
 	// Saves the indexes of the team's players
-	void SavePlayers()
+	void SavePlayers ()
 	{
 		StreamWriter sw = new StreamWriter (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
 
 		for (int i = 0; i < players.Count; i++)
-			sw.Write ("\n" + players [i]);
+			sw.WriteLine (players [i]);
 
 		sw.Close ();
 	}
 
 	// Puts a player on waivers
-	public void PutOnWaivers(int id)
+	public void PutOnWaivers (int id)
 	{
 		waivers.Add (id);
 		Manager.Instance.PutOnWaivers (id);
@@ -514,7 +538,7 @@ public class Team
 	}
 
 	// Takes a player off waivers
-	public void TakeOffWaivers(int playerID)
+	public void TakeOffWaivers (int playerID)
 	{
 		waivers.Remove (playerID);
 		Manager.Instance.TakeOffWaivers (playerID);
@@ -524,13 +548,13 @@ public class Team
 	// Gets the index of player with the worst overall
 	public int GetWorstOverall ()
 	{
-		int [] temp = FortyManRoster.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToArray();
+		int [] temp = FortyManRoster.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToArray ();
 
 		return temp [temp.Length - 1];
 	}
 
 	// Sets the team's expenses
-	public void SetExpenses()
+	public void SetExpenses ()
 	{
 		currentSalary = 0;
 
@@ -539,13 +563,13 @@ public class Team
 	}
 
 	// Resets the team's wins
-	public void ResetWins()
+	public void ResetWins ()
 	{
 		wins = 0;
 	}
 
 	// Resets the team's losses
-	public void ResetLosses()
+	public void ResetLosses ()
 	{
 		wins = 0;
 	}
@@ -561,19 +585,20 @@ public class Team
 	}
 
 	// Bankrupts team, forcing them to get a new owner or ending the game if it's the players team
-	public void Bankrupt()
+	public void Bankrupt ()
 	{
 		if (id == 0)
 		{
-			Manager.Instance.Restart ();
+			Manager.Clear ();
+			Manager.Instance.Load ();
 			Manager.ChangeToScene (0);
 		}
 		else
 		{
 			string [] splitName;
 
-			CityName = cityNames [(int)(Random.value * cityNames.Length)];
-			TeamName = teamNames [(int)(Random.value * teamNames.Length)];
+			CityName = cityNames [ (int) (Random.value * cityNames.Length)];
+			TeamName = teamNames [ (int) (Random.value * teamNames.Length)];
 
 			if (CityName.Length > longestCityName)
 				longestCityName = CityName.Length;
@@ -582,14 +607,14 @@ public class Team
 				longestTeamName = TeamName.Length;
 
 			Shortform = "";
-			splitName = (CityName + " " + TeamName).Split(' ');
+			splitName = (CityName + " " + TeamName).Split (' ');
 
 			for (int i = 0; i < splitName.Length; i++)
-				if (System.Char.IsLetter(splitName [i] [0]) && System.Char.IsUpper(splitName [i] [0]))
+				if (System.Char.IsLetter (splitName [i] [0]) && System.Char.IsUpper (splitName [i] [0]))
 					Shortform += splitName [i] [0];
 
 			Debug.Log ("New owner " + cash);
-			cash = 20000000.00 + System.Math.Round(Random.value * 10000000, 2);
+			cash = 20000000.00 + System.Math.Round (Random.value * 10000000, 2);
 		}
 	}
 
@@ -626,11 +651,25 @@ public class Team
 		}
 	}
 
-	public List<int> CP
+	public List<int> PinchRunners
+	{
+		get
+		{
+			return pinchRunners;
+		}
+	}
+
+	public int CP
 	{
 		get
 		{
 			return cp;
+		}
+
+		set
+		{
+			if (!AutomaticRoster)
+				cp = value;
 		}
 	}
 
@@ -850,6 +889,14 @@ public class Team
 		}
 	}
 
+	public List<int> MajorLeagueIndexes
+	{
+		get
+		{
+			return majorLeagueIndexes;
+		}
+	}
+
 	public int CurrStarter
 	{
 		get
@@ -863,6 +910,17 @@ public class Team
 		get
 		{
 			return teamType;
+		}
+	}
+
+	public float WLR
+	{
+		get
+		{
+			if (losses == 0)
+				return wins;
+			else
+				return wins / (float)losses;
 		}
 	}
 

@@ -6,17 +6,15 @@ using System.Linq;
 
 public class LoadTheirPlayers : MonoBehaviour
 {
-	GameObject teamList;
+	public GameObject teamList, teamListHeader;
 	int currSortedStat = 3;
 	bool ascending = true;
 	int theirTeam;
-	Trade trade;
+	public Trade trade;
 	public List<int> theirPlayers;
 
 	void Start ()
 	{
-		teamList = GameObject.Find ("TheirList");
-		trade = GameObject.Find ("btnOffer").GetComponent<Trade> ();
 		theirPlayers = new List<int> ();
 		theirTeam = 1;
 		DisplayHeader ();
@@ -26,16 +24,14 @@ public class LoadTheirPlayers : MonoBehaviour
 	// Refreshes players
 	public void Refresh (Dropdown dropdown)
 	{
-		teamList = GameObject.Find ("TheirList");
 		theirTeam = dropdown.value + 1;
 		Sort (currSortedStat);
 	}
 
 	// Displays header
-	void DisplayHeader()
+	void DisplayHeader ()
 	{
 		int statHeaderLength = 0;
-		GameObject teamListHeader = GameObject.Find("TheirListHeader");
 
 		int [] headerLengths = new int [Manager.Instance.Skills.Length];
 
@@ -51,35 +47,35 @@ public class LoadTheirPlayers : MonoBehaviour
 		statHeaderLength += headerLengths [0];
 		statHeaderLength += headerLengths [1];
 
-		Object header = Resources.Load("Header", typeof (GameObject));
+		Object header = Resources.Load ("Header", typeof (GameObject));
 		float prevWidth = 5.0f, newWidth = 0.0f;
-		float totalWidth = (8.04f * (statHeaderLength + 1.0f));
-		teamList.GetComponent<RectTransform>().offsetMin = new Vector2(0, -(20 * (Manager.Instance.Teams [0] [theirTeam].Players.Count + 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform>().rect.height));
-		teamList.GetComponent<RectTransform>().offsetMax = new Vector2(totalWidth - 160.0f, 0);
+		float totalWidth = (8.03f * (statHeaderLength + 1.0f));
+		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, - (20 * (Manager.Instance.Teams [0] [theirTeam].Players.Count + 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
+		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (totalWidth - 160.0f, 0);
 		totalWidth /= -2.0f;
 
 		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
 		{
 			GameObject statHeader = Instantiate (header) as GameObject;
 			statHeader.name = "header" + i.ToString ();
-			statHeader.transform.SetParent(teamListHeader.transform);
-			statHeader.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-			statHeader.transform.GetChild(0).gameObject.GetComponent<Text>().text = Manager.Instance.Skills [i];
-			statHeader.GetComponent<Button>().onClick.AddListener(() => StartSorting (statHeader));
+			statHeader.transform.SetParent (teamListHeader.transform);
+			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
+			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
+			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader));
 
-			float currWidth = (8.04f * headerLengths [i]);
+			float currWidth = (8.03f * headerLengths [i]);
 			newWidth += currWidth;
 			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
 			prevWidth = currWidth;
-			statHeader.GetComponent<RectTransform>().sizeDelta = new Vector2(currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform>().transform.localPosition = new Vector3(totalWidth, 0.0f, 0.0f);
+			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
+			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
-		teamList.GetComponent<RectTransform>().offsetMax = new Vector2(newWidth - 160.0f, 0);
+		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (newWidth - 160.0f, 0);
 	}
 
 	// Displays players
-	public void DisplayPlayers()
+	public void DisplayPlayers ()
 	{
 		GameObject [] currPlayers = GameObject.FindGameObjectsWithTag ("TheirPlayer");
 
@@ -154,11 +150,11 @@ public class LoadTheirPlayers : MonoBehaviour
 	// Starts Sorting players
 	public void StartSorting (GameObject other)
 	{
-		Sort(int.Parse (other.name.Remove (0, 6)));
+		Sort (int.Parse (other.name.Remove (0, 6)));
 	}
 
 	// Sorts players
-	void Sort(int headerNum)
+	void Sort (int headerNum)
 	{
 		bool notString;
 

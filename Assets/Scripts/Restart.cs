@@ -6,6 +6,7 @@ public class Restart : MonoBehaviour
 {
 	public void RestartGame ()
 	{
-		Manager.Instance.Restart ();
+		Manager.Clear ();
+		Manager.Instance.Load ();
 	}
 }

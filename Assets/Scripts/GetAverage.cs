@@ -7,6 +7,6 @@ public class GetAverage : MonoBehaviour
 	// Gets the overall for your team
 	void Start ()
 	{
-		GetComponent<Text>().text = "Overall: " + Manager.Instance.Teams [0] [0].Overalls [0].ToString ("F");
+		GetComponent<Text> ().text = "Overall: " + Manager.Instance.Teams [0] [0].Overalls [0].ToString ("F");
 	}
 }

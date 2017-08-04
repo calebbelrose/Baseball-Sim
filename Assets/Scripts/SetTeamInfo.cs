@@ -6,7 +6,7 @@ using System.IO;
 public class SetTeamInfo : MonoBehaviour
 {
 	// Sets the info for the player's team
-	void SetInfo()
+	void SetInfo ()
 	{
 		TeamInfo teamInfo = Manager.Instance.gameObject.GetComponent<TeamInfo> ();
 
@@ -21,7 +21,7 @@ public class SetTeamInfo : MonoBehaviour
 		{
 			string [] firstNames = File.ReadAllLines ("FirstNames.txt"),
 			lastNames = File.ReadAllLines ("LastNames.txt");
-			teamInfo.yourName = firstNames [(int)(Random.value * firstNames.Length)] + " " + lastNames [(int)(Random.value * lastNames.Length)];
+			teamInfo.yourName = firstNames [ (int) (Random.value * firstNames.Length)] + " " + lastNames [ (int) (Random.value * lastNames.Length)];
 		}
 
 		PlayerPrefs.SetString ("Your Name", teamInfo.yourName);

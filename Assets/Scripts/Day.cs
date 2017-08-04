@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 public class Day
 {
-	List<ScheduledGame> scheduledGames = new List<ScheduledGame>();
-	List<SimulatedGame> simulatedGames = new List<SimulatedGame>();
-	List<Event> events = new List<Event>();
+	List<ScheduledGame> scheduledGames = new List<ScheduledGame> ();
+	List<SimulatedGame> simulatedGames = new List<SimulatedGame> ();
+	List<Event> events = new List<Event> ();
 	DateTime date;
 
 	// Simulates all of the day's games and events
@@ -18,7 +18,7 @@ public class Day
 		}
 
 		for (int i = 0; i < events.Count; i++)
-			events [i].Action();
+			events [i].Action ();
 
 		for (int i = 0; i < Manager.Instance.Teams [0].Count; i++)
 		{
@@ -38,11 +38,11 @@ public class Day
 	// Schedules a game for the day
 	public void AddGame (int team1, int team2)
 	{
-		scheduledGames.Add(new ScheduledGame (Manager.Instance.Teams [0] [team1], Manager.Instance.Teams [0] [team2], GameType.RegularSeason, TeamType.MLB, date.DayOfYear - 1));
+		scheduledGames.Add (new ScheduledGame (Manager.Instance.Teams [0] [team1], Manager.Instance.Teams [0] [team2], GameType.RegularSeason, TeamType.MLB, date.DayOfYear - 1));
 	}
 
 	// Schedules an event for the day
-	public void AddEvent(Event newEvent, int dayIndex)
+	public void AddEvent (Event newEvent, int dayIndex)
 	{
 		events.Add (newEvent);
 		newEvent.Save (dayIndex);
@@ -81,7 +81,7 @@ public class Day
 		}
 	}
 
-	public Day(DateTime _date)
+	public Day (DateTime _date)
 	{
 		date = _date;
 	}

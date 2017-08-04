@@ -14,7 +14,7 @@ public class Trade : MonoBehaviour
 	}
 
 	// Adds a player to the trade
-	public void AddPlayer(int playerNum, int teamName)
+	public void AddPlayer (int playerNum, int teamName)
 	{
 		if (teamName == 0)
 			yourTrades.Add (playerNum);
@@ -30,7 +30,7 @@ public class Trade : MonoBehaviour
 	}
 
 	// Removes a player from the trade
-	public void RemovePlayer(int playerNum, int teamName)
+	public void RemovePlayer (int playerNum, int teamName)
 	{
 		if (teamName == 0)
 			yourTrades.Remove (playerNum);
@@ -46,7 +46,7 @@ public class Trade : MonoBehaviour
 	}
 
 	// Offers your players for their players
-	public void Offer()
+	public void Offer ()
 	{
 		float yourValue = 0.0f, theirValue = 0.0f;									// The value of your and their players in the trade
 
@@ -68,7 +68,7 @@ public class Trade : MonoBehaviour
 			yourTrades.Sort ((x1, x2) => x2.CompareTo (x1));
 			theirTrades.Sort ((x1, x2) => x2.CompareTo (x1));
 
-			//  Adds your new players to your team
+			// Adds your new players to your team
 			while (yourTrades.Count != 0)
 			{
 				trade += Manager.Instance.Teams [0] [0].Transfer (yourTrades [0], theirTeam);
@@ -77,7 +77,7 @@ public class Trade : MonoBehaviour
 
 			trade = trade.Remove (trade.Length - 2) + " to" + Manager.Instance.Teams [0] [theirTeam].CityName + " " + Manager.Instance.Teams [0] [theirTeam].TeamName + " for ";
 
-			//  Adds their new players to their team
+			// Adds their new players to their team
 			while (theirTrades.Count != 0)
 			{
 				trade += Manager.Instance.Teams [0] [0].Transfer (theirTrades [0], 0);

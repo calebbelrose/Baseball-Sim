@@ -13,13 +13,13 @@ public class TeamLogo : MonoBehaviour
 	}
 
 	// Gets the team's logo
-	public void GetTeamLogo()
+	public void GetTeamLogo ()
 	{
 		GetComponent<Image> ().sprite = teamInfo.teamLogo;
 	}
 
 	// Sets the team's logo
-	public void SetTeamLogo(UnityEngine.UI.Slider slider)
+	public void SetTeamLogo (UnityEngine.UI.Slider slider)
 	{
 		teamInfo.teamLogo = Resources.Load<Sprite> ("team" + slider.value);
 		PlayerPrefs.SetString ("Logo", slider.value.ToString ());

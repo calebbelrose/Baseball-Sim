@@ -33,7 +33,7 @@ public class Pitch : IComparable <Pitch>
 
 public class FourSeam : Pitch
 {
-	public FourSeam(int speed, int movement)
+	public FourSeam (int speed, int movement)
 	{
 		minSpeed = 85;
 		speedVariance = 20;
@@ -43,7 +43,7 @@ public class FourSeam : Pitch
 
 public class TwoSeam : Pitch
 {
-	public TwoSeam(int speed, int movement)
+	public TwoSeam (int speed, int movement)
 	{
 		minSpeed = 80;
 		speedVariance = 20;
@@ -53,7 +53,7 @@ public class TwoSeam : Pitch
 
 public class Cutter : Pitch
 {
-	public Cutter(int speed, int movement)
+	public Cutter (int speed, int movement)
 	{
 		minSpeed = 85;
 		speedVariance = 10;
@@ -63,7 +63,7 @@ public class Cutter : Pitch
 
 public class Shuuto : Pitch
 {
-	public Shuuto(int speed, int movement)
+	public Shuuto (int speed, int movement)
 	{
 		minSpeed = 85;
 		speedVariance = 10;
@@ -73,7 +73,7 @@ public class Shuuto : Pitch
 
 public class Sinker : Pitch
 {
-	public Sinker(int speed, int movement)
+	public Sinker (int speed, int movement)
 	{
 		minSpeed = 80;
 		speedVariance = 20;
@@ -83,7 +83,7 @@ public class Sinker : Pitch
 
 public class Splitter : Pitch
 {
-	public Splitter(int speed, int movement)
+	public Splitter (int speed, int movement)
 	{
 		minSpeed = 80;
 		speedVariance = 15;
@@ -133,7 +133,7 @@ public class Screwball : Pitch
 
 public class Slider : Pitch
 {
-	public Slider(int speed, int movement)
+	public Slider (int speed, int movement)
 	{
 		minSpeed = 80;
 		speedVariance = 10;
@@ -153,7 +153,7 @@ public class Slurve : Pitch
 
 public class CircleChangeup : Pitch
 {
-	public CircleChangeup(int speed, int movement)
+	public CircleChangeup (int speed, int movement)
 	{
 		minSpeed = 70;
 		speedVariance = 10;
@@ -193,7 +193,7 @@ public class Palmball : Pitch
 
 public class VulcanChangeup : Pitch
 {
-	public VulcanChangeup(int speed, int movement)
+	public VulcanChangeup (int speed, int movement)
 	{
 		minSpeed = 70;
 		speedVariance = 10;
@@ -203,7 +203,7 @@ public class VulcanChangeup : Pitch
 
 public class Eephus : Pitch
 {
-	public Eephus(int speed, int movement)
+	public Eephus (int speed, int movement)
 	{
 		minSpeed = 45;
 		speedVariance = 20;

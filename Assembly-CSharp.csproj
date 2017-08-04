@@ -46,14 +46,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\BatterDropdown.cs" />
+     <Compile Include="Assets\Scripts\BatterSlot.cs" />
      <Compile Include="Assets\Scripts\Calendar.cs" />
      <Compile Include="Assets\Scripts\ChangeScene.cs" />
      <Compile Include="Assets\Scripts\ChangeVolume.cs" />
-     <Compile Include="Assets\Scripts\ClearPlayerPrefs.cs" />
      <Compile Include="Assets\Scripts\ContractYear.cs" />
      <Compile Include="Assets\Scripts\CreateSchedule.cs" />
      <Compile Include="Assets\Scripts\Day.cs" />
+     <Compile Include="Assets\Scripts\DisableTrade.cs" />
      <Compile Include="Assets\Scripts\DisplayDraftedPlayers.cs" />
+     <Compile Include="Assets\Scripts\DisplayFreeAgents.cs" />
+     <Compile Include="Assets\Scripts\DisplayInternationalFreeAgents.cs" />
      <Compile Include="Assets\Scripts\DisplayPlayer.cs" />
      <Compile Include="Assets\Scripts\DisplayPlayers.cs" />
      <Compile Include="Assets\Scripts\DisplayScore.cs" />
@@ -61,6 +65,7 @@
      <Compile Include="Assets\Scripts\DraftedPlayerDisplay.cs" />
      <Compile Include="Assets\Scripts\Event.cs" />
      <Compile Include="Assets\Scripts\FormatPrice.cs" />
+     <Compile Include="Assets\Scripts\FreeAgentDisplay.cs" />
      <Compile Include="Assets\Scripts\GetAverage.cs" />
      <Compile Include="Assets\Scripts\GetFinances.cs" />
      <Compile Include="Assets\Scripts\GetStandings.cs" />
@@ -68,6 +73,10 @@
      <Compile Include="Assets\Scripts\GetTeamInfo.cs" />
      <Compile Include="Assets\Scripts\GetYear.cs" />
      <Compile Include="Assets\Scripts\HallOfFameInductee.cs" />
+     <Compile Include="Assets\Scripts\InternationalFreeAgentDisplay.cs" />
+     <Compile Include="Assets\Scripts\Lineup.cs" />
+     <Compile Include="Assets\Scripts\LoadMajorLeaguePlayers.cs" />
+     <Compile Include="Assets\Scripts\LoadPitchers.cs" />
      <Compile Include="Assets\Scripts\LoadTheirPlayers.cs" />
      <Compile Include="Assets\Scripts\LoadYourPlayers.cs" />
      <Compile Include="Assets\Scripts\Manager.cs" />
@@ -75,6 +84,7 @@
      <Compile Include="Assets\Scripts\MuteControl.cs" />
      <Compile Include="Assets\Scripts\NeedDraft.cs" />
      <Compile Include="Assets\Scripts\Pitch.cs" />
+     <Compile Include="Assets\Scripts\PitcherSlot.cs" />
      <Compile Include="Assets\Scripts\Player.cs" />
      <Compile Include="Assets\Scripts\PlayerDisplay.cs" />
      <Compile Include="Assets\Scripts\PopulateStadiumTiers.cs" />
@@ -83,6 +93,7 @@
      <Compile Include="Assets\Scripts\Restart.cs" />
      <Compile Include="Assets\Scripts\Runner.cs" />
      <Compile Include="Assets\Scripts\ScheduledGame.cs" />
+     <Compile Include="Assets\Scripts\SetAutomaticRoster.cs" />
      <Compile Include="Assets\Scripts\SetPanel.cs" />
      <Compile Include="Assets\Scripts\SetTeamInfo.cs" />
      <Compile Include="Assets\Scripts\SimulatedGame.cs" />

@@ -32,7 +32,7 @@ public class SimulatedGame
 		battingStats = new List<string []> [2] [];
 		pitchingStats = new List<string []> [2];
 
-		for(int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			string [] lines = File.ReadAllLines (@"Save\BattingStats" + gameID + "-" + i + ".txt");
 			int prevIndex = -1, numBatters = 0;
@@ -58,7 +58,7 @@ public class SimulatedGame
 
 				battingStats [i] [index].Add (new string[10]);
 
-				for(int k = 0; k < split.Length - 1; k++)
+				for (int k = 0; k < split.Length - 1; k++)
 					battingStats [i] [index] [numBatters] [k] = split [k];
 			}
 
@@ -89,17 +89,17 @@ public class SimulatedGame
 		strBattingStats.CopyTo (battingStats, 0);
 		strPitchingStats.CopyTo (pitchingStats, 0);
 
-		sw = File.AppendText (@"Save\SimulatedGames.txt");
+		/*sw = File.AppendText (@"Save\SimulatedGames.txt");
 		sw.WriteLine (teams [0] + "," + teams [1] + "," + scores [0] + "," + scores [1] + "," + shortforms [0] + "," + shortforms [1] + "," + (int)gameType + "," + dayIndex);
 		sw.Close ();
 
-		for(int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			sw = new StreamWriter (@"Save\BattingStats" + gameID + "-" + i + ".txt");
 
 			for (int j = 0; j < battingStats [i].Length; j++)
 				for (int k = 0; k < battingStats [i] [j].Count; k++)
-					sw.WriteLine(battingStats [i] [j] [k] [0] + "," + battingStats [i] [j] [k] [1] + "," + battingStats [i] [j] [k] [2] + "," + battingStats [i] [j] [k] [3] + "," + battingStats [i] [j] [k] [4] + "," + battingStats [i] [j] [k] [5] + "," + battingStats [i] [j] [k] [6] + "," + battingStats [i] [j] [k] [7] + "," + battingStats [i] [j] [k] [8] + "," + battingStats [i] [j] [k] [9] + "," + j);
+					sw.WriteLine (battingStats [i] [j] [k] [0] + "," + battingStats [i] [j] [k] [1] + "," + battingStats [i] [j] [k] [2] + "," + battingStats [i] [j] [k] [3] + "," + battingStats [i] [j] [k] [4] + "," + battingStats [i] [j] [k] [5] + "," + battingStats [i] [j] [k] [6] + "," + battingStats [i] [j] [k] [7] + "," + battingStats [i] [j] [k] [8] + "," + battingStats [i] [j] [k] [9] + "," + j);
 
 			sw.Close ();
 			sw = new StreamWriter (@"Save\PitchingStats" + gameID + "-" + i + ".txt");
@@ -108,7 +108,7 @@ public class SimulatedGame
 				sw.WriteLine (pitchingStats [i] [j] [0] + "," + pitchingStats [i] [j] [1] + "," + pitchingStats [i] [j] [2] + "," + pitchingStats [i] [j] [3] + "," + pitchingStats [i] [j] [4] + "," + pitchingStats [i] [j] [5] + "," + pitchingStats [i] [j] [6] + "," + pitchingStats [i] [j] [7] + "," + pitchingStats [i] [j] [8]);
 			
 			sw.Close ();
-		}
+		}*/
 	}
 
 	public override string ToString ()

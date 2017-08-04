@@ -15,7 +15,7 @@ public abstract class Event
 	// Loads the event
 	public static Event Load (string [] text)
 	{
-		switch (int.Parse(text [1]))
+		switch (int.Parse (text [1]))
 		{
 		case 0:
 			return new WorldBaseballClassic ();
@@ -36,27 +36,27 @@ public abstract class Event
 		case 8:
 			return new HomerunDerby ();
 		case 9:
-			return new  AllStarGame ();
+			return new AllStarGame ();
 		case 10:
-			return new  SigningDeadline ();
+			return new SigningDeadline ();
 		case 11:
-			return new  HallOfFameInduction ();
+			return new HallOfFameInduction ();
 		case 12:
-			return new  NonWaiverTradeDeadline ();
+			return new NonWaiverTradeDeadline ();
 		case 13:
-			return new  WaiverTradeDeadline ();
+			return new WaiverTradeDeadline ();
 		case 14:
-			return new  ActiveRosterExpansion ();
+			return new ActiveRosterExpansion ();
 		case 15:
-			return new  EndOfYear ();
+			return new EndOfYear ();
 		case 16:
-			return new  EndOfRegularSeason ();
+			return new EndOfRegularSeason ();
 		case 17:
-			return new  FinalsCheck (int.Parse(text [2]), int.Parse(text [3]), int.Parse(text [4]));
+			return new FinalsCheck (int.Parse (text [2]), int.Parse (text [3]), int.Parse (text [4]));
 		case 18:
-			return new  WorldChampion ();
+			return new WorldChampion ();
 		case 19:
-			return new  CheckTieWinner (int.Parse(text [2]), int.Parse(text [3]), int.Parse(text [4]), int.Parse(text [5]));
+			return new CheckTieWinner (int.Parse (text [2]), int.Parse (text [3]), int.Parse (text [4]), int.Parse (text [5]));
 		default:
 			return null;
 		}
@@ -67,16 +67,16 @@ public class WorldBaseballClassic : Event
 {
 	public static List<int> aTeams = new List<int> (), bTeams = new List<int> ();
 
-	public override void Action()
+	public override void Action ()
 	{
-		List<Player> players = new List<Player>(), result;
+		List<Player> players = new List<Player> (), result;
 		Country prevCountry = Country.Canada;
 		int index = -1;
 		int numTeams = 16;
 
-		for(int i = 0; i < Manager.Instance.Teams [0].Count; i++)
-			for(int j = 0; j < Manager.Instance.Teams [0] [i].Players.Count; j++)
-				players.Add(Manager.Instance.Players [Manager.Instance.Teams [0] [i].Players [j]]);
+		for (int i = 0; i < Manager.Instance.Teams [0].Count; i++)
+			for (int j = 0; j < Manager.Instance.Teams [0] [i].Players.Count; j++)
+				players.Add (Manager.Instance.Players [Manager.Instance.Teams [0] [i].Players [j]]);
 
 		result = players.OrderBy (playerX => playerX.Country).ThenByDescending (playerX => playerX.Overall).ToList ();
 
@@ -94,23 +94,25 @@ public class WorldBaseballClassic : Event
 
 		for (int i = 0; i < aTeams.Count; i++)
 		{
-			List<string> remainingPositions = Manager.Instance.Teams [1] [aTeams [i]].AutomaticRoster ();
+			List<string> remainingPositions = Manager.Instance.Teams [1] [aTeams [i]].SetRoster ();
 
 			for (int j = 0; j < remainingPositions.Count; j++)
 			{
 				Player newPlayer = new Player (remainingPositions [j], 16, 3, Manager.Instance.Players.Count);
+				newPlayer.Country = (Country)Manager.Instance.Teams [1] [aTeams [i]].ID;
 				Manager.Instance.NewPlayer (newPlayer);
 				Manager.Instance.Teams [1] [aTeams [i]].AddPlayer (newPlayer.ID);
 			}
 
 			while (Manager.Instance.Teams [1] [aTeams [i]].Players.Count < Team.RosterSize)
 			{
-				Player newPlayer = new Player (Player.Positions [(int)(Random.value * Player.Positions.Length)], 16, 3, Manager.Instance.Players.Count);
+				Player newPlayer = new Player (Player.Positions [ (int) (Random.value * Player.Positions.Length)], 16, 3, Manager.Instance.Players.Count);
+				newPlayer.Country = (Country)Manager.Instance.Teams [1] [aTeams [i]].ID;
 				Manager.Instance.NewPlayer (newPlayer);
 				Manager.Instance.Teams [1] [aTeams [i]].AddPlayer (newPlayer.ID);
 			}
 
-			Manager.Instance.Teams [1] [aTeams [i]].AutomaticRoster ();
+			Manager.Instance.Teams [1] [aTeams [i]].SetRoster ();
 		}
 
 		aTeams = aTeams.OrderBy (teamX => Manager.Instance.Teams [1] [teamX].Overalls [0]).ToList ();
@@ -165,7 +167,7 @@ public class WorldBaseballClassic : Event
 
 public class WBCR2A : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		WorldBaseballClassic.aTeams = WorldBaseballClassic.aTeams.OrderBy (teamX => Manager.Instance.Teams [1] [teamX].Wins).ToList ();
 		int halfIndex = WorldBaseballClassic.aTeams.Count / 2;
@@ -202,7 +204,7 @@ public class WBCR2A : Event
 
 public class WBCR2B : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		WorldBaseballClassic.bTeams = WorldBaseballClassic.bTeams.OrderBy (teamX => Manager.Instance.Teams [1] [teamX].Wins).ToList ();
 		int halfIndex = WorldBaseballClassic.bTeams.Count / 2;
@@ -245,7 +247,7 @@ public class WBCR2B : Event
 
 public class WBCSemiFinal : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		WorldBaseballClassic.aTeams = WorldBaseballClassic.aTeams.OrderBy (teamX => Manager.Instance.Teams [1] [teamX].Wins).ToList ();
 		WorldBaseballClassic.bTeams = WorldBaseballClassic.bTeams.OrderBy (teamX => Manager.Instance.Teams [1] [teamX].Wins).ToList ();
@@ -299,7 +301,7 @@ public class WBCFinal : Event
 {
 	private string displayText = "WBC Final";
 
-	public override void Action()
+	public override void Action ()
 	{
 		WorldBaseballClassic.aTeams = WorldBaseballClassic.aTeams.OrderBy (teamX => Manager.Instance.Teams [1] [teamX].Wins).ToList ();
 
@@ -323,7 +325,7 @@ public class WBCFinal : Event
 
 public class OpeningDay : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 	}
 
@@ -338,8 +340,10 @@ public class OpeningDay : Event
 
 public class FirstYearPlayerDraft : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
+		PlayerPrefs.SetString ("NeedDraft", true.ToString ());
+		PlayerPrefs.Save ();
 		Manager.ChangeToScene (3);
 	}
 
@@ -356,7 +360,7 @@ public class FuturesGame : Event
 {
 	private string displayText = "Futures Game";
 
-	public override void Action()
+	public override void Action ()
 	{
 		List<Player> players = new List<Player> ();
 		List<string> [] positions = new List<string>[2];
@@ -455,7 +459,7 @@ public class FuturesGame : Event
 
 		while (Manager.Instance.Teams [2] [0].Players.Count < Team.RosterSize)
 		{
-			Player newPlayer = new Player (Player.Positions [(int)(Random.value * Player.Positions.Length)], 16, 2, Manager.Instance.Players.Count);
+			Player newPlayer = new Player (Player.Positions [ (int) (Random.value * Player.Positions.Length)], 16, 2, Manager.Instance.Players.Count);
 			newPlayer.Country = Country.UnitedStates;
 			Manager.Instance.Teams [2] [0].AddPlayer (newPlayer.ID);
 			Manager.Instance.NewPlayer (newPlayer);
@@ -476,15 +480,15 @@ public class FuturesGame : Event
 
 		while (Manager.Instance.Teams [2] [1].Players.Count < Team.RosterSize)
 		{
-			Player newPlayer = new Player (Player.Positions [(int)(Random.value * Player.Positions.Length)], 16, 2, Manager.Instance.Players.Count);
+			Player newPlayer = new Player (Player.Positions [ (int) (Random.value * Player.Positions.Length)], 16, 2, Manager.Instance.Players.Count);
 			while (newPlayer.Country == Country.UnitedStates)
 				newPlayer.RandomCountry ();
 			Manager.Instance.Teams [2] [1].AddPlayer (newPlayer.ID);
 			Manager.Instance.NewPlayer (newPlayer);
 		}
 
-		Manager.Instance.Teams [2] [0].AutomaticRoster ();
-		Manager.Instance.Teams [2] [1].AutomaticRoster ();
+		Manager.Instance.Teams [2] [0].SetRoster ();
+		Manager.Instance.Teams [2] [1].SetRoster ();
 
 		Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames.Add (new ScheduledGame (Manager.Instance.Teams [2] [0], Manager.Instance.Teams [2] [1], GameType.WorldBaseballClassic, TeamType.Futures, Manager.Instance.DayIndex).PlayGame ());
 		displayText = Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].ToString ();
@@ -508,13 +512,13 @@ public class HomerunDerby : Event
 {
 	private string displayText = "Homerun Derby";
 
-	public override void Action()
+	public override void Action ()
 	{
-		List<Player> players = new List<Player>();
+		List<Player> players = new List<Player> ();
 		int maxIndex = 7;
 
-		for(int i = 0; i < Manager.Instance.Players.Count; i++)
-			players.Add(Manager.Instance.Players [i]);
+		for (int i = 0; i < Manager.Instance.Players.Count; i++)
+			players.Add (Manager.Instance.Players [i]);
 
 		players = players.OrderByDescending (playerX => playerX.Stats [0] [7]).ToList ();
 
@@ -541,7 +545,7 @@ public class HomerunDerby : Event
 						float value = (Random.value * players [indexes [player]].Skills [0] + Random.value * players [indexes [player]].Skills [1] + Random.value * players [indexes [player]].Skills [2]);
 						float distance = value * 2.5f;
 
-						if (value > 200.0f)
+						if (value > 175.0f)
 							scores [player]++;
 
 						if (distance >= 440.0f && needExtraTime && ++extraTimeHomeruns == 2)
@@ -570,7 +574,7 @@ public class HomerunDerby : Event
 						{
 							float value = (Random.value * players [indexes [player]].Skills [0] + Random.value * players [indexes [player]].Skills [1] + Random.value * players [indexes [player]].Skills [2]);
 
-							if (value > 200.0f)
+							if (value > 175.0f)
 								scores [player]++;
 
 							time -= value * 0.05f;
@@ -587,7 +591,7 @@ public class HomerunDerby : Event
 							{
 								float value = (Random.value * players [indexes [player]].Skills [0] + Random.value * players [indexes [player]].Skills [1] + Random.value * players [indexes [player]].Skills [2]);
 
-								if (value > 200.0f)
+								if (value > 175.0f)
 									scores [player]++;
 								
 								swings++;
@@ -636,7 +640,7 @@ public class AllStarGame : Event
 {
 	string displayText = "All-Star Game";
 
-	public override void Action()
+	public override void Action ()
 	{
 		List<Player> players = new List<Player> ();
 		List<string> [] positions = new List<string>[2];
@@ -702,8 +706,8 @@ public class AllStarGame : Event
 			index++;
 		}
 
-		Manager.Instance.Teams [3] [0].AutomaticRoster ();
-		Manager.Instance.Teams [3] [1].AutomaticRoster ();
+		Manager.Instance.Teams [3] [0].SetRoster ();
+		Manager.Instance.Teams [3] [1].SetRoster ();
 
 		Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames.Add (new ScheduledGame (Manager.Instance.Teams [3] [0], Manager.Instance.Teams [3] [1], GameType.AllStar, TeamType.AllStar, Manager.Instance.DayIndex).PlayGame ());
 		displayText = Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].ToString ();
@@ -725,7 +729,7 @@ public class AllStarGame : Event
 
 public class SigningDeadline : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		for (int i = 0; i < Manager.Instance.Teams [0].Count; i++)
 			while (Manager.Instance.Teams [0] [i].DraftPicks.Count > 0)
@@ -750,23 +754,23 @@ public class SigningDeadline : Event
 
 public class HallOfFameInduction : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		double bestScore = 0.0;
 		int bestIndex = 0;
 
-		for(int i = 0; i < Manager.Instance.hallOfFameCandidates.Count; i++)
+		for (int i = 0; i < Manager.Instance.hallOfFameCandidates.Count; i++)
 		{
 			double score;
 
-			if (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Position.Contains("P"))
+			if (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Position.Contains ("P"))
 			{
 				double era = Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [24] * 27 / (double)Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [20];
 				score = (6.0 - era) * 5 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [20] / (double)8;
 			}
 			else
 			{
-				double ops = (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [10]) / (double)(Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [1] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [10] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [14]) + (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [5] * 2 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [6] * 3 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [7] * 4) / (double)Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [1];
+				double ops = (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [10]) / (double) (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [1] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [10] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [14]) + (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [5] * 2 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [6] * 3 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [7] * 4) / (double)Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [1];
 				score = Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [7] / 40.0 + ops * 25;
 			}
 
@@ -795,7 +799,7 @@ public class HallOfFameInduction : Event
 
 public class NonWaiverTradeDeadline : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		Manager.Instance.tradeDeadline = TradeDeadline.NonWaiver;
 	}
@@ -811,7 +815,7 @@ public class NonWaiverTradeDeadline : Event
 
 public class WaiverTradeDeadline : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		Manager.Instance.tradeDeadline = TradeDeadline.Waiver;
 	}
@@ -827,7 +831,7 @@ public class WaiverTradeDeadline : Event
 
 public class ActiveRosterExpansion : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		Team.ChangeRosterSize (40);
 	}
@@ -843,7 +847,7 @@ public class ActiveRosterExpansion : Event
 
 public class EndOfYear : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
 		Manager.Instance.NewYear ();
 	}
@@ -864,10 +868,11 @@ public class EndOfYear : Event
 
 public class EndOfRegularSeason : Event
 {
-	public override void Action()
+	public override void Action ()
 	{
+		Debug.Log (ScheduledGame.sb / (float)ScheduledGame.games + " " + ScheduledGame.cs / (float)ScheduledGame.games);
 		Team.ChangeRosterSize (25);
-		ScheduleWildcardGames();
+		ScheduleWildcardGames ();
 	}
 
 	protected void ScheduleWildcardGames ()
@@ -875,7 +880,7 @@ public class EndOfRegularSeason : Event
 		List<Team> result = new List<Team> (0);
 		bool noTie = true;
 
-		Manager.Instance.DetermineMVP();
+		Manager.Instance.DetermineMVP ();
 
 		result = Manager.Instance.Teams [0].OrderBy (teamX => teamX.League).ThenBy (teamX => teamX.Division).ThenByDescending (teamX => teamX.Wins).ToList ();
 
@@ -991,7 +996,7 @@ public class FinalsCheck : Event
 		round = _round;
 	}
 
-	public override void Action()
+	public override void Action ()
 	{
 		if (Manager.Instance.Teams [0] [Manager.Instance.FinalsTeams [team1]].Wins < 4 && Manager.Instance.Teams [0] [Manager.Instance.FinalsTeams [team2]].Wins < 4)
 		{
@@ -1068,7 +1073,7 @@ public class FinalsCheck : Event
 				}
 			}
 			else
-				Manager.Instance.Days [Manager.Instance.DayIndex].AddEvent (new WorldChampion(), Manager.Instance.DayIndex);
+				Manager.Instance.Days [Manager.Instance.DayIndex].AddEvent (new WorldChampion (), Manager.Instance.DayIndex);
 		}
 	}
 
@@ -1090,7 +1095,7 @@ public class WorldChampion : Event
 {
 	int dayIndex;
 
-	public override void Action()
+	public override void Action ()
 	{
 		dayIndex = Manager.Instance.DayIndex;
 	}
@@ -1120,7 +1125,7 @@ public class CheckTieWinner : Event
 {
 	int team1, team2, team3, team4;
 
-	public override void Action()
+	public override void Action ()
 	{
 		Team.ChangeRosterSize (40);
 

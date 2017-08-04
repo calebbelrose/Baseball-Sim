@@ -10,7 +10,7 @@ public class DisplayPlayer : MonoBehaviour
 	public GameObject putOnWaivers, takeOffWaivers;
 
 	// Displays a players information
-	public void SetPlayerID(int id)
+	public void SetPlayerID (int id)
 	{
 		playerID = id;
 
@@ -19,7 +19,7 @@ public class DisplayPlayer : MonoBehaviour
 
 		textObjects [10].text = Manager.Instance.Players [playerID].Name;
 		textObjects [11].text = Manager.Instance.Players [playerID].Age.ToString ();
-		textObjects [12].text = ((CountryShortforms)(int)Manager.Instance.Players [playerID].Country).ToString ();
+		textObjects [12].text = ((CountryShortforms) (int)Manager.Instance.Players [playerID].Country).ToString ();
 		textObjects [13].text = Manager.Instance.Players [playerID].Position;
 		textObjects [14].text = Manager.Instance.Players [playerID].Bats + "/" + Manager.Instance.Players [playerID].Throws;
 		textObjects [15].text = Manager.Instance.Players [playerID].Offense.ToString ();
@@ -39,13 +39,21 @@ public class DisplayPlayer : MonoBehaviour
 	}
 
 	// Submits an offer for a draft player
-	public void SubmitOffer(Text offer)
+	public void SubmitOffer (Text txtOffer)
 	{
-		Manager.Instance.Players [playerID].Offer = double.Parse (offer.text);
+		double offer = double.Parse (txtOffer.text);
+
+		if (Manager.Instance.Teams [0] [0].Cash >= offer && (offer > Manager.Instance.Players [playerID].Offer || (offer == Manager.Instance.Players [playerID].Offer && Manager.Instance.Teams [0] [0].WLR > Manager.Instance.Teams [0] [Manager.Instance.Players [playerID].Team].WLR) || (Manager.Instance.Teams [0] [0].WLR == 0 && Manager.Instance.Teams [0] [Manager.Instance.Players [playerID].Team].WLR == 0 && Manager.Instance.Teams [0] [0].Hype > Manager.Instance.Teams [0] [Manager.Instance.Players [playerID].Team].Hype)))
+		{
+			Manager.Instance.Players [playerID].Offer = offer;
+			Manager.Instance.Players [playerID].OfferTime = 7;
+			Manager.Instance.Players [playerID].Team = 0;
+			Manager.Instance.Players [playerID].SavePlayer ();
+		}
 	}
 
 	// Puts a player on waivers
-	public void PutOnWaivers()
+	public void PutOnWaivers ()
 	{
 		Manager.Instance.Teams [0] [Manager.Instance.Players [playerID].Team].PutOnWaivers (playerID);
 		takeOffWaivers.SetActive (true);
@@ -53,7 +61,7 @@ public class DisplayPlayer : MonoBehaviour
 	}
 
 	// Takes a player off waivers
-	public void TakeOffWaivers()
+	public void TakeOffWaivers ()
 	{
 		Manager.Instance.Teams [0] [Manager.Instance.Players [playerID].Team].TakeOffWaivers (playerID);
 		takeOffWaivers.SetActive (false);

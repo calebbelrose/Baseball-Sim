@@ -4,24 +4,17 @@ using UnityEngine;
 
 public class Runner
 {
-	int playerID, batterIndex;
-	bool error;
+	public int PlayerID;
+
+	private int batterIndex;
+	private bool error;
 
 	// 2-Arg Constructor
 	public Runner (int _playerID, int _batterIndex)
 	{
-		playerID = _playerID;
+		PlayerID = _playerID;
 		batterIndex = _batterIndex;
 		error = false;
-	}
-
-	// Getters and Setters
-	public int PlayerID
-	{
-		get
-		{
-			return playerID;
-		}
 	}
 
 	public int BatterIndex
