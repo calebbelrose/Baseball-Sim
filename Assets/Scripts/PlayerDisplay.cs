@@ -5,12 +5,12 @@ public class PlayerDisplay
 	UnityEngine.Transform teamList, header;
 	UnityEngine.RectTransform teamListRect, teamListParentRect;
 	int currSortedStat = 6;
-	bool ascending;
+	bool ascending = true;
 
 	// Displays players
 	public void Display ()
 	{
-		Manager.Instance.DisplayHeaders (header, teamListParentRect, DisplayType.Team);
+		Manager.Instance.DisplayHeaders (header, teamListRect, teamListParentRect, DisplayType.Team);
 		Sort (6);
 	}
 
@@ -26,12 +26,7 @@ public class PlayerDisplay
 			notString = true;
 
 		if (currSortedStat == headerNum)
-		{
-			if (ascending)
-				ascending = false;
-			else
-				ascending = true;
-		}
+			ascending = !ascending;
 		else if (notString)
 			ascending = false;
 		else

@@ -8,7 +8,7 @@ public class NeedDraft : MonoBehaviour
 	public Transform draftList, draftListHeader;
 	public RectTransform draftListRect, draftListParentRect;
 
-	void Awake ()
+	void Start ()
 	{
 		if (needDraftObjects)
 		{

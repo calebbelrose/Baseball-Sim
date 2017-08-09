@@ -5,9 +5,10 @@ using UnityEngine.UI;
 
 public class LoadPitchers : MonoBehaviour
 {
-	UnityEngine.Object playerButton;
-	public RectTransform teamList;
+	public RectTransform viewport, content;
 	public Transform teamListHeader;
+
+	UnityEngine.Object playerButton;
 
 	void Start ()
 	{
@@ -38,9 +39,8 @@ public class LoadPitchers : MonoBehaviour
 	{
 		int statHeaderLength = 0;
 		int [] headerLengths = new int [Manager.Instance.Skills.Length];
-		Object header;
-		float prevWidth, newWidth;
-		float totalWidth;
+		Object header = Resources.Load ("Header", typeof (GameObject));
+		float newWidth = 0.0f;
 
 		for (int i = 2; i < Manager.Instance.Skills.Length; i++)
 		{
@@ -50,17 +50,8 @@ public class LoadPitchers : MonoBehaviour
 
 		headerLengths [0] += Player.longestFirstName + 1;
 		headerLengths [1] += Player.longestLastName + 1;
-
 		statHeaderLength += headerLengths [0];
 		statHeaderLength += headerLengths [1];
-
-		header = Resources.Load ("Header", typeof (GameObject));
-		prevWidth = 5.0f;
-		newWidth = 0.0f;
-		totalWidth = (8.03f * (statHeaderLength + 1.0f));
-		teamList.offsetMin = new Vector2 (0, - (20 * (Manager.Instance.Teams [0] [0].SP.Count + Manager.Instance.Teams [0] [0].RP.Count + 3) - 170.0f));
-		teamList.offsetMax = new Vector2 (totalWidth - 160.0f, 0);
-		totalWidth /= -2.0f;
 
 		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
 		{
@@ -72,12 +63,10 @@ public class LoadPitchers : MonoBehaviour
 			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
 		}
 			
-		teamList.offsetMax = new Vector2 (newWidth - 160.0f, 0);
+		content.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].SP.Count + Manager.Instance.Teams [0] [0].RP.Count + 3) - viewport.rect.height);
 	}
 
 	void DisplayPlayer (int index, float y)

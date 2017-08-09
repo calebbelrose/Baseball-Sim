@@ -6,25 +6,31 @@ using System.Linq;
 
 public class LoadTheirPlayers : MonoBehaviour
 {
-	public GameObject teamList, teamListHeader;
+	public RectTransform viewport, content;
+	public Transform teamListHeader;
 	int currSortedStat = 3;
 	bool ascending = true;
 	int theirTeam;
 	public Trade trade;
-	public List<int> theirPlayers;
+	public List<int> theirPlayers = new List<int> ();
 
 	void Start ()
 	{
-		theirPlayers = new List<int> ();
-		theirTeam = 1;
 		DisplayHeader ();
 		Sort (3);
 	}
 
-	// Refreshes players
-	public void Refresh (Dropdown dropdown)
+	// Changes other team
+	public void ChangeTeam (Dropdown dropdown)
 	{
 		theirTeam = dropdown.value + 1;
+		Refresh ();
+	}
+
+	// Refreshes players
+	public void Refresh ()
+	{
+		ascending = !ascending;
 		Sort (currSortedStat);
 	}
 
@@ -32,8 +38,9 @@ public class LoadTheirPlayers : MonoBehaviour
 	void DisplayHeader ()
 	{
 		int statHeaderLength = 0;
-
 		int [] headerLengths = new int [Manager.Instance.Skills.Length];
+		Object header = Resources.Load ("Header", typeof (GameObject));
+		float newWidth = 0.0f;
 
 		for (int i = 2; i < Manager.Instance.Skills.Length; i++)
 		{
@@ -43,35 +50,25 @@ public class LoadTheirPlayers : MonoBehaviour
 
 		headerLengths [0] += Player.longestFirstName + 1;
 		headerLengths [1] += Player.longestLastName + 1;
-
 		statHeaderLength += headerLengths [0];
 		statHeaderLength += headerLengths [1];
-
-		Object header = Resources.Load ("Header", typeof (GameObject));
-		float prevWidth = 5.0f, newWidth = 0.0f;
-		float totalWidth = (8.03f * (statHeaderLength + 1.0f));
-		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, - (20 * (Manager.Instance.Teams [0] [theirTeam].Players.Count + 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
-		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (totalWidth - 160.0f, 0);
-		totalWidth /= -2.0f;
 
 		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
 		{
 			GameObject statHeader = Instantiate (header) as GameObject;
+			float currWidth = (8.03f * headerLengths [i]);
+
 			statHeader.name = "header" + i.ToString ();
 			statHeader.transform.SetParent (teamListHeader.transform);
 			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
 			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader));
 
-			float currWidth = (8.03f * headerLengths [i]);
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
-		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (newWidth - 160.0f, 0);
+		content.sizeDelta = new Vector2 (newWidth, 0.0f);
 	}
 
 	// Displays players
@@ -87,8 +84,9 @@ public class LoadTheirPlayers : MonoBehaviour
 			Object playerButton = Resources.Load ("TheirPlayer", typeof (GameObject));
 			GameObject newPlayer = Instantiate (playerButton) as GameObject;
 			newPlayer.name = "player" + i.ToString ();
-			newPlayer.transform.SetParent (teamList.transform);
+			newPlayer.transform.SetParent (transform);
 			string playerString = Manager.Instance.Players [theirPlayers [i]].FirstName;
+			TradePlayerInfo tradeInfo;
 
 			for (int j = Manager.Instance.Players [theirPlayers [i]].FirstName.Length; j < Player.longestFirstName; j++)
 				playerString += " ";
@@ -139,12 +137,15 @@ public class LoadTheirPlayers : MonoBehaviour
 			playerString += " " + Manager.Instance.Players [theirPlayers [i]].Skills [Manager.Instance.Players [theirPlayers [i]].Skills.Length - 1];
 			newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerString;
 			newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-			TradePlayerInfo tradeInfo = newPlayer.GetComponent<TradePlayerInfo> ();
-			tradeInfo.teamNum = theirTeam;
-			tradeInfo.playerNum = i;
+			tradeInfo = newPlayer.GetComponent<TradePlayerInfo> ();
+			tradeInfo.TeamID = theirTeam;
+			tradeInfo.PlayerID = Manager.Instance.Players [theirPlayers [i]].ID;
+
 			if (trade.theirTrades.Contains (i))
 				tradeInfo.ChangeButtonColour ();
 		}
+
+		content.sizeDelta = new Vector2 (content.sizeDelta.x, 20 * (Manager.Instance.Teams [0] [theirTeam].Players.Count + 1) - viewport.rect.height);
 	}
 
 	// Starts Sorting players

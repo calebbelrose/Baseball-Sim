@@ -9,7 +9,7 @@ public class DisplayFreeAgents : MonoBehaviour
 	public RectTransform playerListRect, playerListParentRect;
 	public GameObject panel;
 
-	void Awake ()
+	void Start ()
 	{
 		if (needDisplayObjects)
 		{

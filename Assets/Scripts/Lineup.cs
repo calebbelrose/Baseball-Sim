@@ -11,6 +11,9 @@ public class Lineup : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
+		if (Manager.Instance.Teams [0] [0].SP.Count == 0)
+			Manager.Instance.Teams [0] [0].SetRoster ();
+		
 		positions.Add ("1B");
 		positions.Add ("2B");
 		positions.Add ("3B");

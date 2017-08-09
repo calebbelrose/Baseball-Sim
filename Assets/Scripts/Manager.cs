@@ -12,12 +12,13 @@ public class Manager : MonoBehaviour
 	public List<string> tradeList;
 	public List<string> injuries;
 	public int longestHitStreak, hitStreakYear, FYPDIndex;
-	public string hitStreakName;
+	public string hitStreakName, YourName;
 	public TradeDeadline tradeDeadline;
 	public List<int> hallOfFameCandidates;
 	public List<HallOfFameInductee> hallOfFameInductees = new List<HallOfFameInductee> ();
+	public Color TeamColour;
+	public Sprite TeamLogo;	// The logo for the player's team
 
-	private float newWidth;
 	private Draft draft;
 	private PlayerDisplay playerDisplay;
 	private DraftedPlayerDisplay draftedPlayerDisplay;
@@ -69,6 +70,20 @@ public class Manager : MonoBehaviour
 		finalsRounds = new List<int []> ();
 		freeAgents = new List<int> ();
 		internationalFreeAgents = new List<int> ();
+
+		// Loads the logo if there is one, otherwise it sets the logo
+		if (PlayerPrefs.HasKey ("Logo"))
+			TeamLogo = Resources.Load<Sprite> ("team" + PlayerPrefs.GetString ("Logo"));
+		else
+		{
+			TeamLogo = Resources.Load<Sprite> ("team1");
+			PlayerPrefs.SetString ("Logo", "1");
+			PlayerPrefs.Save ();
+		}
+
+		// Loads the player's name
+		if (PlayerPrefs.HasKey ("Your Name"))
+			YourName = PlayerPrefs.GetString ("Your Name");
 
 		// Loads everything after starting the game after having already played
 		if (PlayerPrefs.HasKey ("Year"))
@@ -273,22 +288,17 @@ public class Manager : MonoBehaviour
 	}
 
 	// Displays the headers
-	public void DisplayHeaders (Transform headerTrans, RectTransform parentsParentRect, DisplayType displayType)
+	public void DisplayHeaders (Transform headerTrans, RectTransform parentRect, RectTransform parentsParentRect, DisplayType displayType)
 	{
 		int skillHeaderLength = 0;
 		float characterWidth = 8.03f;
-
-		newWidth = 0.0f;
+		UnityEngine.Object header = Resources.Load ("Header", typeof (GameObject));
+		float newWidth = 0.0f;
 
 		skillHeaderLength += Player.longestFirstName + Player.longestLastName + 2;
 
 		for (int i = 2; i < Skills.Length; i++)
 			skillHeaderLength += Skills [i].Length + 1;
-
-		UnityEngine.Object header = Resources.Load ("Header", typeof (GameObject));
-		float prevWidth = 5.0f;
-		float totalWidth = (characterWidth * (skillHeaderLength + 1.0f));
-		totalWidth /= -2.0f;
 
 		for (int i = 0; i < Skills.Length; i++)
 		{
@@ -320,13 +330,10 @@ public class Manager : MonoBehaviour
 				currWidth = (characterWidth * (Player.longestFirstName + 1));
 
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
-		newWidth -= parentsParentRect.rect.width;
+		parentRect.sizeDelta = new Vector2 (newWidth, 0.0f);
 	}
 
 	// Displays the players
@@ -335,6 +342,8 @@ public class Manager : MonoBehaviour
 		GameObject [] currPlayers;
 		UnityEngine.Object playerButton;
 		string playerName;
+
+		parentRect.sizeDelta = new Vector2 (parentRect.sizeDelta.x, 20 * (playersToDisplay.Count + 1) - parentsParentRect.rect.height);
 
 		if (displayType == DisplayType.Draft)
 		{
@@ -359,7 +368,6 @@ public class Manager : MonoBehaviour
 
 			newPlayer.name = playerName + i.ToString ();
 			newPlayer.transform.SetParent (parentTrans);
-
 			playerListing = players [playersToDisplay[i]].FirstName;
 
 			for (int j = players [playersToDisplay[i]].FirstName.Length; j < Player.longestFirstName; j++)
@@ -429,9 +437,6 @@ public class Manager : MonoBehaviour
 					newPlayer.GetComponent<Button> ().onClick.AddListener (() => DisplayPlayer (id));
 			}
 		}
-
-		parentRect.offsetMin = new Vector2 (0, - (20 * (playersToDisplay.Count + 1) - parentsParentRect.rect.height));
-		parentRect.offsetMax = new Vector2 (newWidth, 0);
 	}
 
 	// Sorts the players

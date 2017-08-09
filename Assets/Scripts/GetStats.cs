@@ -6,19 +6,20 @@ using System.Linq;
 
 public class GetStats : MonoBehaviour
 {
-	GameObject teamList;
+	public RectTransform viewport, content;
+	public Transform teamListHeader;
+
 	//                                   0    1     2    3    4     5     6     7     8      9     10    11    12    13     14    15     16     17     18  19    20     21    22    23     24    25    26   27   28    29    30    31    32     33
 	string [] headers = new string [] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "BA", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "BAA", "WHIP" };
 	string [] playerInfoHeaders = new string [] { "First Name", "Last Name", "Position", "Team" };
 	int currSortedStat = 10;
-	char order = 'd';
+	bool ascending = true;
 	Team [] teams;
 	int [] playerInfoLengths, headerLengths;
 	List<string []> tempStats = new List<string []> ();
 
 	void Start ()
 	{
-		teamList = GameObject.Find ("TeamList");
 		playerInfoLengths = new int [playerInfoHeaders.Length];
 		headerLengths = new int [headers.Length];
 
@@ -104,8 +105,9 @@ public class GetStats : MonoBehaviour
 	void DisplayHeader ()
 	{
 		int standingsHeaderLength = -1;
-		GameObject teamListHeader = GameObject.Find ("StandingsHeader");
 		int totalPlayers = 0;
+		Object header = Resources.Load ("Header", typeof (GameObject));
+		float newWidth = 0.0f;
 
 		for (int i = 0; i < playerInfoLengths.Length; i++)
 			standingsHeaderLength += playerInfoLengths [i];
@@ -115,12 +117,6 @@ public class GetStats : MonoBehaviour
 
 		for (int i = 0; i < teams.Length; i++)
 			totalPlayers += teams [i].Players.Count;
-
-		Object header = Resources.Load ("Header", typeof (GameObject));
-		float prevWidth = -10.0f, newWidth = 0.0f;
-		float totalWidth = (8.03f * (standingsHeaderLength));
-		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, - (20 * (totalPlayers) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
-		totalWidth /= -2.0f;
 
 		for (int i = 0; i < playerInfoHeaders.Length; i++)
 		{
@@ -133,10 +129,7 @@ public class GetStats : MonoBehaviour
 
 			float currWidth = (8.03f * (playerInfoLengths [i]));
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
 		for (int i = 0; i < headers.Length; i++)
@@ -150,13 +143,10 @@ public class GetStats : MonoBehaviour
 
 			float currWidth = (8.03f * (headerLengths [i]));
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
-		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (newWidth - 160.0f, 0);
+		content.sizeDelta = new Vector2 (newWidth, 20 * (totalPlayers + 1) - viewport.rect.height);
 	}
 
 	// Displays players from all teams
@@ -174,7 +164,7 @@ public class GetStats : MonoBehaviour
 			GameObject newTeam = Instantiate (teamButton) as GameObject;
 
 			newTeam.name = "player" + i.ToString ();
-			newTeam.transform.SetParent (teamList.transform);
+			newTeam.transform.SetParent (transform);
 
 			for (int j = 0; j < playerInfoHeaders.Length; j++)
 			{
@@ -225,19 +215,11 @@ public class GetStats : MonoBehaviour
 		}
 
 		if (currSortedStat == statNum)
-		{
-			if (order == 'a')
-				order = 'd';
-			else
-				order = 'a';
-		}
+			ascending = !ascending;
+		else if (isInt || isFloat)
+			ascending = false;
 		else
-		{
-			if (isInt || isFloat)
-				order = 'd';
-			else
-				order = 'a';
-		}
+			ascending = true;
 
 		if (isInt)
 			IntSort (statNum, left, right);
@@ -256,7 +238,7 @@ public class GetStats : MonoBehaviour
 		int i = left, j = right;
 		string pivot = tempStats [ (int) (left + (right - left) / 2)] [statNum];
 
-		if (order == 'a')
+		if (ascending)
 			while (i <= j)
 			{
 				while (string.Compare (tempStats [i] [statNum], pivot) < 0)
@@ -312,7 +294,7 @@ public class GetStats : MonoBehaviour
 		int i = left, j = right;
 		int pivot = int.Parse (tempStats [ (int) (left + (right - left) / 2)] [statNum]);
 
-		if (order == 'a')
+		if (ascending)
 			while (i <= j)
 			{
 				while (int.Parse (tempStats [i] [statNum]) < pivot)
@@ -368,7 +350,7 @@ public class GetStats : MonoBehaviour
 		int i = left, j = right;
 		float pivot = float.Parse (tempStats [ (int) (left + (right - left) / 2)] [statNum]);
 
-		if (order == 'a')
+		if (ascending)
 			while (i <= j)
 			{
 				while (float.Parse (tempStats [i] [statNum]) < pivot)

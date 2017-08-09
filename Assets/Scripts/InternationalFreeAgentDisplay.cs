@@ -6,12 +6,12 @@ public class InternationalFreeAgentDisplay
 	UnityEngine.RectTransform playerListRect, playerListParentRect;
 	UnityEngine.GameObject panel;
 	int currSortedStat = 6;
-	bool ascending;
+	bool ascending = true;
 
 	// Displays the International free agents
 	public void Display ()
 	{
-		Manager.Instance.DisplayHeaders (header, playerListParentRect, DisplayType.InternationalFreeAgent);
+		Manager.Instance.DisplayHeaders (header, playerListRect, playerListParentRect, DisplayType.InternationalFreeAgent);
 		Sort (6);
 	}
 
@@ -27,12 +27,7 @@ public class InternationalFreeAgentDisplay
 			notString = true;
 
 		if (currSortedStat == headerNum)
-		{
-			if (ascending)
-				ascending = false;
-			else
-				ascending = true;
-		}
+			ascending = !ascending;
 		else if (notString)
 			ascending = false;
 		else

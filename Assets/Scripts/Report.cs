@@ -6,6 +6,9 @@ using System.Linq;
 
 public class Report : MonoBehaviour
 {
+	public RectTransform content, viewport;
+	public Text report;
+
 	List<Player> players;
 	List<int> sections = new List<int> ();
 
@@ -21,9 +24,6 @@ public class Report : MonoBehaviour
 		List<Player> result;
 		List<Team> resultT;
 		string text = "";
-		Text report = GameObject.Find ("test").GetComponent<Text> ();
-		int height;
-		RectTransform rect;
 
 		for (int i = 1; i < 25; i++)
 			sections.Add (i);
@@ -245,10 +245,7 @@ public class Report : MonoBehaviour
 			text += '\n';
 		}
 
-		report.text = text;
-		height = text.Split ('\n').Length * 30;
-		rect = report.GetComponent<RectTransform> ();
-		rect.sizeDelta = new Vector2 (500, height);
-		//rect.Position = new Vector3 (rect.Position.x, -height / 2 + 80, rect.Position.z);
+		report.text = text.Substring (0, text.Length - 2);
+		content.sizeDelta = new Vector2 (content.sizeDelta.x, 14 * report.text.Split ('\n').Length - viewport.rect.height);
 	}
 }

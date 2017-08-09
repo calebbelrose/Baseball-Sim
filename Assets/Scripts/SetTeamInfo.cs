@@ -5,26 +5,24 @@ using System.IO;
 
 public class SetTeamInfo : MonoBehaviour
 {
+	public InputField yourName, cityName, teamName;
+
 	// Sets the info for the player's team
 	void SetInfo ()
 	{
-		TeamInfo teamInfo = Manager.Instance.gameObject.GetComponent<TeamInfo> ();
-
-		string tempYourName = GameObject.Find ("fldYourName").GetComponent<InputField> ().text,
-		tempCityName = GameObject.Find ("fldCityName").GetComponent<InputField> ().text,
-		tempTeamName = GameObject.Find ("fldTeamName").GetComponent<InputField> ().text;
+		string tempYourName = yourName.text, tempCityName = cityName.text, tempTeamName = teamName.text;
 
 		// Sets your name to the entered name, otherwise to a random name
 		if (tempYourName != "")
-			teamInfo.yourName = tempYourName;
+			Manager.Instance.YourName = tempYourName;
 		else
 		{
 			string [] firstNames = File.ReadAllLines ("FirstNames.txt"),
 			lastNames = File.ReadAllLines ("LastNames.txt");
-			teamInfo.yourName = firstNames [ (int) (Random.value * firstNames.Length)] + " " + lastNames [ (int) (Random.value * lastNames.Length)];
+			Manager.Instance.YourName = firstNames [ (int) (Random.value * firstNames.Length)] + " " + lastNames [ (int) (Random.value * lastNames.Length)];
 		}
 
-		PlayerPrefs.SetString ("Your Name", teamInfo.yourName);
+		PlayerPrefs.SetString ("Your Name", Manager.Instance.YourName);
 
 		// Sets the city name to the entered name
 		if (tempCityName != "")

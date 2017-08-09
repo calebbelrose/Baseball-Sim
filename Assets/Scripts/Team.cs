@@ -9,6 +9,7 @@ public class Team
 	public string Shortform, CityName, TeamName;
 	public int Pick;
 	public bool AutomaticRoster = true;
+	public float GamesBehind;
 
 	private int id, stadiumCapacity = 50000, stadiumTier = 0;
 	private Division division;
@@ -16,7 +17,7 @@ public class Team
 	private float [] overalls;
 	private double cash, revenues = 0, expenses = 0, profit = 0, ticketPrice = 100.00, drinkPrice = 10.00, foodPrice = 10.00, uniformPrice = 100.00, newStadiumPrice = 5000000.00, hype = 0.5, currentSalary;
 	private int drinksSold = 0, foodSold = 0, uniformsSold = 0, ticketsSold = 0, currStarter = 0, wins, losses, streak = 0, cp;
-	private List<int> majorLeagueIndexes, minorLeagueIndexes, FortyManRoster, waivers, players, sp, rp, offensiveSubstitutes, defensiveSubstitutes, pinchRunners, draftPicks = new List<int> ();
+	private List<int> majorLeagueIndexes, minorLeagueIndexes, fortyManRoster, waivers, players, sp, rp, offensiveSubstitutes, defensiveSubstitutes, pinchRunners, draftPicks = new List<int> ();
 	private string [] stats;
 	private List<string> positions;
 	private List<List<int>> batters;
@@ -49,7 +50,7 @@ public class Team
 		offensiveSubstitutes = new List<int> ();
 		defensiveSubstitutes = new List<int> ();
 		pinchRunners = new List<int> ();
-		FortyManRoster = new List<int> ();
+		fortyManRoster = new List<int> ();
 		wins = 0;
 		losses = 0;
 		overalls = new float [3];
@@ -96,8 +97,8 @@ public class Team
 		return stats;
 	}
 
-	// Sets the order for the starting rotation and batting order
-	public void OrderLineup ()
+	// Sets the ascending for the starting rotation and batting ascending
+	public void ascendingLineup ()
 	{
 		batters = batters.OrderByDescending (playerX => Manager.Instance.Players [playerX[0]].Offense).ToList ();
 		sp = sp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList ();
@@ -314,7 +315,7 @@ public class Team
 				AddToMinors (Manager.Instance.Players [result [j]].ID);
 		}
 
-		OrderLineup ();
+		ascendingLineup ();
 		CalculateOveralls ();
 		return starters;
 	}
@@ -378,7 +379,7 @@ public class Team
 	{
 		if (teamType == TeamType.MLB)
 		{
-			if (IsInFortyManRoster (index))
+			if (AddToFortyManRoster (index))
 			{
 				int startIndex = minorLeagueIndexes.IndexOf (index);
 
@@ -398,11 +399,19 @@ public class Team
 	// Determines whether a player is in the forty man roster
 	public bool IsInFortyManRoster (int index)
 	{
-		if (FortyManRoster.Contains (index))
+		if (fortyManRoster.Contains (index))
 			return true;
-		else if (FortyManRoster.Count < 40)
+		else
+			return false;
+	}
+
+	public bool AddToFortyManRoster (int index)
+	{
+		if (fortyManRoster.Contains (index))
+			return true;
+		else if (fortyManRoster.Count < 40)
 		{
-			FortyManRoster.Add (index);
+			fortyManRoster.Add (index);
 			return true;
 		}
 		else
@@ -480,7 +489,7 @@ public class Team
 		cash = double.Parse (split [3]);
 	}
 
-	// Determines whether a player is currently in the batting order
+	// Determines whether a player is currently in the batting ascending
 	public bool IsBatter (int id)
 	{
 		int index = 0;
@@ -514,12 +523,12 @@ public class Team
 	// Removes a player from the team
 	public void RemovePlayer (int playerID)
 	{
-		players.RemoveAt (players.IndexOf (playerID));
+		players.Remove (playerID);
 		SavePlayers ();
 	}
 
 	// Saves the indexes of the team's players
-	void SavePlayers ()
+	public void SavePlayers ()
 	{
 		StreamWriter sw = new StreamWriter (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
 
@@ -548,7 +557,7 @@ public class Team
 	// Gets the index of player with the worst overall
 	public int GetWorstOverall ()
 	{
-		int [] temp = FortyManRoster.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToArray ();
+		int [] temp = fortyManRoster.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToArray ();
 
 		return temp [temp.Length - 1];
 	}
@@ -558,8 +567,8 @@ public class Team
 	{
 		currentSalary = 0;
 
-		for (int i = 0; i < FortyManRoster.Count; i++)
-			currentSalary += Manager.Instance.Players [FortyManRoster [i]].ContractYears [0].Salary;
+		for (int i = 0; i < fortyManRoster.Count; i++)
+			currentSalary += Manager.Instance.Players [fortyManRoster [i]].ContractYears [0].Salary;
 	}
 
 	// Resets the team's wins
@@ -575,13 +584,13 @@ public class Team
 	}
 
 	// Transfers a player to another team
-	public string Transfer (int playerIndex, int teamID)
+	public string Transfer (int playerID, int teamID)
 	{
-		Manager.Instance.Teams [0] [teamID].AddPlayer (Manager.Instance.Teams [0] [0].Players [playerIndex]);
-		Manager.Instance.Teams [0] [teamID].currentSalary += Manager.Instance.Players [Manager.Instance.Teams [0] [0].Players [playerIndex]].ContractYears [0].Salary;
-		currentSalary -= Manager.Instance.Players [Manager.Instance.Teams [0] [0].Players [playerIndex]].ContractYears [0].Salary;
-		RemovePlayer (playerIndex);
-		return Manager.Instance.Players [players [playerIndex]].FirstName + " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Players [playerIndex]].LastName + ", ";
+		Manager.Instance.Teams [0] [teamID].AddPlayer (playerID);
+		Manager.Instance.Teams [0] [teamID].currentSalary += Manager.Instance.Players [playerID].ContractYears [0].Salary;
+		currentSalary -= Manager.Instance.Players [playerID].ContractYears [0].Salary;
+		players.Remove (playerID);
+		return Manager.Instance.Players [playerID].FirstName + " " + Manager.Instance.Players [playerID].LastName + ", ";
 	}
 
 	// Bankrupts team, forcing them to get a new owner or ending the game if it's the players team
@@ -894,6 +903,14 @@ public class Team
 		get
 		{
 			return majorLeagueIndexes;
+		}
+	}
+
+	public List<int> FortyManRoster
+	{
+		get
+		{
+			return fortyManRoster;
 		}
 	}
 

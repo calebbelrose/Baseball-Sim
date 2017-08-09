@@ -92,6 +92,7 @@ public class ScheduledGame
             pitchers [j] = new List<int> ();
             pitchingStats [j] = new List<int []> ();
             battingStats [j] = new List<int []>[9];
+			ChangePitcher (j, teams [j].SP [teams [j].CurrStarter]);
             Manager.Instance.Players [pitchers [j] [0]].Stats [0] [17]++;
 
             if (designatedHitter)
@@ -140,7 +141,6 @@ public class ScheduledGame
                     bool strike, swing, atBatter = false, wildPitch = false, error;
                     float thisEye, thisContact, thisPower, thisAccuracy, thisLocation, accuracy = Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [6], pitchEffectiveness;
                     int pitchIndex;
-					Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [11]++;
 
                     if (balls == 0 && strikes == 0)
                     {
@@ -172,7 +172,6 @@ public class ScheduledGame
 							if(teams [otherTeam].OffensiveSubstitutes.Count > 0)
 							{
 								ChangeBatter (otherTeam, batters [otherTeam], teams [otherTeam].OffensiveSubstitutes [0]);
-								Manager.Instance.Players [teams [otherTeam].OffensiveSubstitutes [0]].Stats [0] [0]++;
 								teams [otherTeam].DefensiveSubstitutes.Remove (teams [otherTeam].OffensiveSubstitutes [0]);
 								teams [otherTeam].PinchRunners.Remove (teams [otherTeam].OffensiveSubstitutes [0]);
 								teams [otherTeam].OffensiveSubstitutes.RemoveAt (0);
@@ -252,11 +251,11 @@ public class ScheduledGame
 								if(Random.value * 100.0f > Manager.Instance.Players [bases [k].PlayerID].Skills [3])
 								{
 									Manager.Instance.Players [bases [k].PlayerID].Stats [0] [13]++;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [12]++;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [12]++;
 									outs++;
 									pitchingStats [thisTeam] [0] [1]++;
 									Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [14]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [14]++;
 
 									if (trackStats)
 										cs++;
@@ -266,7 +265,7 @@ public class ScheduledGame
 									if (Random.value > Manager.Instance.Players [pitchers [thisTeam] [0]].FieldingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
 									{
 										Manager.Instance.Players [bases [k].PlayerID].Stats [0] [12]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [11]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [11]++;
 										bases [k + 1] = bases [k];
 
 										if (trackStats)
@@ -275,11 +274,11 @@ public class ScheduledGame
 									else
 									{
 										Manager.Instance.Players [bases [k].PlayerID].Stats [0] [13]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [12]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [12]++;
 										outs++;
 										pitchingStats [thisTeam] [0] [1]++;
 										Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
-										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [14]++;
+										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [14]++;
 
 										if (trackStats)
 											cs++;
@@ -290,7 +289,7 @@ public class ScheduledGame
 									if (Random.value > Manager.Instance.Players [catcherIndex].CatchingChance || Random.value > Manager.Instance.Players [catcherIndex].FieldingChance || Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
 									{
 										Manager.Instance.Players [bases [k].PlayerID].Stats [0] [12]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [11]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [11]++;
 										bases [k + 1] = bases [k];
 
 										if (trackStats)
@@ -299,11 +298,11 @@ public class ScheduledGame
 									else
 									{
 										Manager.Instance.Players [bases [k].PlayerID].Stats [0] [13]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [12]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [12]++;
 										outs++;
 										pitchingStats [thisTeam] [0] [1]++;
 										Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
-										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [14]++;
+										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [14]++;
 
 										if (trackStats)
 											cs++;
@@ -312,7 +311,7 @@ public class ScheduledGame
 								else
 								{
 									Manager.Instance.Players [bases [k].PlayerID].Stats [0] [12]++;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [11]++;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [11]++;
 									bases [k + 1] = bases [k];
 
 									if (trackStats)
@@ -421,24 +420,24 @@ public class ScheduledGame
                                         homeruns++;
                                     Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [7]++;
                                     Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8] += 4;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [7] += 4;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [7] += 4;
                                     Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [2]++;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [2]++;
                                     battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [16]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [16]++;
 									pitchingStats [thisTeam] [0] [2]++;
                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [25]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [19]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [19]++;
 									pitchingStats [thisTeam] [0] [7]++;
                                     hit [otherTeam] [batters [otherTeam]] = true;
                                     noHitter [thisTeam] = false;
                                     numBases = 4;
                                     error = false;
 									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]++;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [0]++;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [0]++;
 									Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [15]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [15]++;
 									battingStats [otherTeam] [batters [otherTeam]] [0] [1]++;
                                 }
                                 else
@@ -454,14 +453,14 @@ public class ScheduledGame
                                         if (trackStats)
                                             triples++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [6]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [5]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [5]++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8] += 3;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [7] += 3;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [7] += 3;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [2]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [2]++;
                                         battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
                                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
-										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [16]++;
+										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [16]++;
 										pitchingStats [thisTeam] [0] [2]++;
                                         hit [otherTeam] [batters [otherTeam]] = true;
                                         noHitter [thisTeam] = false;
@@ -543,14 +542,14 @@ public class ScheduledGame
                                         if (trackStats)
                                             doubles++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [5]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [4]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [4]++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8] += 2;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [7] += 2;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [7] += 2;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [2]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [2]++;
                                         battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
                                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
-										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [16]++;
+										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [16]++;
 										pitchingStats [thisTeam] [0] [2]++;
                                         hit [otherTeam] [batters [otherTeam]] = true;
                                         noHitter [thisTeam] = false;
@@ -605,13 +604,13 @@ public class ScheduledGame
                                         if (trackStats)
                                             singles++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [4]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [3]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [3]++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [8]++;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [3]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [2]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [2]++;
                                         battingStats [otherTeam] [batters [otherTeam]] [0] [3]++;
                                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [22]++;
-										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [16]++;
+										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [16]++;
 										pitchingStats [thisTeam] [0] [2]++;
                                         hit [otherTeam] [batters [otherTeam]] = true;
                                         noHitter [thisTeam] = false;
@@ -761,7 +760,7 @@ public class ScheduledGame
                                     Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]++;
                                     battingStats [otherTeam] [batters [otherTeam]] [0] [1]++;
                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [15]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [15]++;
                                 }
 
                                 if (outs < 3)
@@ -786,25 +785,25 @@ public class ScheduledGame
                                                     if (bases [k] != null && !bases [k].Error)
                                                     {
                                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
-														Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [8]++;
+														Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [8]++;
                                                         Manager.Instance.Players [bases [k].PlayerID].Stats [0] [2]++;
-														Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [1]++;
+														Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [1]++;
                                                         battingStats [otherTeam] [bases [k].BatterIndex] [0] [2]++;
                                                         battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
                                                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [24]++;
-														Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [18]++;
+														Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [18]++;
 														pitchingStats [thisTeam] [0] [4]++;
                                                     }
 
                                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
-													Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [17]++;
+													Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [17]++;
 													pitchingStats [thisTeam] [0] [3]++;
                                                 }
                                                 else if (newBase > 3)
                                                 {
                                                     scores [otherTeam]++;
                                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
-													Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [17]++;
+													Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [17]++;
 													pitchingStats [thisTeam] [0] [3]++;
                                                 }
                                                 else
@@ -818,18 +817,18 @@ public class ScheduledGame
                                                 if (bases [k] != null && !bases [k].Error)
                                                 {
                                                     Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
-													Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [8]++;
+													Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [8]++;
                                                     Manager.Instance.Players [bases [k].PlayerID].Stats [0] [2]++;
-													Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [1]++;
+													Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [1]++;
                                                     battingStats [otherTeam] [bases [k].BatterIndex] [0] [2]++;
                                                     battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
                                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [24]++;
-													Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [18]++;
+													Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [18]++;
 													pitchingStats [thisTeam] [0] [4]++;
                                                 }
 
                                                 Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
-												Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [17]++;
+												Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [17]++;
 												pitchingStats [thisTeam] [0] [3]++;
                                             }
                                             else
@@ -838,12 +837,12 @@ public class ScheduledGame
                                     if (fly && advanced)
                                     {
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [14]++;
-										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [13]++;
+										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [13]++;
 										//0atBats, 1runs, 2hits, 4singles, 5doubles, 6triples, 7homeruns, 8totalBases, 9runsBattedIn, 10walks, 10-11strikeouts, 11-12stolenBases, 12-13caughtStealing, 13-14sacrifices, 14-20inningsPitched, 15-21atBatsAgainst, 16-22hitsAgainst, 17-23runsAgainst, 18-24earnedRuns, 19-25homerunsAgainst, 20-26walksAgainst, 21-27strikeoutsAgainst, 22-31reachedOnError, 23-32hitByPitch;
                                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]--;
                                         battingStats [otherTeam] [batters [otherTeam]] [0] [1]--;
                                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]--;
-										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [15]--;
+										Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [15]--;
                                     }
                                 }
 
@@ -874,16 +873,16 @@ public class ScheduledGame
                                 {
                                     scores [otherTeam]++;
                                     Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [8]++;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [8]++;
                                     Manager.Instance.Players [bases [k].PlayerID].Stats [0] [2]++;
-									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [1]++;
+									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [1]++;
                                     battingStats [otherTeam] [bases [k].BatterIndex] [0] [2]++;
                                     battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [23]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [17]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [17]++;
 									pitchingStats [thisTeam] [0] [3]++;
                                     Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [24]++;
-									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [18]++;
+									Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [18]++;
 									pitchingStats [thisTeam] [0] [4]++;
                                 }
                                 else
@@ -902,7 +901,7 @@ public class ScheduledGame
 								battingStats [otherTeam] [batters [otherTeam]] [0] [7]++;
                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [20]++;
                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [21]++;
-						Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [15]++;
+						Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [15]++;
                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [1]++;
                         battingStats [otherTeam] [batters [otherTeam]] [0] [1]++;
                         /*if (i == 0)
@@ -910,15 +909,16 @@ public class ScheduledGame
                         if (trackStats)
                             strikeouts++;
 
-                        batters [otherTeam] = (batters [otherTeam] + 1) % 9;
                         Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [11]++;
-						Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [10]++;
+
+						Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [10]++;
                         battingStats [otherTeam] [batters [otherTeam]] [0] [6]++;
                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [27]++;
-						Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [21]++;
+						Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [21]++;
 						pitchingStats [thisTeam] [0] [6]++;
                         strikes = 0;
                         balls = 0;
+						batters [otherTeam] = (batters [otherTeam] + 1) % 9;
                     }
                     else if (balls == 4)
                     {
@@ -931,7 +931,7 @@ public class ScheduledGame
                         {
                             scores [otherTeam]++;
                             Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [9]++;
-							Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [8]++;
+							Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [8]++;
                             Manager.Instance.Players [bases [3].PlayerID].Stats [0] [2]++;
                             battingStats [otherTeam] [bases [3].BatterIndex] [0] [2]++;
                             battingStats [otherTeam] [batters [otherTeam]] [0] [4]++;
@@ -951,21 +951,21 @@ public class ScheduledGame
                         if (atBatter)
                         {
                             Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [32]++;
-							Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [23]++;
+							Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [23]++;
                             if (trackStats)
                                 hbp++;
                         }
                         else
                         {
                             Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].Stats [0] [10]++;
-							Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [pitchSplit] [0] [9]++;
+							Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [9]++;
                             battingStats [otherTeam] [batters [otherTeam]] [0] [5]++;
                             if (trackStats)
                                 walks++;
                         }
                     
                         Manager.Instance.Players [pitchers [thisTeam] [0]].Stats [0] [26]++;
-						Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [batSplit] [0] [20]++;
+						Manager.Instance.Players [pitchers [thisTeam] [0]].StatSplits [0] [batSplit] [20]++;
 						pitchingStats [thisTeam] [0] [5]++;
 
                         batters [otherTeam] = (batters [otherTeam] + 1) % 9;
@@ -1175,7 +1175,7 @@ public class ScheduledGame
     {
 		Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
 		Manager.Instance.Players [batterIndex].Stats [0] [31]++;
-		Manager.Instance.Players [pitcherIndex].StatSplits [batSplit] [0] [22]++;
+		Manager.Instance.Players [pitcherIndex].StatSplits [0] [batSplit] [22]++;
 
 		if (trackStats)
 			errors++;
@@ -1187,6 +1187,7 @@ public class ScheduledGame
         teams [teamIndex].Batters [batterIndex].Insert (0, playerIndex);
         battingStats [teamIndex] [batterIndex].Insert (0, new int[10]);
         battingStats [teamIndex] [batterIndex] [0] [0] = Manager.Instance.Players [teams [teamIndex].Batters [batterIndex] [0]].ID;
+		Manager.Instance.Players [playerIndex].Stats [0] [0]++;
     }
 
 	// Changes a team's pitcher
@@ -1195,6 +1196,7 @@ public class ScheduledGame
         pitchers [teamIndex].Insert (0, playerIndex);
         pitchingStats [teamIndex].Insert (0, new int[9]);
         pitchingStats [teamIndex] [0] [0] = Manager.Instance.Players [pitchers [teamIndex] [0]].ID;
+		Manager.Instance.Players [playerIndex].Stats [0] [0]++;
 
 		if (Manager.Instance.Players [playerIndex].Throws == 'L')
 			return 1;

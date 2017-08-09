@@ -6,25 +6,34 @@ using System.Linq;
 
 public class LoadYourPlayers : MonoBehaviour
 {
-	public GameObject teamList, teamListHeader;
-	int currSortedStat = 3;
-	char order = 'd';
+	public RectTransform viewport, content;
+	public Transform teamListHeader;
 	public Trade trade;
-	List<int> yourPlayers;
+
+	int currSortedStat = 3;
+	bool ascending = true;
+	List<int> yourPlayers = new List<int> ();
 
 	void Start ()
 	{
-		yourPlayers = new List<int> ();
 		DisplayHeader ();
 		Sort (3);
+	}
+
+	// Refreshes players
+	public void Refresh ()
+	{
+		ascending = !ascending;
+		Sort (currSortedStat);
 	}
 
 	// Displays header
 	void DisplayHeader ()
 	{
 		int statHeaderLength = 0;
-
 		int [] headerLengths = new int [Manager.Instance.Skills.Length];
+		Object header = Resources.Load ("Header", typeof (GameObject));
+		float newWidth = 0.0f;
 
 		for (int i = 2; i < Manager.Instance.Skills.Length; i++)
 		{
@@ -34,35 +43,25 @@ public class LoadYourPlayers : MonoBehaviour
 
 		headerLengths [0] += Player.longestFirstName + 1;
 		headerLengths [1] += Player.longestLastName + 1;
-
 		statHeaderLength += headerLengths [0];
 		statHeaderLength += headerLengths [1];
-
-		Object header = Resources.Load ("Header", typeof (GameObject));
-		float prevWidth = 5.0f, newWidth = 0.0f;
-		float totalWidth = (8.03f * (statHeaderLength + 1.0f));
-		teamList.GetComponent<RectTransform> ().offsetMin = new Vector2 (0, - (20 * (Manager.Instance.Teams [0] [0].Players.Count + 1) - teamList.transform.parent.gameObject.GetComponent<RectTransform> ().rect.height));
-		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (totalWidth - 160.0f, 0);
-		totalWidth /= -2.0f;
 
 		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
 		{
 			GameObject statHeader = Instantiate (header) as GameObject;
+			float currWidth = (8.03f * headerLengths [i]);
+
 			statHeader.name = "header" + i.ToString ();
 			statHeader.transform.SetParent (teamListHeader.transform);
 			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
 			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader));
 
-			float currWidth = (8.03f * headerLengths [i]);
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.GetComponent<RectTransform> ().transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 		}
 
-		teamList.GetComponent<RectTransform> ().offsetMax = new Vector2 (newWidth - 160.0f, 0);
+		content.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].Players.Count + 1) - viewport.rect.height);
 	}
 
 	// Displays players
@@ -77,8 +76,10 @@ public class LoadYourPlayers : MonoBehaviour
 		{
 			Object playerButton = Resources.Load ("YourPlayer", typeof (GameObject));
 			GameObject newPlayer = Instantiate (playerButton) as GameObject;
+			TradePlayerInfo tradeInfo;
+
 			newPlayer.name = "player" + i.ToString ();
-			newPlayer.transform.SetParent (teamList.transform);
+			newPlayer.transform.SetParent (transform);
 
 			string playerString = Manager.Instance.Players [yourPlayers [i]].FirstName;
 
@@ -131,9 +132,10 @@ public class LoadYourPlayers : MonoBehaviour
 			playerString += " " + Manager.Instance.Players [yourPlayers [i]].Skills [Manager.Instance.Players [yourPlayers [i]].Skills.Length - 1];
 			newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerString;
 			newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-			TradePlayerInfo tradeInfo = newPlayer.GetComponent<TradePlayerInfo> ();
-			tradeInfo.teamNum = 0;
-			tradeInfo.playerNum = i;
+			tradeInfo = newPlayer.GetComponent<TradePlayerInfo> ();
+			tradeInfo.TeamID = 0;
+			tradeInfo.PlayerID = Manager.Instance.Players [yourPlayers [i]].ID;
+
 			if (trade.yourTrades.Contains (i))
 				tradeInfo.ChangeButtonColour ();
 		}
@@ -156,80 +158,76 @@ public class LoadYourPlayers : MonoBehaviour
 			notString = true;
 
 		if (currSortedStat == headerNum)
-		if (order == 'a')
-			order = 'd';
+			ascending = !ascending;
+		else if (notString)
+			ascending = false;
 		else
-			order = 'a';
-		else
-			if (notString)
-				order = 'd';
-			else
-				order = 'a';
+			ascending = true;
 
 		currSortedStat = headerNum;
 
-		if (order == 'a')
+		if (ascending)
 			switch (headerNum)
-		{
-		case 0:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].FirstName).ToList ();
-			break;
-		case 1:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].LastName).ToList ();
-			break;
-		case 2:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Position).ToList ();
-			break;
-		case 3:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToList ();
-			break;
-		case 4:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Offense).ToList ();
-			break;
-		case 5:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Defense).ToList ();
-			break;
-		case 6:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Potential).ToList ();
-			break;
-		case 7:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Age).ToList ();
-			break;
-		default:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Skills [headerNum - 8]).ToList ();
-			break;
-		}
+			{
+			case 0:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].FirstName).ToList ();
+				break;
+			case 1:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].LastName).ToList ();
+				break;
+			case 2:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Position).ToList ();
+				break;
+			case 3:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToList ();
+				break;
+			case 4:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Offense).ToList ();
+				break;
+			case 5:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Defense).ToList ();
+				break;
+			case 6:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Potential).ToList ();
+				break;
+			case 7:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Age).ToList ();
+				break;
+			default:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderBy (playerX => Manager.Instance.Players [playerX].Skills [headerNum - 8]).ToList ();
+				break;
+			}
 		else
 			switch (headerNum)
-		{
-		case 0:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].FirstName).ToList ();
-			break;
-		case 1:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].LastName).ToList ();
-			break;
-		case 2:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Position).ToList ();
-			break;
-		case 3:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList ();
-			break;
-		case 4:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Offense).ToList ();
-			break;
-		case 5:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Defense).ToList ();
-			break;
-		case 6:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Potential).ToList ();
-			break;
-		case 7:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Age).ToList ();
-			break;
-		default:
-			yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [headerNum - 8]).ToList ();
-			break;
-		}
+			{
+			case 0:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].FirstName).ToList ();
+				break;
+			case 1:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].LastName).ToList ();
+				break;
+			case 2:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Position).ToList ();
+				break;
+			case 3:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList ();
+				break;
+			case 4:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Offense).ToList ();
+				break;
+			case 5:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Defense).ToList ();
+				break;
+			case 6:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Potential).ToList ();
+				break;
+			case 7:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Age).ToList ();
+				break;
+			default:
+				yourPlayers = Manager.Instance.Teams [0] [0].Players.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [headerNum - 8]).ToList ();
+				break;
+			}
 
 		DisplayPlayers ();
 	}

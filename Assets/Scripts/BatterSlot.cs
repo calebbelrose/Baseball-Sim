@@ -10,7 +10,6 @@ public class BatterSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 	public Dropdown PositionDropdown;
 
 	private Vector2 offset;
-	private GameObject[] playerList;
 	private CanvasGroup cg;
 	private Vector3 startPos;
 	private Transform startParent;

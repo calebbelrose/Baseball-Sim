@@ -9,7 +9,7 @@ public class DisplayDraftedPlayers : MonoBehaviour
 	public RectTransform playerListRect, playerListParentRect;
 	public GameObject panel;
 
-	void Awake ()
+	void Start ()
 	{
 		if (needDisplayObjects)
 		{

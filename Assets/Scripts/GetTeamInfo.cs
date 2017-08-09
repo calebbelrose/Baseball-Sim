@@ -9,6 +9,6 @@ public class GetTeamInfo : MonoBehaviour
 	{
 		Team team = Manager.Instance.Teams [0] [0];
 
-		GetComponent<Text> ().text = Manager.Instance.gameObject.GetComponent<TeamInfo> ().yourName + "'s " + team.CityName + " " + team.TeamName;
+		GetComponent<Text> ().text = Manager.Instance.YourName + "'s " + team.CityName + " " + team.TeamName;
 	}
 }

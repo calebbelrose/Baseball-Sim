@@ -19,7 +19,7 @@ public class Player
 	private string firstName, lastName, position, injuryLocation, injurySeriousness;
 	private float offense, defense, overall;
 	private List<int []> stats = new List<int []> (); //0games, 1atBats, 2runs, 3hits, 4singles, 5doubles, 6triples, 7homeruns, 8totalBases, 9runsBattedIn, 10walks, 11strikeouts, 12stolenBases, 13caughtStealing, 14sacrifices, 15wins, 16losses, 17gamesStarted, 18saves, 19saveOpportunities, 20inningsPitched, 21atBatsAgainst, 22hitsAgainst, 23runsAgainst, 24earnedRuns, 25homerunsAgainst, 26walksAgainst, 27strikeoutsAgainst, 28qualityStarts, 29completeGames, 30hitStreak, 31reachedOnError, 32hitByPitch, 33longestHitStreak, 34hitStreakYear, 35noHitters, 36errors;
-	private List<int []> [] statSplits = new List<int []> [2]; //0atBats, 1runs, 2hits, 3singles, 4doubles, 5triples, 6homeruns, 7totalBases, 8runsBattedIn, 9walks, 10strikeouts, 11stolenBases, 12caughtStealing, 13sacrifices, 14inningsPitched, 15atBatsAgainst, 16hitsAgainst, 17runsAgainst, 18earnedRuns, 19homerunsAgainst, 20walksAgainst, 21strikeoutsAgainst, 22reachedOnError, 23hitByPitch;
+	private List<int [] []> statSplits = new List<int [] []> (); //0atBats, 1runs, 2hits, 3singles, 4doubles, 5triples, 6homeruns, 7totalBases, 8runsBattedIn, 9walks, 10strikeouts, 11stolenBases, 12caughtStealing, 13sacrifices, 14inningsPitched, 15atBatsAgainst, 16hitsAgainst, 17runsAgainst, 18earnedRuns, 19homerunsAgainst, 20walksAgainst, 21strikeoutsAgainst, 22reachedOnError, 23hitByPitch;
 	private int [] skills = new int [11]; // 0power, 1contact, 2eye, 3speed, 4catching, 5throwing power, 6accuracy, 7movement, 8durability 9energy, 10endurance
 	private List<Pitch> pitches;
 	private List<int> pitchesAvailable;
@@ -148,8 +148,9 @@ public class Player
 		else
 			isPitcher = false;
 
-		statSplits [0] = new List<int []> ();
-		statSplits [1] = new List<int []> ();
+		statSplits.Add(new int[2] []);
+		statSplits [0] [0] = new int [24];
+		statSplits [0] [1] = new int [24];
 
 		NewYear ();
 	}
@@ -264,18 +265,19 @@ public class Player
 		}
 
 		stats.Insert (0, new int [37]);
-		statSplits [0].Insert (0, new int [37]);
-		statSplits [1].Insert (0, new int [37]);
+		statSplits.Insert (0, new int[2] []);
+		statSplits [0] [0] = new int [24];
+		statSplits [0] [1] = new int [24];
 		sw = new StreamWriter (@"Save\PlayerStats" + playerID + "-" + (stats.Count - 1) + ".txt");
 
 		for (int i = 0; i < 2; i++)
 		{
-			statSplits [i] [0] [0] = 0;
+			statSplits [0] [i] [0] = 0;
 			sw.Write ("0");
 
-			for (int j = 1; j < statSplits [i] [0].Length; j++)
+			for (int j = 1; j < statSplits [0] [i].Length; j++)
 			{
-				statSplits [i] [0] [j] = 0;
+				statSplits [0] [i] [j] = 0;
 				sw.Write (",0");
 			}
 			sw.WriteLine ("");
@@ -348,10 +350,10 @@ public class Player
 
 		for (int i = 0; i < 2; i++)
 		{
-			sw.Write (statSplits [i] [0] [0]);
+			sw.Write (statSplits [0] [i] [0]);
 
-			for (int j = 1; j < statSplits [i] [0].Length; j++)
-				sw.Write ("," + statSplits [i] [0] [j]);
+			for (int j = 1; j < statSplits [0] [i].Length; j++)
+				sw.Write ("," + statSplits [0] [i] [j]);
 
 			sw.WriteLine ("");
 		}
@@ -401,18 +403,17 @@ public class Player
 		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 3.0f * 5;
 		catchingChance = 0.95f + (skills [3] + skills [4]) / 2.0f * 5;
 
-		statSplits [0] = new List<int []> ();
-		statSplits [1] = new List<int []> ();
-
 		for (int i = 0; i < Manager.Instance.Year - draftYear + 1; i++)
 		{
 			string [] allStats = File.ReadAllLines (@"Save\PlayerStats" + _playerID + "-" + i + ".txt");
 			string [] splitStats;
 
+			statSplits.Add(new int[2] []);
+
 			for(int j = 0; j < 2; j++)
 			{
 				splitStats = allStats [j].Split (',');
-				statSplits [i].Add (new int [splitStats.Length]);
+				statSplits [0] [j] = new int [splitStats.Length];
 
 				for (int k = 0; k < splitStats.Length; k++)
 					statSplits [i] [j] [k] = int.Parse (splitStats [k]);
@@ -861,11 +862,11 @@ public class Player
 		}
 	}
 
-	public List<int []> [] StatSplits
+	public List<int [] []> StatSplits
 	{
 		get
 		{
-			return StatSplits;
+			return statSplits;
 		}
 	}
 

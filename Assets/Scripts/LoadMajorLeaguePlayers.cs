@@ -6,10 +6,10 @@ using System.Linq;
 
 public class LoadMajorLeaguePlayers : MonoBehaviour
 {
-	public RectTransform teamList, batterList;
+	public RectTransform viewport, teamList, batterList;
 	public Transform teamListHeader, batterListHeader;
 	int currSortedStat = 3;
-	char order = 'd';
+	bool ascending = true;
 	List<int> yourPlayers;
 
 	void Start ()
@@ -27,9 +27,8 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 	{
 		int statHeaderLength = 0;
 		int [] headerLengths = new int [Manager.Instance.Skills.Length];
-		Object header;
-		float prevWidth, newWidth;
-		float totalWidth;
+		Object header = Resources.Load ("Header", typeof (GameObject));
+		float newWidth = 0.0f;
 
 		for (int i = 2; i < Manager.Instance.Skills.Length; i++)
 		{
@@ -43,15 +42,6 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 		statHeaderLength += headerLengths [0];
 		statHeaderLength += headerLengths [1];
 
-		header = Resources.Load ("Header", typeof (GameObject));
-		prevWidth = 5.0f;
-		newWidth = 0.0f;
-		totalWidth = (8.03f * (statHeaderLength + 1.0f));
-		teamList.offsetMin = new Vector2 (0, - (20 * (Manager.Instance.Teams [0] [0].MajorLeagueIndexes.Count - 8) - 160.0f));
-		teamList.offsetMax = new Vector2 (totalWidth - 160.0f, 0);
-		batterList.offsetMax = new Vector2 (totalWidth - 160.0f, 0);
-		totalWidth /= -2.0f;
-
 		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
 		{
 			GameObject statHeader = Instantiate (header) as GameObject;
@@ -64,17 +54,14 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
 			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader));
 			newWidth += currWidth;
-			totalWidth += currWidth / 2.0f + prevWidth / 2.0f;
-			prevWidth = currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.transform.localPosition = new Vector3 (totalWidth, 0.0f, 0.0f);
 			batterStatHeader = Instantiate (statHeader) as GameObject;
 			batterStatHeader.transform.SetParent (batterListHeader);
 			batterStatHeader.GetComponent<Button> ().interactable = false;
 		}
-
-		batterList.GetComponent <Lineup> ().SetSize (newWidth);
-		teamList.offsetMax = new Vector2 (newWidth - 160.0f, 0);
+			
+		teamList.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].MajorLeagueIndexes.Count - 8) - viewport.rect.height);
+		batterList.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].MajorLeagueIndexes.Count - 8) - viewport.rect.height);
 	}
 
 	// Displays players
@@ -92,10 +79,9 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 				Object playerButton = Resources.Load ("Player", typeof(GameObject));
 				GameObject newPlayer = Instantiate (playerButton) as GameObject;
 				BatterSlot batterSlot = newPlayer.AddComponent<BatterSlot> ();
+				string playerString = Manager.Instance.Players [yourPlayers [i]].FirstName;
 
 				newPlayer.transform.SetParent (teamList.transform);
-
-				string playerString = Manager.Instance.Players [yourPlayers [i]].FirstName;
 
 				for (int j = Manager.Instance.Players [yourPlayers [i]].FirstName.Length; j < Player.longestFirstName; j++)
 					playerString += " ";
@@ -169,23 +155,15 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 			notString = true;
 
 		if (currSortedStat == headerNum)
-		{
-			if (order == 'a')
-				order = 'd';
-			else
-				order = 'a';
-		}
+			ascending = !ascending;
+		else if (notString)
+			ascending = false;
 		else
-		{
-			if (notString)
-				order = 'd';
-			else
-				order = 'a';
-		}
+			ascending = true;
 
 		currSortedStat = headerNum;
 
-		if (order == 'a')
+		if (ascending)
 			switch (headerNum)
 		{
 		case 0:

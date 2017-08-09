@@ -1,28 +1,31 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class MuteControl : MonoBehaviour 
 {
+	public AudioSource musicPlayer;
+
 	float previousVolume;	// Stores the previous volume level
+	UnityEngine.UI.Slider slider;
 
 	// Sets the slider value to the current volume level
 	void Awake ()
 	{
-		GameObject musicPlayer = GameObject.Find ("music");
+		slider = GetComponent<UnityEngine.UI.Slider> ();
+
 		if (musicPlayer != null)
-			GetComponent<UnityEngine.UI.Slider> ().value = musicPlayer.GetComponent<AudioSource> ().volume;
+			GetComponent<UnityEngine.UI.Slider> ().value = musicPlayer.volume;
 	}
 
 	// Sets the volume to 0 when muted and restore to the previous volume level when unmuted
 	public void Mute (Toggle toggle)
 	{
 		if (toggle.isOn)
-			GetComponent<UnityEngine.UI.Slider> ().value = previousVolume;
+			slider.value = previousVolume;
 		else
 		{
-			previousVolume = GetComponent<UnityEngine.UI.Slider> ().value;
-			GetComponent<UnityEngine.UI.Slider> ().value = 0.0f;
+			previousVolume = slider.value;
+			slider.value = 0.0f;
 		}
 	}
 }

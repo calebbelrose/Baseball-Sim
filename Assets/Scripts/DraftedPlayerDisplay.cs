@@ -6,12 +6,12 @@ public class DraftedPlayerDisplay
 	UnityEngine.RectTransform playerListRect, playerListParentRect;
 	UnityEngine.GameObject panel;
 	int currSortedStat = 6;
-	bool ascending;
+	bool ascending = true;
 
 	// Displays the drafted players
 	public void Display ()
 	{
-		Manager.Instance.DisplayHeaders (header, playerListParentRect, DisplayType.Drafted);
+		Manager.Instance.DisplayHeaders (header, playerListRect, playerListParentRect, DisplayType.Drafted);
 		Sort (6);
 	}
 
@@ -27,12 +27,7 @@ public class DraftedPlayerDisplay
 			notString = true;
 
 		if (currSortedStat == headerNum)
-		{
-			if (ascending)
-				ascending = false;
-			else
-				ascending = true;
-		}
+			ascending = !ascending;
 		else if (notString)
 			ascending = false;
 		else

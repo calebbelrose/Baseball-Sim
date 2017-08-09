@@ -12,8 +12,8 @@ public class Draft
 	Transform draftList, header;
 	RectTransform draftListRect, draftListParentRect;
 	int currSortedStat = 0, currIndex = 0, initialPlayers;
-	bool ascending;
-	List<int> pickOrder;
+	bool ascending = true;
+	List<int> pickascending;
 
 	// Use this for initialization
 	public Draft ()
@@ -64,26 +64,26 @@ public class Draft
 	// Makes the first selections for the draft
 	public void StartDraft ()
 	{
-		SetPickOrder ();
+		SetPickascending ();
 		Sort (6);
 		Display ();
 
-		while (pickOrder [currIndex] != 0)
+		while (pickascending [currIndex] != 0)
 			DraftPlayer (GameObject.Find ("player" + currIndex), 0);
 		
 		Manager.Instance.DisplayPlayers (draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 	}
 
-	// Sets the pick order
-	public void SetPickOrder ()
+	// Sets the pick ascending
+	public void SetPickascending ()
 	{
-		pickOrder = new List<int> ();
+		pickascending = new List<int> ();
 		Team [] teams;
 
 		teams = Manager.Instance.Teams [0].OrderBy (teamX => teamX.Pick).ToArray ();
 
 		for (int i = 0; i < teams.Length; i++)
-			pickOrder.Add (teams [i].ID);
+			pickascending.Add (teams [i].ID);
 	}
 
 	// Sorts the players by the selected stat
@@ -97,12 +97,7 @@ public class Draft
 			notString = true;
 
 		if (currSortedStat == headerNum)
-		{
-			if (ascending)
-				ascending = false;
-			else
-				ascending = true;
-		}
+				ascending = !ascending;
 		else if (notString)
 			ascending = false;
 		else
@@ -153,7 +148,7 @@ public class Draft
 	// Drafts a player
 	public void DraftPlayer (GameObject player, int playerNum)
 	{
-		newPlayers [pickOrder[currIndex]].Add (draftPlayers [playerNum]);
+		newPlayers [pickascending[currIndex]].Add (draftPlayers [playerNum]);
 		draftPlayers.RemoveAt (playerNum);
 
 		if (draftPlayers.Count == 0)
@@ -194,7 +189,7 @@ public class Draft
 	// Displays the draft players
 	public void Display ()
 	{
-		Manager.Instance.DisplayHeaders (header, draftListParentRect, DisplayType.Draft);
+		Manager.Instance.DisplayHeaders (header, draftListRect, draftListParentRect, DisplayType.Draft);
 		Manager.Instance.DisplayPlayers (draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 	}
 
