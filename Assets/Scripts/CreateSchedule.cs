@@ -6,7 +6,7 @@ public class CreateSchedule
 	// Schedules all of the games and events for the year
 	public static void ScheduleEvents (List<Day> days, bool leapYear)
 	{
-		int index= days.Count - 1;
+		int index = days.Count - 1;
 		int allStarIndex;
 
 		days [index].AddEvent (new EndOfYear (), index);
@@ -41,6 +41,7 @@ public class CreateSchedule
 			days [index].AddEvent (new HallOfFameInduction (), index);
 
 			days [242].AddEvent (new WaiverTradeDeadline (), 242);
+			days [242].AddEvent (new ActiveRosterExpansion (), 242);
 
 			index = 182;
 		}

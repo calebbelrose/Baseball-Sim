@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Runner
 {
-	public int PlayerID;
+	public int PlayerID;		// Player ID
 
-	private int batterIndex;
-	private bool error;
+	private int batterIndex;	// Index in the batting order
+	private bool error;			// Whether the batter advanced on an error or not
 
 	// 2-Arg Constructor
 	public Runner (int _playerID, int _batterIndex)

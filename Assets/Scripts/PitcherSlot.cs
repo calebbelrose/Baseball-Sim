@@ -4,16 +4,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class PitcherSlot : MonoBehaviour, IPointerDownHandler, IDragHandler, IEndDragHandler, IDropHandler
+public class PitcherSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IDropHandler
 {
-	public int Slot, PlayerID;
+	public int Slot;				// Slot the pitcher is in
+	public int PlayerID;			// Player ID
 
-	private Vector2 offset;
-	private CanvasGroup cg;
-	private Vector3 startPos;
-	private Transform startParent;
+	private Vector2 offset;			// Offset from the mouse
+	private CanvasGroup cg;			// Canvas group
+	private Vector3 startPos;		// Position the object is at when it is clicked
+	private Transform startParent;	// Parent when the object is clicked
+	private int childIndex;			// Child index when the object is clicked
 
-	public static int MaxIndex;
+	public static int MaxIndex;		// Maximum slot index, used for closer
 
 	void Start ()
 	{
@@ -27,19 +29,19 @@ public class PitcherSlot : MonoBehaviour, IPointerDownHandler, IDragHandler, IEn
 		cg.blocksRaycasts = false;
 		startPos = transform.position;
 		startParent = transform.parent;
+		childIndex = transform.GetSiblingIndex ();
 		transform.SetParent (transform.parent.parent.parent);
+	}
+
+	public void OnPointerUp (PointerEventData eventData)
+	{
+		SetReleaseData ();
+		transform.SetSiblingIndex (childIndex);
 	}
 
 	public void OnDrag (PointerEventData eventData)
 	{
 		transform.position = eventData.position - offset;
-	}
-
-	public void OnEndDrag (PointerEventData eventData)
-	{
-		transform.position = startPos;
-		transform.SetParent (startParent);
-		BlockRaycasts ();
 	}
 
 	public void OnDrop (PointerEventData eventData)
@@ -86,5 +88,12 @@ public class PitcherSlot : MonoBehaviour, IPointerDownHandler, IDragHandler, IEn
 		{
 			return startPos;
 		}
+	}
+
+	void SetReleaseData ()
+	{
+		transform.position = startPos;
+		transform.SetParent (startParent);
+		BlockRaycasts ();
 	}
 }

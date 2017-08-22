@@ -5,31 +5,59 @@ using System.IO;
 
 public class Player
 {
-	public Country Country;
-	public double Offer;
-	public int Team, OfferTime;
+	public Country Country;																							// Country
+	public double Offer;																							// Salary offer
+	public int Team;																								// Team ID
+	public int OfferTime;																							// Time left to consider offer
 
-	private int playerID, age, injuryLength, potential, draftYear = -1, batSplit, pitchSplit;
-	private char bats, throws;
-	private float fieldingChance, catchingChance;
-	private double expectedSalary;
-	private bool onWaivers;
-	private List<ContractYear> contractYears = new List<ContractYear> ();
-	private int [,,] runExpectancy = new int [2,3,8];
-	private string firstName, lastName, position, injuryLocation, injurySeriousness;
-	private float offense, defense, overall;
-	private List<int []> stats = new List<int []> (); //0games, 1atBats, 2runs, 3hits, 4singles, 5doubles, 6triples, 7homeruns, 8totalBases, 9runsBattedIn, 10walks, 11strikeouts, 12stolenBases, 13caughtStealing, 14sacrifices, 15wins, 16losses, 17gamesStarted, 18saves, 19saveOpportunities, 20inningsPitched, 21atBatsAgainst, 22hitsAgainst, 23runsAgainst, 24earnedRuns, 25homerunsAgainst, 26walksAgainst, 27strikeoutsAgainst, 28qualityStarts, 29completeGames, 30hitStreak, 31reachedOnError, 32hitByPitch, 33longestHitStreak, 34hitStreakYear, 35noHitters, 36errors;
-	private List<int [] []> statSplits = new List<int [] []> (); //0atBats, 1runs, 2hits, 3singles, 4doubles, 5triples, 6homeruns, 7totalBases, 8runsBattedIn, 9walks, 10strikeouts, 11stolenBases, 12caughtStealing, 13sacrifices, 14inningsPitched, 15atBatsAgainst, 16hitsAgainst, 17runsAgainst, 18earnedRuns, 19homerunsAgainst, 20walksAgainst, 21strikeoutsAgainst, 22reachedOnError, 23hitByPitch;
-	private int [] skills = new int [11]; // 0power, 1contact, 2eye, 3speed, 4catching, 5throwing power, 6accuracy, 7movement, 8durability 9energy, 10endurance
-	private List<Pitch> pitches;
-	private List<int> pitchesAvailable;
-	private bool isPitcher;
+	private int playerID;																							// Player ID
+	private int age;																								// Age
+	private int injuryLength;																						// Injury Length
+	private int potential;																							// Potential
+	private int draftYear = -1;																						// Draft year
+	private int batSplit;																							// Split for batting stats
+	private int pitchSplit;																							// Split for pitching stats
+	private int skin;																								// Index of image for skin
+	private int freckles;																							// Index of image for freckles
+	private int ear;																								// Index of image for ears
+	private int face;																								// Index of image for face
+	private int eyeShape;																							// Index of image for eye shape
+	private int eyeColour;																							// Index of image for eye colou
+	private int hair;																								// Index of image for hair
+	private int mouth;																								// Index of image for mouth
+	private int nose;																								// Index of image for nose
+	private char bats;																								// Hand to bat with
+	private char throws;																							// Hand to throw with
+	private float fieldingChance;																					// Chance to field
+	private float catchingChance;																					// Chance to catch
+	private float offense;																							// Offense
+	private float defense;																							// Defense
+	private float overall;																							// Overall
+	private float popularity;																						// Popularity
+	private float personality;																						// Personality
+	private float tradeValue;																						// Trade value
+	private double expectedSalary;																					// Expected salary
+	private List<ContractYear> contractYears = new List<ContractYear> ();											// Contract years
+	private int [,,] runExpectancy = new int [2,3,8];																// Run expectancy matrix
+	private string firstName;																						// First name
+	private string lastName;																						// Last name
+	private string position;																						// Position
+	private string injuryLocation;																					// Location of injury
+	private string injurySeriousness;																				// Seriousness of injury
+	private List<int []> stats = new List<int []> (); 																// 0games, 1atBats, 2runs, 3hits, 4singles, 5doubles, 6triples, 7homeruns, 8totalBases, 9runsBattedIn, 10walks, 11strikeouts, 12stolenBases, 13caughtStealing, 14sacrifices, 15wins, 16losses, 17gamesStarted, 18saves, 19saveOpportunities, 20inningsPitched, 21atBatsAgainst, 22hitsAgainst, 23runsAgainst, 24earnedRuns, 25homerunsAgainst, 26walksAgainst, 27strikeoutsAgainst, 28qualityStarts, 29completeGames, 30hitStreak, 31reachedOnError, 32hitByPitch, 33longestHitStreak, 34hitStreakYear, 35noHitters, 36errors;
+	private List<int [] []> statSplits = new List<int [] []> ();													// 0atBats, 1runs, 2hits, 3singles, 4doubles, 5triples, 6homeruns, 7totalBases, 8runsBattedIn, 9walks, 10strikeouts, 11stolenBases, 12caughtStealing, 13sacrifices, 14inningsPitched, 15atBatsAgainst, 16hitsAgainst, 17runsAgainst, 18earnedRuns, 19homerunsAgainst, 20walksAgainst, 21strikeoutsAgainst, 22reachedOnError, 23hitByPitch;
+	private int [] skills = new int [11]; 																			// 0power, 1contact, 2eye, 3speed, 4catching, 5throwing power, 6accuracy, 7movement, 8durability 9energy, 10endurance
+	private List<Pitch> pitches;																					// Pitches learned
+	private List<int> pitchesAvailable;																				// Pitches available to learn
+	private bool isPitcher;																							// Whether the player is a pitcher or not
+	private bool onWaivers;																							// Whether the player is on waivers or not
 
 	public static int longestFirstName = 10, longestLastName = 9;
-
-	private static string [] firstNames = File.ReadAllLines ("FirstNames.txt"), lastNames = File.ReadAllLines ("LastNames.txt");
-	private static string [] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };
 	public static double MinSalary;
+
+	private static string [] firstNames = File.ReadAllLines ("FirstNames.txt");
+	private static string [] lastNames = File.ReadAllLines ("LastNames.txt");
+	private static string [] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };	// 
 
 	// 0-Arg Conbstructor
 	public Player ()
@@ -39,17 +67,18 @@ public class Player
 	// 4/5-arg constructor for new player
 	public Player (string newPosition, int minAge, int ageRange, int _playerID, int _team = -1)
 	{
-		float random;
+		double random;
+		StreamWriter sw;
 
-		firstName = firstNames [(int)(Random.value * firstNames.Length)];
-		lastName = lastNames [(int)(Random.value * lastNames.Length)];
+		firstName = firstNames [(int)(Manager.Instance.RandomGen.NextDouble () * firstNames.Length)];
+		lastName = lastNames [(int)(Manager.Instance.RandomGen.NextDouble () * lastNames.Length)];
 		position = newPosition;
-		age = (int)(Random.value * ageRange) + minAge;
+		age = (int)(Manager.Instance.RandomGen.NextDouble () * ageRange) + minAge;
 
 		for (int i = 0; i < skills.Length - 1; i++)
-			skills [i] = (int)(Random.value * age) + 55;
+			skills [i] = (int)(Manager.Instance.RandomGen.NextDouble () * age) + 55;
 		
-		potential = (int)(Random.value * 25 + (43 - age) * 3);
+		potential = (int)(Manager.Instance.RandomGen.NextDouble () * 25 + (43 - age) * 3);
 
 		if (potential < 0)
 			potential = 0;
@@ -61,7 +90,7 @@ public class Player
 		if (overall < 65.0f)
 			expectedSalary = MinSalary;
 		else
-			expectedSalary = System.Math.Round (((overall - 65.0f) / 40) * (25000000 - MinSalary + 5000000 * Random.value), 2);
+			expectedSalary = System.Math.Round (((overall - 65.0f) / 40) * (25000000 - MinSalary + 5000000 * Manager.Instance.RandomGen.NextDouble ()), 2);
 		
 		injuryLength = 0;
 		Team = _team;
@@ -69,13 +98,13 @@ public class Player
 		catchingChance = 0.95f + (skills [3] + skills [4]) / 4000.0f;
 		draftYear = Manager.Instance.Year;
 
-		random = Random.value;
-		if (random <= 0.425f)
+		random = Manager.Instance.RandomGen.NextDouble ();
+		if (random <= 0.425)
 		{
 			bats = 'R';
 			batSplit = 0;
 		}
-		else if (random <= 0.85f)
+		else if (random <= 0.85)
 		{
 			bats = 'L';
 			batSplit = 1;
@@ -86,13 +115,13 @@ public class Player
 			batSplit = 0;
 		}
 
-		random = Random.value;
-		if (random <= 0.495f)
+		random = Manager.Instance.RandomGen.NextDouble ();
+		if (random <= 0.495)
 		{
 			throws = 'R';
 			pitchSplit = 0;
 		}
-		else if (random <= 0.99f)
+		else if (random <= 0.99)
 		{
 			throws = 'L';
 			pitchSplit = 1;
@@ -121,25 +150,25 @@ public class Player
 			for (int i = 0; i < 19; i++)
 				pitchesAvailable.Add (i);
 
-			StreamWriter sw = new StreamWriter (@"Save\Pitches" + playerID + ".txt");
+			sw = new StreamWriter (@"Save\Pitches" + playerID + ".txt");
 
-			if (Random.value > 0.5f)
+			if (Manager.Instance.RandomGen.NextDouble () > 0.5)
 			{
 				NewPitch (0);
-				sw.Write (0);
+				sw.Write (0 + "," + pitches [pitches.Count - 1].Effectiveness);
 			}
 			else
 			{
 				NewPitch (1);
-				sw.Write (1);
+				sw.Write (1 + "," + pitches [pitches.Count - 1].Effectiveness);
 			}
 
-			for (int i = 0; i < 2 + (int) (Random.value * 3); i++)
+			for (int i = 0; i < 2 + (int) (Manager.Instance.RandomGen.NextDouble () * 3); i++)
 			{
-				int pitchNum = (int) (Random.value * pitchesAvailable.Count);
+				int pitchNum = (int) (Manager.Instance.RandomGen.NextDouble () * pitchesAvailable.Count);
 
 				NewPitch (pitchNum);
-				sw.Write ("\n" + pitchNum);
+				sw.Write ("\n" + pitchNum + "," + pitches [pitches.Count - 1].Effectiveness);
 			}
 
 			sw.Close ();
@@ -148,9 +177,27 @@ public class Player
 		else
 			isPitcher = false;
 
+		skin = (int)(Manager.Instance.RandomGen.NextDouble () * 5);
+		freckles = (int)(Manager.Instance.RandomGen.NextDouble () * 4);
+		ear = (int)(Manager.Instance.RandomGen.NextDouble () * 16) + skin;
+			face = (int)(Manager.Instance.RandomGen.NextDouble () * 16) + skin;
+		eyeShape = (int)(Manager.Instance.RandomGen.NextDouble () * 7);
+		eyeColour = (int)(Manager.Instance.RandomGen.NextDouble () * 6);
+		hair = (int)(Manager.Instance.RandomGen.NextDouble () * 5);
+		mouth = (int)(Manager.Instance.RandomGen.NextDouble () * 10);
+		nose = (int)(Manager.Instance.RandomGen.NextDouble () * 6);
+
+		sw = new StreamWriter (@"Save\PlayerFace" + playerID + ".txt");
+		sw.Write(skin + "," + freckles + "," + ear + "," + face + "," + eyeShape + "," + eyeColour + "," + hair + "," + mouth + "," + nose);
+		sw.Close ();
+
 		statSplits.Add(new int[2] []);
 		statSplits [0] [0] = new int [24];
 		statSplits [0] [1] = new int [24];
+
+		popularity = (float)Manager.Instance.RandomGen.NextDouble () * 2 -1.0f;
+		personality = (float)Manager.Instance.RandomGen.NextDouble () * 2 -1.0f;
+		CalculateTradeValue ();
 
 		NewYear ();
 	}
@@ -168,66 +215,66 @@ public class Player
 	}
 
 	// Adds a new pitch
-	public void NewPitch (int index)
+	public void NewPitch (int index, float effectiveness = -1.0f)
 	{
 		switch (pitchesAvailable [index])
 		{
 		case 0:
-			pitches.Add (new FourSeam (skills [5], skills [7]));
+			pitches.Add (new FourSeam (skills [5], skills [7], effectiveness));
 			break;
 		case 1:
-			pitches.Add (new TwoSeam (skills [5], skills [7]));
+			pitches.Add (new TwoSeam (skills [5], skills [7], effectiveness));
 			break;
 		case 2:
-			pitches.Add (new Cutter (skills [5], skills [7]));
+			pitches.Add (new Cutter (skills [5], skills [7], effectiveness));
 			break;
 		case 3:
-			pitches.Add (new Shuuto (skills [5], skills [7]));
+			pitches.Add (new Shuuto (skills [5], skills [7], effectiveness));
 			break;
 		case 4:
-			pitches.Add (new Sinker (skills [5], skills [7]));
+			pitches.Add (new Sinker (skills [5], skills [7], effectiveness));
 			break;
 		case 5:
-			pitches.Add (new Splitter (skills [5], skills [7]));
+			pitches.Add (new Splitter (skills [5], skills [7], effectiveness));
 			break;
 		case 6:
-			pitches.Add (new Gyroball (skills [5], skills [7]));
+			pitches.Add (new Gyroball (skills [5], skills [7], effectiveness));
 			break;
 		case 7:
-			pitches.Add (new Curveball (skills [5], skills [7]));
+			pitches.Add (new Curveball (skills [5], skills [7], effectiveness));
 			break;
 		case 8:
-			pitches.Add (new KnuckleCurve (skills [5], skills [7]));
+			pitches.Add (new KnuckleCurve (skills [5], skills [7], effectiveness));
 			break;
 		case 9:
-			pitches.Add (new Screwball (skills [5], skills [7]));
+			pitches.Add (new Screwball (skills [5], skills [7], effectiveness));
 			break;
 		case 10:
-			pitches.Add (new Slider (skills [5], skills [7]));
+			pitches.Add (new Slider (skills [5], skills [7], effectiveness));
 			break;
 		case 11:
-			pitches.Add (new Slurve (skills [5], skills [7]));
+			pitches.Add (new Slurve (skills [5], skills [7], effectiveness));
 			break;
 		case 12:
-			pitches.Add (new CircleChangeup (skills [5], skills [7]));
+			pitches.Add (new CircleChangeup (skills [5], skills [7], effectiveness));
 			break;
 		case 13:
-			pitches.Add (new Forkball (skills [5], skills [7]));
+			pitches.Add (new Forkball (skills [5], skills [7], effectiveness));
 			break;
 		case 14:
-			pitches.Add (new Fosh (skills [5], skills [7]));
+			pitches.Add (new Fosh (skills [5], skills [7], effectiveness));
 			break;
 		case 15:
-			pitches.Add (new Palmball (skills [5], skills [7]));
+			pitches.Add (new Palmball (skills [5], skills [7], effectiveness));
 			break;
 		case 16:
-			pitches.Add (new VulcanChangeup (skills [5], skills [7]));
+			pitches.Add (new VulcanChangeup (skills [5], skills [7], effectiveness));
 			break;
 		case 17:
-			pitches.Add (new Eephus (skills [5], skills [7]));
+			pitches.Add (new Eephus (skills [5], skills [7], effectiveness));
 			break;
 		case 18:
-			pitches.Add (new Knuckleball (skills [5], skills [7]));
+			pitches.Add (new Knuckleball (skills [5], skills [7], effectiveness));
 			break;
 		default:
 			Debug.Log (index);
@@ -316,6 +363,7 @@ public class Player
 		skills [10] = skills [9];
 
 		CalculateOverall ();
+		CalculateTradeValue ();
 
 		SavePlayer ();
 	}
@@ -326,7 +374,7 @@ public class Player
 		StreamWriter sw;
 
 		sw = new StreamWriter (@"Save\Player" + playerID + ".txt");
-		sw.Write (firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + skills [10] + "," + offense + "," + defense + "," + overall + "," + expectedSalary + "," + injuryLength + "," + (int)Country + "," + Team + "," + draftYear + "," + onWaivers + "," + contractYears.Count + "," + pitches.Count);
+		sw.Write (firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + skills [10] + "," + offense + "," + defense + "," + overall + "," + expectedSalary + "," + injuryLength + "," + (int)Country + "," + Team + "," + draftYear + "," + onWaivers + "," + contractYears.Count + "," + pitches.Count + "," + popularity + "," + personality);
 		sw.Close ();
 	}
 
@@ -369,36 +417,38 @@ public class Player
 	// Loads player and stats
 	public void LoadPlayer (int _playerID)
 	{
-		string [] playerSplit = File.ReadAllLines (@"Save\Player" + _playerID + ".txt") [0].Split (',');
+		string [] split = File.ReadAllLines (@"Save\Player" + _playerID + ".txt") [0].Split (',');
 		int numContractYears, numPitches;
 
-		firstName = playerSplit [0];
-		lastName = playerSplit [1];
-		position = playerSplit [2];
-		potential = int.Parse (playerSplit [3]);
-		age = int.Parse (playerSplit [4]);
-		skills [0] = int.Parse (playerSplit [5]);
-		skills [1] = int.Parse (playerSplit [6]);
-		skills [2] = int.Parse (playerSplit [7]);
-		skills [3] = int.Parse (playerSplit [8]);
-		skills [4] = int.Parse (playerSplit [9]);
-		skills [5] = int.Parse (playerSplit [10]);
-		skills [6] = int.Parse (playerSplit [11]);
-		skills [7] = int.Parse (playerSplit [12]);
-		skills [8] = int.Parse (playerSplit [13]);
-		skills [9] = int.Parse (playerSplit [14]);
-		skills [10] = int.Parse (playerSplit [15]);
-		offense = float.Parse (playerSplit [16]);
-		defense = float.Parse (playerSplit [17]);
-		overall = float.Parse (playerSplit [18]); 
-		expectedSalary = double.Parse (playerSplit [19]);
-		injuryLength = int.Parse (playerSplit [20]);
-		Country = (Country)int.Parse (playerSplit [21]);
-		Team = int.Parse (playerSplit [22]);
-		draftYear = int.Parse (playerSplit [23]);
-		onWaivers = bool.Parse (playerSplit [24]);
-		numContractYears = int.Parse (playerSplit [25]);
-		numPitches = int.Parse (playerSplit [26]);
+		firstName = split [0];
+		lastName = split [1];
+		position = split [2];
+		potential = int.Parse (split [3]);
+		age = int.Parse (split [4]);
+		skills [0] = int.Parse (split [5]);
+		skills [1] = int.Parse (split [6]);
+		skills [2] = int.Parse (split [7]);
+		skills [3] = int.Parse (split [8]);
+		skills [4] = int.Parse (split [9]);
+		skills [5] = int.Parse (split [10]);
+		skills [6] = int.Parse (split [11]);
+		skills [7] = int.Parse (split [12]);
+		skills [8] = int.Parse (split [13]);
+		skills [9] = int.Parse (split [14]);
+		skills [10] = int.Parse (split [15]);
+		offense = float.Parse (split [16]);
+		defense = float.Parse (split [17]);
+		overall = float.Parse (split [18]); 
+		expectedSalary = double.Parse (split [19]);
+		injuryLength = int.Parse (split [20]);
+		Country = (Country)int.Parse (split [21]);
+		Team = int.Parse (split [22]);
+		draftYear = int.Parse (split [23]);
+		onWaivers = bool.Parse (split [24]);
+		numContractYears = int.Parse (split [25]);
+		numPitches = int.Parse (split [26]);
+		popularity = float.Parse (split [27]);
+		personality = float.Parse (split [28]);
 
 		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 3.0f * 5;
 		catchingChance = 0.95f + (skills [3] + skills [4]) / 2.0f * 5;
@@ -406,30 +456,28 @@ public class Player
 		for (int i = 0; i < Manager.Instance.Year - draftYear + 1; i++)
 		{
 			string [] allStats = File.ReadAllLines (@"Save\PlayerStats" + _playerID + "-" + i + ".txt");
-			string [] splitStats;
 
 			statSplits.Add(new int[2] []);
 
 			for(int j = 0; j < 2; j++)
 			{
-				splitStats = allStats [j].Split (',');
-				statSplits [0] [j] = new int [splitStats.Length];
+				split = allStats [j].Split (',');
+				statSplits [0] [j] = new int [split.Length];
 
-				for (int k = 0; k < splitStats.Length; k++)
-					statSplits [i] [j] [k] = int.Parse (splitStats [k]);
+				for (int k = 0; k < split.Length; k++)
+					statSplits [i] [j] [k] = int.Parse (split [k]);
 			}
 
-			splitStats = allStats [2].Split (',');
-			stats.Add (new int [splitStats.Length]);
+			split = allStats [2].Split (',');
+			stats.Add (new int [split.Length]);
 
-			for (int j = 0; j < splitStats.Length; j++)
-				stats [i] [j] = int.Parse (splitStats [j]);
+			for (int j = 0; j < split.Length; j++)
+				stats [i] [j] = int.Parse (split [j]);
 		}
 
 		for (int i = 0; i < numContractYears; i++)
 		{
-			string [] split = File.ReadAllLines (@"Save\PlayerContracts" + _playerID + ".txt") [i].Split (',');
-
+			split = File.ReadAllLines (@"Save\PlayerContracts" + _playerID + ".txt") [i].Split (',');
 			contractYears.Insert (0, new ContractYear ((ContractType)int.Parse (split [0]), double.Parse (split [1])));
 		}
 
@@ -437,7 +485,7 @@ public class Player
 
 		if (position.Length > 1 && position.Substring (1, 1) == "P")
 		{
-			string [] lines = File.ReadAllLines (@"Save\Pitches" + _playerID + ".txt");
+			split = File.ReadAllLines (@"Save\Pitches" + _playerID + ".txt");
 			isPitcher = true;
 			pitchesAvailable = new List<int> ();
 
@@ -445,10 +493,27 @@ public class Player
 				pitchesAvailable.Add (i);
 
 			for (int i = 0; i < numPitches; i++)
-				NewPitch (int.Parse (lines [i]));
+			{
+				string[] pitch = split [i].Split (',');
+
+				NewPitch (int.Parse (pitch [0]), float.Parse (pitch [1]));
+			}
 
 			pitches.Sort ();
 		}
+
+		split = File.ReadAllLines (@"Save\PlayerFace" + _playerID + ".txt") [0].Split (',');
+		skin = int.Parse(split [0]);
+		freckles = int.Parse(split [1]);
+		ear = int.Parse(split [2]);
+		face = int.Parse(split [3]);
+		eyeShape = int.Parse(split [4]);
+		eyeColour = int.Parse(split [5]);
+		hair = int.Parse(split [6]);
+		mouth = int.Parse(split [7]);
+		nose = int.Parse(split [8]);
+
+		CalculateTradeValue ();
 
 		playerID = _playerID;
 	}
@@ -762,6 +827,11 @@ public class Player
 			Country = Country.Aruba;
 	}
 
+	public void CalculateTradeValue ()
+	{
+		tradeValue = overall + potential / 7;
+	}
+
 	// Considers the offer for a draft player to sign
 	public bool ConsiderOffer ()
 	{
@@ -803,6 +873,14 @@ public class Player
 		get
 		{
 			return isPitcher;
+		}
+	}
+
+	public float TradeValue
+	{
+		get
+		{
+			return tradeValue;
 		}
 	}
 
@@ -894,6 +972,78 @@ public class Player
 		}
 	}
 
+	public int Skin
+	{
+		get
+		{
+			return skin;
+		}
+	}
+
+	public int Freckles
+	{
+		get
+		{
+			return freckles;
+		}
+	}
+
+	public int Ear
+	{
+		get
+		{
+			return ear;
+		}
+	}
+
+	public int Face
+	{
+		get
+		{
+			return face;
+		}
+	}
+
+	public int EyeShape
+	{
+		get
+		{
+			return eyeShape;
+		}
+	}
+
+	public int EyeColour
+	{
+		get
+		{
+			return eyeColour;
+		}
+	}
+
+	public int Hair
+	{
+		get
+		{
+			return hair;
+		}
+	}
+
+	public int Mouth
+	{
+		get
+		{
+			return mouth;
+		}
+	}
+
+	public int Nose
+	{
+		get
+		{
+			return nose;
+		}
+	}
+
 	public string InjuryLocation
 	{
 		get
@@ -923,6 +1073,22 @@ public class Player
 		get
 		{
 			return age;
+		}
+	}
+
+	public float Personality
+	{
+		get
+		{
+			return personality;
+		}
+	}
+
+	public float Popularity
+	{
+		get
+		{
+			return popularity;
 		}
 	}
 

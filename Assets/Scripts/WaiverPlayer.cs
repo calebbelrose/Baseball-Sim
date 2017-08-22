@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class WaiverPlayer
 {
-	private int id, length, currentClaim;
-	private List<int> teamsToClaim;
+	private int id;					// PlayerID
+	private int length;				// How many days are left in waivers
+	private int currentClaim;		// Team with the current claim
+	private List<int> teamsToClaim;	// Teams still able to claim
 
 	// 1-Arg Constructor
 	public WaiverPlayer (int _id)

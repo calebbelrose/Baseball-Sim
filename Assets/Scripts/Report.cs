@@ -6,11 +6,12 @@ using System.Linq;
 
 public class Report : MonoBehaviour
 {
-	public RectTransform content, viewport;
-	public Text report;
+	public RectTransform content;					// Holds the report
+	public RectTransform viewport;					// Viewport for the report
+	public Text report;								// Text for the report
 
-	List<Player> players;
-	List<int> sections = new List<int> ();
+	private List<Player> players;					// All players
+	private List<int> sections = new List<int> ();	// All possible sections for the report
 
 	void Start ()
 	{
@@ -28,10 +29,10 @@ public class Report : MonoBehaviour
 		for (int i = 1; i < 25; i++)
 			sections.Add (i);
 
-		while (Manager.Instance.tradeList.Count > 0)
+		while (Manager.Instance.TradeList.Count > 0)
 		{
 			//text += Manager.Instance.tradeList [0];
-			Manager.Instance.tradeList.RemoveAt (0);
+			Manager.Instance.TradeList.RemoveAt (0);
 		}
 
 		for (int i = 0; i < Manager.Instance.Teams [0].Count; i++)
@@ -172,7 +173,7 @@ public class Report : MonoBehaviour
 
 			case 17:
 			// Hit Streak
-				text += "Longest Hit Streaks (Currently " + Manager.Instance.longestHitStreak + " by " + Manager.Instance.hitStreakName + " in " + Manager.Instance.hitStreakYear + "\n";
+				text += "Longest Hit Streaks (Currently " + Manager.Instance.LongestHitStreak + " by " + Manager.Instance.HitStreakName + " in " + Manager.Instance.HitStreakYear + "\n";
 				result = players.OrderByDescending (playerX => playerX.Stats [0] [33]).ToList ();
 				for (int i = 0; i < 10; i++)
 					text += result [i].FirstName.PadRight (Player.longestFirstName) + " " + result [i].LastName.PadRight (Player.longestLastName) + " " + result [i].Stats [0] [26] + "\n";

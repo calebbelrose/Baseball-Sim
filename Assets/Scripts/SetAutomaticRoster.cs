@@ -5,8 +5,9 @@ using UnityEngine.UI;
 
 public class SetAutomaticRoster : MonoBehaviour
 {
-	public GameObject pitchers, batters;
-	public Toggle toggle;
+	public GameObject pitchers;	// Button to change to the scene to change the order of pitchers
+	public GameObject batters;	// Button to change to the scene to change the batting order
+	public Toggle toggle;		// Toggles automatic roster on/off
 
 	void Start ()
 	{

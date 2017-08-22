@@ -6,13 +6,15 @@ using System.Linq;
 
 public class LoadTheirPlayers : MonoBehaviour
 {
-	public RectTransform viewport, content;
-	public Transform teamListHeader;
-	int currSortedStat = 3;
-	bool ascending = true;
-	int theirTeam;
-	public Trade trade;
-	public List<int> theirPlayers = new List<int> ();
+	public RectTransform viewport;						// Viewport for the players
+	public RectTransform content;						// Holds the header and player objects
+	public Transform teamListHeader;					// Header object
+	public Trade trade;									// Trade
+	public List<int> theirPlayers = new List<int> ();	// Other team's players
+
+	private int currSortedStat = 3;						// Current sorted stat
+	private bool ascending = true;						// Whether it's sorted ascending or descending
+	private int theirTeam;								// ID of other team
 
 	void Start ()
 	{
@@ -141,7 +143,7 @@ public class LoadTheirPlayers : MonoBehaviour
 			tradeInfo.TeamID = theirTeam;
 			tradeInfo.PlayerID = Manager.Instance.Players [theirPlayers [i]].ID;
 
-			if (trade.theirTrades.Contains (i))
+			if (trade.TradeOffer.theirTrades.Contains (i))
 				tradeInfo.ChangeButtonColour ();
 		}
 

@@ -6,11 +6,13 @@ using System.Linq;
 
 public class LoadNonFortyManRosterPlayers : MonoBehaviour
 {
-	public RectTransform viewport, content;
-	public Transform teamListHeader;
-	int currSortedStat = 3;
-	bool ascending = true;
-	List<int> yourPlayers;
+	public RectTransform viewport;		// Viewport for the players
+	public RectTransform content;		// Holds the header and player objects
+	public Transform teamListHeader;	// Header object
+
+	private int currSortedStat = 3;		// Current sorted stat
+	private bool ascending = true;		// Whether it's sorted ascending or descending
+	List<int> yourPlayers;				// User's players
 
 	void Start ()
 	{

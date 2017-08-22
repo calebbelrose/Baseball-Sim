@@ -6,29 +6,66 @@ using System.IO;
 
 public class Team
 {
-	public string Shortform, CityName, TeamName;
-	public int Pick;
-	public bool AutomaticRoster = true;
-	public float GamesBehind;
+	public string Shortform;													// Shortform of name
+	public string CityName;														// City name
+	public string TeamName;														// Team name
+	public int Pick;															// Pick in first year player draft
+	public bool AutomaticRoster = true;											// Whether to automatically set the roster or not
+	public float GamesBehind;													// Number of games behind division leader
 
-	private int id, stadiumCapacity = 50000, stadiumTier = 0;
-	private Division division;
-	private League league;
-	private float [] overalls;
-	private double cash, revenues = 0, expenses = 0, profit = 0, ticketPrice = 100.00, drinkPrice = 10.00, foodPrice = 10.00, uniformPrice = 100.00, newStadiumPrice = 5000000.00, hype = 0.5, currentSalary;
-	private int drinksSold = 0, foodSold = 0, uniformsSold = 0, ticketsSold = 0, currStarter = 0, wins, losses, streak = 0, cp;
-	private List<int> majorLeagueIndexes, minorLeagueIndexes, fortyManRoster, waivers, players, sp, rp, offensiveSubstitutes, defensiveSubstitutes, pinchRunners, draftPicks = new List<int> ();
-	private string [] stats;
-	private List<string> positions;
-	private List<List<int>> batters;
-	private TeamType teamType;
+	private Division division;													// Division
+	private League league;														// League
+	private float [] overalls;													// Overalls
+	private double cash;														// Cash
+	private double revenues = 0.00;												// Revenues
+	private double expenses = 0.00;												// Expenses
+	private double profit = 0.00;												// Profit
+	private double ticketPrice = 100.00;										// Price for fan to buy ticket
+	private double drinkPrice = 10.00;											// Price for fan to buy drink
+	private double foodPrice = 10.00;											// Price for fan to buy food
+	private double uniformPrice = 100.00;										// Price for fan to buy uniform
+	private double newStadiumPrice = 5000000.00;								// Price to buy new stadium
+	private double hype = 0.5;													// Hype (used to calculate attendance and therefore amount of merchandise sold)
+	private double currentSalary;												// Salary of all players
+	private int id;																// Team ID
+	private int stadiumCapacity = 50000;										// Stadium capacity
+	private int stadiumTier = 0;												// Stadium tier
+	private int drinksSold = 0;													// Drinks sold
+	private int foodSold = 0;													// Food sold
+	private int uniformsSold = 0;												// Uniforms sold
+	private int ticketsSold = 0;												// Tickets sold
+	private int currStarter = 0;												// Index in SP of the current starter
+	private int wins;															// Wins
+	private int losses;															// Losses
+	private int streak = 0;														// Win streak
+	private int cp;																// Index of closing pitcher
+	private List<int> majorLeagueIndexes;										// Indexes of players in active roster
+	private List<int> minorLeagueIndexes;										// Indexes of players in minor league team
+	private List<int> fortyManRoster;											// Indexes of players in forty man roster
+	private List<int> waivers;													// Indexes of players on waivers
+	private List<int> players;													// Indexes of players on team
+	private List<int> sp;														// Indexes of pitchers in starting rotation
+	private List<int> rp;														// Indexes of pitchers in bullpen
+	private List<int> offensiveSubstitutes;										// Indexes of offensive substitutes
+	private List<int> defensiveSubstitutes;										// Indexes of defensive substitutes
+	private List<int> pinchRunners;												// Indexes of pinch runners
+	private List<int> draftPicks = new List<int> ();							// Indexes of players picked in the first year player draft
+	private List<int> tradeBlock = new List<int> ();							// Indexes of players on trade block
+	private string [] stats;													// Stats
+	private List<string> positions;												// Positions of batters
+	private List<string> lookingFor = new List<string> ();						// Positions to trade for
+	private List<List<int>> batters;											// Batting order
+	private TeamType teamType;													// Team type
+	private List<TradeOffer> tradeOffers = new List<TradeOffer> ();				// Trade offers
 
-	public static int longestCityName = 0, longestTeamName = 0;
+	public static int longestCityName = 0;										// Length of the longest city name
+	public static int longestTeamName = 0;										// Length of the longest team name
 
-	private static string [] cityNames = File.ReadAllLines ("CityNames.txt"), teamNames = File.ReadAllLines ("TeamNames.txt");
-	private static League sLeague = League.American;
-	private static Division sDivision = Division.East;
-	private static int rosterSize = 25;
+	private static string [] cityNames = File.ReadAllLines ("CityNames.txt");	// Possible city names
+	private static string [] teamNames = File.ReadAllLines ("TeamNames.txt");	// Possible team names
+	private static League sLeague = League.American;							// League
+	private static Division sDivision = Division.East;							// Division
+	private static int rosterSize = 25;											// Maximum roster size
 
 	public Team (TeamType _teamType, int _id)
 	{
@@ -56,8 +93,8 @@ public class Team
 		overalls = new float [3];
 		stats = new string [3];
 
-		CityName = cityNames [ (int) (Random.value * cityNames.Length)];
-		TeamName = teamNames [ (int) (Random.value * teamNames.Length)];
+		CityName = cityNames [ (int) (Manager.Instance.RandomGen.NextDouble() * cityNames.Length)];
+		TeamName = teamNames [ (int) (Manager.Instance.RandomGen.NextDouble() * teamNames.Length)];
 
 		if (CityName.Length > longestCityName)
 			longestCityName = CityName.Length;
@@ -80,7 +117,7 @@ public class Team
 		else
 			sDivision = Division.East;
 
-		cash = 20000000.00 + System.Math.Round (Random.value * 10000000, 2);
+		cash = 20000000.00 + System.Math.Round (Manager.Instance.RandomGen.NextDouble() * 10000000, 2);
 	}
 
 	// Sets the stats for the team
@@ -231,34 +268,36 @@ public class Team
 	}
 
 	// Automatically sets the roster
-	public List<string> SetRoster ()
+	public void SetRoster ()
 	{
-		List<string> starters = new List<string> ();
+		List<int> result;
 		int benchSpace;
 
 		majorLeagueIndexes.Clear ();
 		minorLeagueIndexes.Clear ();
+		lookingFor.Clear ();
+		tradeBlock.Clear ();
 
-		starters.Add ("SP");
-		starters.Add ("SP");
-		starters.Add ("SP");
-		starters.Add ("SP");
-		starters.Add ("SP");
-		starters.Add ("RP");
-		starters.Add ("RP");
-		starters.Add ("RP");
-		starters.Add ("CP");
-		starters.Add ("C");
-		starters.Add ("1B");
-		starters.Add ("2B");
-		starters.Add ("3B");
-		starters.Add ("SS");
-		starters.Add ("LF");
-		starters.Add ("CF");
-		starters.Add ("RF");
-		starters.Add ("DH");
+		lookingFor.Add ("SP");
+		lookingFor.Add ("SP");
+		lookingFor.Add ("SP");
+		lookingFor.Add ("SP");
+		lookingFor.Add ("SP");
+		lookingFor.Add ("RP");
+		lookingFor.Add ("RP");
+		lookingFor.Add ("RP");
+		lookingFor.Add ("CP");
+		lookingFor.Add ("C");
+		lookingFor.Add ("1B");
+		lookingFor.Add ("2B");
+		lookingFor.Add ("3B");
+		lookingFor.Add ("SS");
+		lookingFor.Add ("LF");
+		lookingFor.Add ("CF");
+		lookingFor.Add ("RF");
+		lookingFor.Add ("DH");
 
-		benchSpace = Team.RosterSize - starters.Count;
+		benchSpace = Team.RosterSize - lookingFor.Count;
 
 		batters.Clear ();
 		positions.Clear ();
@@ -268,26 +307,26 @@ public class Team
 		defensiveSubstitutes.Clear ();
 		pinchRunners.Clear ();
 
-		List<int> result = players.OrderBy (playerX => Manager.Instance.Players [playerX].InjuryLength).ThenByDescending (playerX => Manager.Instance.Players [playerX].Position).ThenByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList<int> ();
+		result = players.OrderBy (playerX => Manager.Instance.Players [playerX].InjuryLength).ThenByDescending (playerX => Manager.Instance.Players [playerX].Position).ThenByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList<int> ();
 
 		for (int j = 0; j < result.Count; j++)
 		{
-			if (starters.Contains (Manager.Instance.Players [result [j]].Position) && AddToMajors (Manager.Instance.Players [result [j]].ID))
+			if (lookingFor.Contains (Manager.Instance.Players [result [j]].Position) && AddToMajors (Manager.Instance.Players [result [j]].ID))
 			{
 				if (Manager.Instance.Players [result [j]].Position == "SP")
 				{
 					sp.Add (Manager.Instance.Players [result [j]].ID);
-					starters.Remove ("SP");
+					lookingFor.Remove ("SP");
 				}
 				else if (Manager.Instance.Players [result [j]].Position == "RP")
 				{
 					rp.Add (Manager.Instance.Players [result [j]].ID);
-					starters.Remove ("RP");
+					lookingFor.Remove ("RP");
 				}
 				else if (Manager.Instance.Players [result [j]].Position == "CP")
 				{
 					cp = Manager.Instance.Players [result [j]].ID;
-					starters.Remove ("CP");
+					lookingFor.Remove ("CP");
 				}
 				else
 				{
@@ -295,7 +334,7 @@ public class Team
 					batterSlot.Add (Manager.Instance.Players [result [j]].ID);
 					batters.Add (batterSlot);
 					positions.Add (Manager.Instance.Players [result [j]].Position);
-					starters.Remove (Manager.Instance.Players [result [j]].Position);
+					lookingFor.Remove (Manager.Instance.Players [result [j]].Position);
 				}
 			}
 			else if (benchSpace > 0 && AddToMajors (Manager.Instance.Players [result [j]].ID))
@@ -309,6 +348,7 @@ public class Team
 					pinchRunners.Add (Manager.Instance.Players [result [j]].ID);
 				}
 
+				tradeBlock.Add (Manager.Instance.Players [result [j]].ID);
 				benchSpace--;
 			}
 			else
@@ -317,7 +357,6 @@ public class Team
 
 		ascendingLineup ();
 		CalculateOveralls ();
-		return starters;
 	}
 
 	// Adds a new year to the team
@@ -421,12 +460,11 @@ public class Team
 	// Adds a player to the minor leagues
 	public void AddToMinors (int index)
 	{
-		int startIndex = majorLeagueIndexes.IndexOf (index);
-
-		if (startIndex != -1)
+		if (majorLeagueIndexes.IndexOf (index) != -1)
 			majorLeagueIndexes.Remove (index);
 
 		minorLeagueIndexes.Add (index);
+		tradeBlock.Add (index);
 	}
 
 	// Uses the current starter
@@ -515,6 +553,8 @@ public class Team
 	{
 		StreamWriter sw = File.AppendText (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
 
+		Manager.Instance.Players [playerID].Team = id;
+		Manager.Instance.Players [playerID].SavePlayer ();
 		players.Add (playerID);
 		sw.WriteLine (playerID);
 		sw.Close ();
@@ -583,6 +623,11 @@ public class Team
 		wins = 0;
 	}
 
+	public void NewTradeOffer(TradeOffer tradeOffer)
+	{
+		tradeOffers.Add (tradeOffer);
+	}
+
 	// Transfers a player to another team
 	public string Transfer (int playerID, int teamID)
 	{
@@ -627,6 +672,17 @@ public class Team
 		}
 	}
 
+	public void AcceptTrades ()
+	{
+		tradeOffers.Sort ((a, b) => (a.YourValue - a.TheirValue).CompareTo (b.YourValue - b.TheirValue));
+
+		while (tradeOffers.Count > 0)
+		{
+			tradeOffers [0].Accept ();
+			tradeOffers.RemoveAt (0);
+		}
+	}
+
 	// Getters and Setters
 	public List<string> Positions
 	{
@@ -636,11 +692,27 @@ public class Team
 		}
 	}
 
+	public List<string> LookingFor
+	{
+		get
+		{
+			return lookingFor;
+		}
+	}
+
 	public List<List<int>> Batters
 	{
 		get
 		{
 			return batters;
+		}
+	}
+
+	public List<int> TradeBlock
+	{
+		get
+		{
+			return tradeBlock;
 		}
 	}
 

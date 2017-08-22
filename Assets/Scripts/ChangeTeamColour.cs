@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ChangeTeamColour : MonoBehaviour
 {
+	// Changes the team's colour
 	public void ChangeColour(Color colour)
 	{
 		Manager.Instance.TeamColour = colour;

@@ -6,11 +6,15 @@ using System.Linq;
 
 public class LoadMajorLeaguePlayers : MonoBehaviour
 {
-	public RectTransform viewport, teamList, batterList;
-	public Transform teamListHeader, batterListHeader;
-	int currSortedStat = 3;
-	bool ascending = true;
-	List<int> yourPlayers;
+	public RectTransform viewport; 		// Viewport for the 
+	public RectTransform teamList;		// Holds the team list header and players not in batting order
+	public RectTransform batterList;	// Holds the batter list header and players in the batting order
+	public Transform teamListHeader;	// Team list header
+	public Transform batterListHeader;	// Batter list header
+
+	private int currSortedStat = 3;		// Current sorted stat
+	private bool ascending = true;		// Whether it's sorted ascending or descending
+	private List<int> yourPlayers;				// User's players
 
 	void Start ()
 	{
@@ -60,8 +64,8 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 			batterStatHeader.GetComponent<Button> ().interactable = false;
 		}
 			
-		teamList.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].MajorLeagueIndexes.Count - 8) - viewport.rect.height);
-		batterList.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].MajorLeagueIndexes.Count - 8) - viewport.rect.height);
+		teamList.sizeDelta = new Vector2 (newWidth, teamList.sizeDelta.y);
+		batterList.sizeDelta = new Vector2 (newWidth, 200.0f);
 	}
 
 	// Displays players
@@ -74,7 +78,7 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 
 		for (int i = 0; i < yourPlayers.Count; i++)
 		{
-			if (!Manager.Instance.Teams [0] [0].IsBatter (yourPlayers [i]))
+			if (!Manager.Instance.Players [yourPlayers [i]].IsPitcher && !Manager.Instance.Teams [0] [0].IsBatter (yourPlayers [i]))
 			{
 				Object playerButton = Resources.Load ("Player", typeof(GameObject));
 				GameObject newPlayer = Instantiate (playerButton) as GameObject;
@@ -136,6 +140,8 @@ public class LoadMajorLeaguePlayers : MonoBehaviour
 				newPlayer.AddComponent<CanvasGroup> ();
 			}
 		}
+
+		teamList.sizeDelta = new Vector2 (teamList.sizeDelta.x, 20 * teamList.transform.childCount);
 	}
 
 	// Starts sorting players

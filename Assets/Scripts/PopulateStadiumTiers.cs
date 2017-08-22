@@ -4,17 +4,23 @@ using System.Collections;
 
 public class PopulateStadiumTiers : MonoBehaviour
 {
-	Team team;											// Your team
-	Dropdown dropdown;									// The dropdown of stadium tiers
-	int tier;											// The current tier
-	public Text newCapacity, currentCash, newBuyPrice, newRentPrice, currentTier, currentCapacity;	// Capacity of the next tier, the team's cash and the price to buy/rent the next tier stadium
+	public Text newCapacity;		// Capacity of the next stadium tier
+	public Text currentCash;		// User's cash
+	public Text newBuyPrice;		// Price to buy selected stadium tier
+	public Text newRentPrice;		// Price per year to rent selected stadium tier
+	public Text currentTier;		// User's current stadium tier
+	public Text currentCapacity;	// Capacity of the user's current stadium
+
+	private Team team;				// User's team
+	private Dropdown dropdown;		// The dropdown of stadium tiers
+	private int tier;				// The current tier
 
 	// Use this for initialization
 	void Start ()
 	{
 		int start;
 
-		// Gets the text fields and your team
+		// Gets the text fields and user's team
 		team = Manager.Instance.Teams [0] [0];
 
 		// Displays the stadium tier and capacity

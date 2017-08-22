@@ -5,14 +5,16 @@ using System.IO;
 
 public class SetTeamInfo : MonoBehaviour
 {
-	public InputField yourName, cityName, teamName;
+	public InputField yourName;	// User's name
+	public InputField cityName;	// User's city name
+	public InputField teamName;	// User's team name
 
-	// Sets the info for the player's team
+	// Sets the info for the user's team
 	void SetInfo ()
 	{
 		string tempYourName = yourName.text, tempCityName = cityName.text, tempTeamName = teamName.text;
 
-		// Sets your name to the entered name, otherwise to a random name
+		// Sets user's name to the entered name, otherwise to a random name
 		if (tempYourName != "")
 			Manager.Instance.YourName = tempYourName;
 		else

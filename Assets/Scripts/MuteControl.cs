@@ -3,10 +3,10 @@ using UnityEngine.UI;
 
 public class MuteControl : MonoBehaviour 
 {
-	public AudioSource musicPlayer;
+	public AudioSource musicPlayer;			// Music player
 
-	float previousVolume;	// Stores the previous volume level
-	UnityEngine.UI.Slider slider;
+	private float previousVolume;			// Stores the previous volume level
+	private UnityEngine.UI.Slider slider;	// Volume slider
 
 	// Sets the slider value to the current volume level
 	void Awake ()

@@ -6,14 +6,14 @@ using UnityEngine.EventSystems;
 
 public class FortyManSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
-	public int PlayerID;
-	public bool InFortyMan;
+	public int PlayerID;			// ID of the player
+	public bool InFortyMan;			// Whether the player is in the forty man roster or not
 
-	private Vector2 offset;
-	private CanvasGroup cg;
-	private Vector3 startPos;
-	private Transform startParent;
-	private bool notSet;
+	private Vector2 offset;			// Offset from the mouse
+	private CanvasGroup cg;			// Canvas group
+	private Vector3 startPos;		// Position before being moved
+	private Transform startParent;	// Parent before being moved
+	private bool notSet;			// If the data has been set after being moved
 
 	void Start ()
 	{

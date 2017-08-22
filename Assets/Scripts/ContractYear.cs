@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ContractYear
 {
-	ContractType type;
-	double salary;
+	private ContractType type;	// Type
+	private double salary;		// Salary
 
 	// 2-Arg Constructor
 	public ContractYear (ContractType _type, double _salary)
@@ -29,6 +29,18 @@ public class ContractYear
 		{
 			return salary;
 		}
+	}
+
+	// Override ToString
+	public override string ToString ()
+	{
+		string text = type.ToString ();
+
+		for (int i = 1; i < text.Length; i++)
+			if (char.IsUpper (text [i]))
+				text = text.Insert (i++, " ");
+		
+		return text;
 	}
 }
 

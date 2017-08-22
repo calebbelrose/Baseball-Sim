@@ -6,13 +6,16 @@ using System.Linq;
 
 public class GetStandings : MonoBehaviour
 {
-	public RectTransform viewport, content, test;
-	public Transform teamListHeader;
+	public RectTransform viewport;																	// Viewport for the standings
+	public RectTransform content;																	// Holds the header and standing objects
+	public RectTransform scrollRect;																// ScrollRect for the standings
+	public Transform teamListHeader;																// Holds the headers
 
-	string [] headers = new string [] { "Team Name", "Wins", "Losses", "Games Behind" };
-	int currSortedStat = 3, longestTeamName = 0;
-	bool ascending = true;
-	List<Team> teams = new List<Team> ();
+	private string [] headers = new string [] { "Team Name", "Wins", "Losses", "Games Behind" };	// Headers
+	private int currSortedStat = 3;																	// Current sorted stat
+	private int longestTeamName = 0;																// Length of the longest team name
+	private bool ascending = true;																	// Whether it's sorted ascending or descending
+	private List<Team> teams = new List<Team> ();													// List of all teams
 
 	void Start ()
 	{
@@ -61,7 +64,7 @@ public class GetStandings : MonoBehaviour
 		statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 		statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = headers [maxIndex];
 		statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader.name));
-		statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (test.rect.width - newWidth, 20.0f);
+		statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (scrollRect.rect.width - newWidth, 20.0f);
 	}
 
 	// Displays teams

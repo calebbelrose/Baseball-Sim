@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,21 +8,56 @@ using UnityEngine.Networking;
 
 public class Calendar : MonoBehaviour
 {
-	public GameObject slotPrefab, previousButton, nextButton;
-	public static GameObject button = null;
-	public List<GameObject> calendarSlots = new List<GameObject> ();
-	public Text monthText;
+	public GameObject SlotPrefab;																// Slot prefab
+	public GameObject PreviousButton;															// Previous button
+	public GameObject NextButton;																// Next button
+	public Text MonthText;																		// Text to display name of month
+	public Text SimulateText;																	// Text for the simulate button
 
-	private Color fadedColour = new Color (Color.white.r, Color.white.g, Color.white.b, 0.5f);
-	private int selectedSlot = -1, selectedMonth, currMonth;
+	private Color fadedColour = new Color (Color.white.r, Color.white.g, Color.white.b, 0.5f);	// Faded colour for days in the calendar that aren't in the displayed month
+	private int selectedSlot = -1;																// Selected slot
+	private int selectedMonth;																	// Month of the selected slot
+	private int currMonth;																		// Currently displayed month
+	private DateTime simulationDate;															// Date to simulate to
+	private Thread thread;																		// Thread for performing tasks in the background, used for simulating
+	private bool notThreading = true;															// Whether the thread is done or still running
+	private List<GameObject> calendarSlots = new List<GameObject> ();							// Slots in the calendar
+
+	public static GameObject Button = null;														// Static reference to next button
 
 	void Start ()
 	{
-		if (button == null)
-			button = nextButton;
+		if (Button == null)
+			Button = NextButton;
 
-		currMonth = Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month;
+		simulationDate = Manager.Instance.Days [Manager.Instance.DayIndex].Date;
+		currMonth = simulationDate.Month;
+
+		if (currMonth == 1)
+			PreviousButton.SetActive (false);
+		else if (currMonth == 12)
+			NextButton.SetActive (false);
+		
 		DisplayCalendar (currMonth);
+	}
+
+	// Simulates days until the simulation date
+	void Update ()
+	{
+		if (simulationDate > Manager.Instance.Days [Manager.Instance.DayIndex].Date)
+		{
+			if (notThreading)
+			{
+				notThreading = false;
+
+				thread = new Thread (() => {
+					Simulate ();
+				});
+				thread.Start ();
+			}
+		}
+		else
+			SimulateText.text = "Simulate";
 	}
 
 	// Displays the calendar
@@ -37,7 +73,7 @@ public class Calendar : MonoBehaviour
 		int maxIndex = Manager.Instance.Days.Count - 1;
 		int offset = 0;
 
-		monthText.text = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName (month);
+		MonthText.text = System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName (month);
 
 		while (Manager.Instance.Days [startOfCalendar].Date.AddDays (-offset).DayOfWeek != DayOfWeek.Sunday)
 			offset++;
@@ -46,7 +82,7 @@ public class Calendar : MonoBehaviour
 
 		while (startOfCalendar < 0)
 		{
-			GameObject obj = Instantiate (slotPrefab, Vector3.zero, Quaternion.identity, transform);
+			GameObject obj = Instantiate (SlotPrefab, Vector3.zero, Quaternion.identity, transform);
 			Day day = new Day (Manager.Instance.Days [0].Date.AddDays (startOfCalendar));
 
 			obj.GetComponent<Image> ().color = fadedColour;
@@ -60,7 +96,7 @@ public class Calendar : MonoBehaviour
 
 		for (int day = startOfCalendar; day <= endOfCalendar; day++)
 		{
-			GameObject obj = Instantiate (slotPrefab, Vector3.zero, Quaternion.identity, transform);
+			GameObject obj = Instantiate (SlotPrefab, Vector3.zero, Quaternion.identity, transform);
 
 			if (Manager.Instance.Days [day].Date.Month != month)
 			{
@@ -87,7 +123,7 @@ public class Calendar : MonoBehaviour
 
 		for (int i = 0; i < offset; i++)
 		{
-			GameObject obj = Instantiate (slotPrefab, Vector3.zero, Quaternion.identity, transform);
+			GameObject obj = Instantiate (SlotPrefab, Vector3.zero, Quaternion.identity, transform);
 			Day day = new Day (Manager.Instance.Days [maxIndex].Date.AddDays (i));
 
 			obj.GetComponent<Image> ().color = fadedColour;
@@ -96,34 +132,43 @@ public class Calendar : MonoBehaviour
 		}
 	}
 
-	// Simulates the days until the selected date
-	public void Simulate ()
+	public void SetSimulationDate ()
 	{
 		if (selectedSlot != -1)
 		{
-			DateTime date = calendarSlots [selectedSlot].GetComponent<Slot> ().Day.Date;
+			simulationDate = calendarSlots [selectedSlot].GetComponent<Slot> ().Day.Date.AddDays (1);
+			SimulateText.text = "Stop Simulation";
 
-			//if (Manager.Instance.DayIndex < Manager.Instance.FYPDIndex && date > Manager.Instance.Days [Manager.Instance.FYPDIndex].Date)
-			//	date = Manager.Instance.Days [Manager.Instance.FYPDIndex].Date;
-			
-			while (Manager.Instance.Days [Manager.Instance.DayIndex].Date <= date)
-				Manager.Instance.SimulateDay ();
-
-			currMonth = Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month;
-			selectedMonth = -1;
-			selectedSlot = -1;
-
-			DisplayCalendar (Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month);
+			if (Manager.Instance.DayIndex < Manager.Instance.FYPDIndex && simulationDate > Manager.Instance.Days [Manager.Instance.FYPDIndex].Date)
+				simulationDate = Manager.Instance.Days [Manager.Instance.FYPDIndex].Date;
 		}
+	}
+
+	// Simulates the days until the selected date
+	void Simulate ()
+	{
+		Manager.Instance.SimulateDay ();
+		currMonth = Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month;
+		selectedMonth = -1;
+		selectedSlot = -1;
+		Manager.Instance.ExecuteOnMainThread.Enqueue (() => {
+			MainThreadDisplay ();
+		});
+	}
+
+	void MainThreadDisplay ()
+	{
+		DisplayCalendar (Manager.Instance.Days [Manager.Instance.DayIndex].Date.Month);
+		notThreading = true;
 	}
 
 	// Displays the next month
 	public void NextMonth ()
 	{
 		if (++currMonth == 12)
-			nextButton.SetActive (false);
+			NextButton.SetActive (false);
 		else if (currMonth == 2)
-			previousButton.SetActive (true);
+			PreviousButton.SetActive (true);
 		
 		DisplayCalendar (currMonth);
 	}
@@ -132,9 +177,9 @@ public class Calendar : MonoBehaviour
 	public void PreviousMonth ()
 	{
 		if (--currMonth == 1)
-			previousButton.SetActive (false);
+			PreviousButton.SetActive (false);
 		else if (currMonth == 11)
-			nextButton.SetActive (true);
+			NextButton.SetActive (true);
 		
 		DisplayCalendar (currMonth);
 	}
@@ -142,7 +187,7 @@ public class Calendar : MonoBehaviour
 	// Activates the next button
 	public static void ActivateNextButton ()
 	{
-		button.SetActive (true);
+		Button.SetActive (true);
 	}
 
 	// Destroys all of the slots in the calendar
@@ -159,7 +204,7 @@ public class Calendar : MonoBehaviour
 	{
 		if (selectedSlot != -1 && currMonth == selectedMonth)
 			calendarSlots [selectedSlot].GetComponent<Image> ().color = Color.white;
-		
+	
 		selectedSlot = index;
 		selectedMonth = calendarSlots [selectedSlot].GetComponent<Slot> ().Day.Date.Month;
 		HighlightSlot ();

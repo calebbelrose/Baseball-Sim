@@ -5,8 +5,15 @@ using UnityEngine.UI;
 
 public class DisplayScore : MonoBehaviour
 {
-	public Text textYourScore, textTheirScore, textResult, textWL;
-	private static Text txtYourScore, txtTheirScore, txtResult, txtWL;
+	public Text textYourScore;			// Displays user's score
+	public Text textTheirScore;			// Displays their score
+	public Text textResult;				// Displays whether you won or lost
+	public Text textWL;					// Displays user's total wins and losses
+
+	private static Text txtYourScore;	// Static reference to the text to display user's score
+	private static Text txtTheirScore;	// Static reference to the text to display their score
+	private static Text txtResult;		// Static reference to the text to display whether you won or lost
+	private static Text txtWL;			// Static reference to the text to display user's total wins and losses
 
 	void Awake ()
 	{

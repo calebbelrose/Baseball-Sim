@@ -51,7 +51,6 @@
      <Compile Include="Assets\Scripts\Calendar.cs" />
      <Compile Include="Assets\Scripts\ChangeScene.cs" />
      <Compile Include="Assets\Scripts\ChangeTeamColour.cs" />
-     <Compile Include="Assets\Scripts\ChangeVolume.cs" />
      <Compile Include="Assets\Scripts\ContractYear.cs" />
      <Compile Include="Assets\Scripts\CreateSchedule.cs" />
      <Compile Include="Assets\Scripts\Day.cs" />
@@ -94,7 +93,6 @@
      <Compile Include="Assets\Scripts\PlayerDisplay.cs" />
      <Compile Include="Assets\Scripts\PopulateStadiumTiers.cs" />
      <Compile Include="Assets\Scripts\PopulateTeams.cs" />
-     <Compile Include="Assets\Scripts\RandomFace.cs" />
      <Compile Include="Assets\Scripts\Report.cs" />
      <Compile Include="Assets\Scripts\Restart.cs" />
      <Compile Include="Assets\Scripts\Runner.cs" />
@@ -108,6 +106,7 @@
      <Compile Include="Assets\Scripts\Team.cs" />
      <Compile Include="Assets\Scripts\TeamLogo.cs" />
      <Compile Include="Assets\Scripts\Trade.cs" />
+     <Compile Include="Assets\Scripts\TradeOffer.cs" />
      <Compile Include="Assets\Scripts\TradePlayerInfo.cs" />
      <Compile Include="Assets\Scripts\WaiverPlayer.cs" />
      <None Include="Assets\Fonts\SIL Open Font License.txt" />

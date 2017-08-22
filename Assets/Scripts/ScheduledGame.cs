@@ -4,22 +4,25 @@ using System.IO;
 
 public class ScheduledGame
 {
-    static int id = 0;
-    public static int singles = 0, doubles = 0, triples = 0, homeruns = 0, strikeouts = 0, walks = 0, games = 0, innings = 0, runs = 0, lineouts = 0, groundouts = 0, flyouts = 0, popouts = 0, hbp = 0, errors = 0, sb = 0, cs = 0;
-    Team [] teams = new Team[2];
-    bool trackStats;
-    GameType gameType;
-    TeamType teamType;
-    int dayIndex, gameID;
-    List<int> [] pitchers = new List<int> [2];
-    List<int []> [] pitchingStats = new List<int []>[2];
-    List<int []> [] [] battingStats = new List<int []>[2] [];
-    int [] batters = new int [] { 0, 0 };
+	private Team [] teams = new Team[2];								// Teams playing the game
+	private bool trackStats;											// Whether to track the stats or not
+	private GameType gameType;											// Type of game
+	private TeamType teamType;											// Type of teams
+	private int dayIndex;												// Index of the day the game is to be played
+	private int gameID;													// Game ID
+    private List<int> [] pitchers = new List<int> [2];					// Current pitcher for each team
+	private List<int []> [] pitchingStats = new List<int []>[2];		// Stats of all pitchers that played in the game
+	private List<int []> [] [] battingStats = new List<int []>[2] [];	// Stats of all batters that played in the game
+	private int [] batters = new int [] { 0, 0 };						// Batters for each team
+
+	// Stats for all games
+	public static int singles = 0, doubles = 0, triples = 0, homeruns = 0, strikeouts = 0, walks = 0, games = 0, innings = 0, runs = 0, lineouts = 0, groundouts = 0, flyouts = 0, popouts = 0, hbp = 0, errors = 0, sb = 0, cs = 0;
+	public static int ID = 0;											// Static game ID
 
 	// 0-Arg Constructor
     public ScheduledGame ()
     {
-		string str = File.ReadAllLines (@"Save\ScheduledGame" + (gameID = id++) + ".txt") [0];
+		string str = File.ReadAllLines (@"Save\ScheduledGame" + (gameID = ID++) + ".txt") [0];
         string [] split = str.Split (',');
 
         if (bool.Parse (split [5]))
@@ -41,7 +44,7 @@ public class ScheduledGame
     {
 		StreamWriter sw;
 
-        gameID = id++;
+        gameID = ID++;
         teams = new Team [2];
         teams [0] = _team1;
         teams [1] = _team2;
@@ -61,7 +64,6 @@ public class ScheduledGame
 		int []  scores =  new int [] { 0, 0 },  relievers =  new int [] { 0, 0 };
         List<bool> [] hit = new List<bool>[2];
         bool [] noHitter = new bool [] {true, true};
-        float random;
         bool designatedHitter;
 		List<string []> [] [] strBattingStats = new List<string []>[2] [];
 		List<string []> [] strPitchingStats = new List<string []>[2];
@@ -166,8 +168,10 @@ public class ScheduledGame
 
                         if (Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [9] <= 0)
                         {
-                            if (Random.value > Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [8] / 100.0f)
-                                Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Injure ();
+                            if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [8] / 100.0f)
+								Manager.Instance.ExecuteOnMainThread.Enqueue (() =>{
+									Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Injure ();
+								});
 
 							if(teams [otherTeam].OffensiveSubstitutes.Count > 0)
 							{
@@ -248,7 +252,7 @@ public class ScheduledGame
 
 							if (Manager.Instance.Players [bases [k].PlayerID].Skills [3] > (Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [3] + Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [2]) * 0.6f && Manager.Instance.Players [bases [k].PlayerID].Skills [3] > (Manager.Instance.Players [catcherIndex].Skills [5] + Manager.Instance.Players [catcherIndex].Skills [3]) * 0.6f)
 							{
-								if(Random.value * 100.0f > Manager.Instance.Players [bases [k].PlayerID].Skills [3])
+								if((float)Manager.Instance.RandomGen.NextDouble () * 100.0f > Manager.Instance.Players [bases [k].PlayerID].Skills [3])
 								{
 									Manager.Instance.Players [bases [k].PlayerID].Stats [0] [13]++;
 									Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [12]++;
@@ -262,7 +266,7 @@ public class ScheduledGame
 								}
 								else if (Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [3] > Manager.Instance.Players [bases [k].PlayerID].Skills [3] || Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [2] > Manager.Instance.Players [bases [k].PlayerID].Skills [3])
 								{
-									if (Random.value > Manager.Instance.Players [pitchers [thisTeam] [0]].FieldingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+									if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [pitchers [thisTeam] [0]].FieldingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
 									{
 										Manager.Instance.Players [bases [k].PlayerID].Stats [0] [12]++;
 										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [11]++;
@@ -286,7 +290,7 @@ public class ScheduledGame
 								}
 								else if (Manager.Instance.Players [catcherIndex].Skills [5] > Manager.Instance.Players [bases [k].PlayerID].Skills [3] || Manager.Instance.Players [catcherIndex].Skills [3] > Manager.Instance.Players [bases [k].PlayerID].Skills [3])
 								{
-									if (Random.value > Manager.Instance.Players [catcherIndex].CatchingChance || Random.value > Manager.Instance.Players [catcherIndex].FieldingChance || Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
+									if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [catcherIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [catcherIndex].FieldingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance)
 									{
 										Manager.Instance.Players [bases [k].PlayerID].Stats [0] [12]++;
 										Manager.Instance.Players [teams [otherTeam].Players [batters [otherTeam]]].StatSplits [0] [pitchSplit] [11]++;
@@ -325,7 +329,7 @@ public class ScheduledGame
                     Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [9]--;
                     Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [9]--;
 
-                    thisLocation = Random.value;
+                    thisLocation = (float)Manager.Instance.RandomGen.NextDouble ();
 
                     if (balls == 3 && strikes <= 1)
                     {
@@ -349,14 +353,14 @@ public class ScheduledGame
                     else
                         thisLocation /= 2;
 
-                    thisAccuracy = Random.value;
+                    thisAccuracy = (float)Manager.Instance.RandomGen.NextDouble ();
 
                     if (thisAccuracy > accuracy * (Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [9] / Manager.Instance.Players [pitchers [thisTeam] [0]].Skills [10] / 5.0f + 0.95f))
                     {
                         if (thisAccuracy > 0.975f)
                         {
                             strike = false;
-                            if (Random.value > 0.5f)
+                            if ((float)Manager.Instance.RandomGen.NextDouble () > 0.5f)
                                 wildPitch = true;
                             else
                                 atBatter = true;
@@ -365,14 +369,13 @@ public class ScheduledGame
                             strike = !strike;
                     }
 
-                    thisEye = Random.value * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [2] * multiplier / 100.0f;
-                    random = Random.value;
-                    pitchIndex = Random.Range (0, Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches.Count);
+                    thisEye = (float)Manager.Instance.RandomGen.NextDouble () * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [2] * multiplier / 100.0f;
+					pitchIndex = (int)(Manager.Instance.RandomGen.NextDouble () * Manager.Instance.Players  [pitchers  [thisTeam]  [0]].Pitches.Count);
 
                     if (pitchIndex != prevPitch)
-                        pitchEffectiveness = Random.value * Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches [pitchIndex].Effectiveness / 100.0f;
+                        pitchEffectiveness = (float)Manager.Instance.RandomGen.NextDouble () * Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches [pitchIndex].Effectiveness / 100.0f;
                     else
-                        pitchEffectiveness = Random.value * Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches [pitchIndex].Effectiveness / 100.0f * 0.9f;
+                        pitchEffectiveness = (float)Manager.Instance.RandomGen.NextDouble () * Manager.Instance.Players [pitchers [thisTeam] [0]].Pitches [pitchIndex].Effectiveness / 100.0f * 0.9f;
 
                     prevPitch = pitchIndex;
 
@@ -387,7 +390,7 @@ public class ScheduledGame
                     {
                         if (thisEye > 0.5f)
                             swing = false;
-                        else if (Random.value > 0.5f)
+                        else if ((float)Manager.Instance.RandomGen.NextDouble () > 0.5f)
                             swing = true;
                         else
                             swing = false;
@@ -399,7 +402,7 @@ public class ScheduledGame
                             balls = 4;
                         else
                         {
-                            thisContact = Random.value * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [1] * multiplier / 100.0f;
+                            thisContact = (float)Manager.Instance.RandomGen.NextDouble () * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [1] * multiplier / 100.0f;
 
                             if (!strike)
                                 thisContact *= (1 - thisLocation) * 2 + thisLocation;
@@ -408,7 +411,7 @@ public class ScheduledGame
                             {
                                 int numBases;
                                 bool fly = false;
-                                float powerRandom = Random.value;
+                                float powerRandom = (float)Manager.Instance.RandomGen.NextDouble ();
 
                                 thisPower = powerRandom * Manager.Instance.Players [teams [otherTeam].Batters [batters [otherTeam]] [0]].Skills [0] * multiplier / 100.0f;
 
@@ -465,7 +468,7 @@ public class ScheduledGame
                                         hit [otherTeam] [batters [otherTeam]] = true;
                                         noHitter [thisTeam] = false;
 
-                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                         {
                                             numBases = 4;
                                             Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
@@ -477,7 +480,7 @@ public class ScheduledGame
                                         {
                                             fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("2B")] [0];
 
-                                            if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                            if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                             {
                                                 numBases = 4;
                                                 Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
@@ -489,7 +492,7 @@ public class ScheduledGame
                                             {
                                                 fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("C")] [0];
 
-                                                if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
+                                                if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance)
                                                 {
                                                     numBases = 4;
                                                     Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
@@ -514,7 +517,7 @@ public class ScheduledGame
                                         if (trackStats)
                                             flyouts++;
 
-                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                         {
                                             numBases = 2;
 											ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -554,7 +557,7 @@ public class ScheduledGame
                                         hit [otherTeam] [batters [otherTeam]] = true;
                                         noHitter [thisTeam] = false;
 
-                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                         {
                                             numBases = 3;
                                             Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
@@ -577,7 +580,7 @@ public class ScheduledGame
                                         if (trackStats)
                                             popouts++;
 
-                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                         {
                                             numBases = 1;
 											ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -615,7 +618,7 @@ public class ScheduledGame
                                         hit [otherTeam] [batters [otherTeam]] = true;
                                         noHitter [thisTeam] = false;
 
-                                        if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                        if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                         {
                                             numBases = 2;
                                             Manager.Instance.Players [fielderIndex].Stats [0] [36]++;
@@ -636,7 +639,7 @@ public class ScheduledGame
 
                                         if (fielderPosition.Substring (1, 1) == "F")
                                         {
-                                            if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                            if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                             {
                                                 numBases = 1;
 												ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -654,7 +657,7 @@ public class ScheduledGame
                                                 error = false;
                                             }
                                         }
-                                        else if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance)
+                                        else if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance)
                                         {
                                             numBases = 1;
 											ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -683,7 +686,7 @@ public class ScheduledGame
 
                                         if (bases [1] != null)
                                         {
-                                            if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                            if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                             {
                                                 numBases = 1;
 												ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -696,7 +699,7 @@ public class ScheduledGame
                                                 else
                                                     fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("2B")] [0];
 
-                                                if (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)
+                                                if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)
                                                 {
                                                     numBases = 1;
 													ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -709,7 +712,7 @@ public class ScheduledGame
                                                     else
                                                         fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0];
 
-                                                    if (Random.value > Manager.Instance.Players [ (fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0])].FieldingChance)
+                                                    if ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [ (fielderIndex = teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf ("1B")] [0])].FieldingChance)
                                                     {
                                                         numBases = 1;
 														ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -732,7 +735,7 @@ public class ScheduledGame
                                         }
                                         else
                                         {
-                                            if ((fielderPosition != "1B" && (Random.value > Manager.Instance.Players [fielderIndex].CatchingChance || Random.value > Manager.Instance.Players [fielderIndex].FieldingChance)) || Random.value > Manager.Instance.Players [teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0]].CatchingChance)
+                                            if ((fielderPosition != "1B" && ((float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].CatchingChance || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [fielderIndex].FieldingChance)) || (float)Manager.Instance.RandomGen.NextDouble () > Manager.Instance.Players [teams [thisTeam].Batters [teams [thisTeam].Positions.IndexOf (fielderPosition)] [0]].CatchingChance)
                                             {
                                                 numBases = 1;
 												ReachedOnError (teams [otherTeam].Players [batters [otherTeam]], fielderIndex, pitchers [thisTeam] [0], batSplit);
@@ -986,8 +989,9 @@ public class ScheduledGame
         }
 
         //Home team gains revenue and pays expenses
-        teams [1].AddRevenue (teams [0].Hype);
-        teams [0].SubtractExpenses ();
+		Manager.Instance.ExecuteOnMainThread.Enqueue (() =>{
+			RevenuesAndExpenses ();
+		});
 
 		Manager.Instance.Players [winningPitcher].Stats [0] [15]++;
 		Manager.Instance.Players [losingPitcher].Stats [0] [16]++;
@@ -1016,7 +1020,7 @@ public class ScheduledGame
 					while (teams [j].Batters [k].Count > 1)
 						teams [j].Batters [k].RemoveAt (1);
 
-			/*for (int k = 0; k < battingStats [j].Length; k++)
+			for (int k = 0; k < battingStats [j].Length; k++)
 			{
 				strBattingStats [j] [k] = new List<string []> ();
 
@@ -1042,7 +1046,7 @@ public class ScheduledGame
 					strPitchingStats [j] [k] [l] = pitchingStats [j] [k] [l].ToString ();
 				
 				strPitchingStats [j] [k] [8] = Manager.Instance.Players [pitchingStats [j] [k] [0]].ERA.ToString ("F");
-			}*/
+			}
 
             if (noHitter [j])
                 Manager.Instance.Players [pitchers [j] [0]].Stats [0] [35]++;
@@ -1058,14 +1062,11 @@ public class ScheduledGame
                         Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33] = Manager.Instance.Players [teams [j].Players [k]].Stats [0] [30];
                         Manager.Instance.Players [teams [j].Players [k]].Stats [0] [34] = Manager.Instance.Year;
 
-						if (Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33] > Manager.Instance.longestHitStreak)
+						if (Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33] > Manager.Instance.LongestHitStreak)
 						{
-							Manager.Instance.longestHitStreak = Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33];
-							Manager.Instance.hitStreakYear = Manager.Instance.Players [teams [j].Players [k]].Stats [0] [34];
-							Manager.Instance.hitStreakName = Manager.Instance.Players [teams [j].Players [k]].Name;
-							PlayerPrefs.SetInt ("LongestHitStreak", Manager.Instance.longestHitStreak);
-							PlayerPrefs.SetInt ("HitStreakYear", Manager.Instance.hitStreakYear);
-							PlayerPrefs.SetString ("HitStreakName", Manager.Instance.hitStreakName);
+							Manager.Instance.LongestHitStreak = Manager.Instance.Players [teams [j].Players [k]].Stats [0] [33];
+							Manager.Instance.HitStreakYear = Manager.Instance.Players [teams [j].Players [k]].Stats [0] [34];
+							Manager.Instance.HitStreakName = Manager.Instance.Players [teams [j].Players [k]].Name;
 						}
                     }
                 }
@@ -1077,6 +1078,8 @@ public class ScheduledGame
 
                 Manager.Instance.Players [teams [j].Players [k]].SaveStats ();
             }
+
+
         }
 
         if (pitchers [0] [0] == teams [0].SP [teams [0].CurrStarter])
@@ -1085,23 +1088,40 @@ public class ScheduledGame
         if (pitchers [1] [0] == teams [1].SP [teams [1].CurrStarter])
             Manager.Instance.Players [pitchers [1] [0]].Stats [0] [29]++;
 
-        teams [0].UseStarter ();
-        teams [1].UseStarter ();
+		Manager.Instance.ExecuteOnMainThread.Enqueue (() =>{
+			UseStarters ();
+		});
 
 		if (teams[0].Type == TeamType.MLB)
 		{
 			if (teams [0].ID == 0)
-	            DisplayScore.Display (teams [0].Wins, teams [0].Losses, scores [0], scores [1]);
+				Manager.Instance.ExecuteOnMainThread.Enqueue (() =>{
+					DisplayScore.Display (teams [0].Wins, teams [0].Losses, scores [0], scores [1]);
+				});
 	        else if (teams [1].ID == 0)
-	            DisplayScore.Display (teams [1].Wins, teams [1].Losses, scores [1], scores [0]);
+				Manager.Instance.ExecuteOnMainThread.Enqueue (() =>{
+					DisplayScore.Display (teams [1].Wins, teams [1].Losses, scores [1], scores [0]);
+				});
 		}
 
-		/*sw = new StreamWriter (@"Save\ScheduledGame" + gameID + ".txt");
+		sw = new StreamWriter (@"Save\ScheduledGame" + gameID + ".txt");
 		sw.WriteLine (teams [0].ID + "," + teams [1].ID + "," + (int)gameType + "," + (int)teamType + "," + dayIndex + "," + false);
-		sw.Close ();*/
+		sw.Close ();
 
 		return new SimulatedGame (scores, teams [0].ID, teams [1].ID, teams [0].Shortform, teams [1].Shortform, gameType, dayIndex, strBattingStats, strPitchingStats);
     }
+
+	void UseStarters ()
+	{
+		teams [0].UseStarter ();
+		teams [1].UseStarter ();
+	}
+
+	void RevenuesAndExpenses ()
+	{
+		teams [1].AddRevenue (teams [0].Hype);
+		teams [0].SubtractExpenses ();
+	}
 
 	// Determines whether the game contained a team
     public bool ContainsTeam (int team)
@@ -1124,7 +1144,7 @@ public class ScheduledGame
 	// Selects a random outfielder
     string RandomOutfielder ()
     {
-        float random = Random.value;
+        float random = (float)Manager.Instance.RandomGen.NextDouble ();
 
         if (random <= 1 / 3)
             return "LF";
@@ -1137,7 +1157,7 @@ public class ScheduledGame
 	// Selects a random infielder
     string RandomInfielder ()
     {
-        float random = Random.value;
+        float random = (float)Manager.Instance.RandomGen.NextDouble ();
 
         if (random <= 0.25f)
             return "1B";
@@ -1152,7 +1172,7 @@ public class ScheduledGame
 	// Selects a random fielder
     string RandomFielder ()
     {
-        float random = Random.value;
+        float random = (float)Manager.Instance.RandomGen.NextDouble ();
 
         if (random <= 1 / 7)
             return "LF";

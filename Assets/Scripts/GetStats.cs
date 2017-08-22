@@ -6,17 +6,19 @@ using System.Linq;
 
 public class GetStats : MonoBehaviour
 {
-	public RectTransform viewport, content;
-	public Transform teamListHeader;
+	public RectTransform viewport;		// Viewport for the stats
+	public RectTransform content;		// Holds the header and player objects
+	public Transform teamListHeader;	// Header object
 
-	//                                   0    1     2    3    4     5     6     7     8      9     10    11    12    13     14    15     16     17     18  19    20     21    22    23     24    25    26   27   28    29    30    31    32     33
-	string [] headers = new string [] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "BA", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "BAA", "WHIP" };
-	string [] playerInfoHeaders = new string [] { "First Name", "Last Name", "Position", "Team" };
-	int currSortedStat = 10;
-	bool ascending = true;
-	Team [] teams;
-	int [] playerInfoLengths, headerLengths;
-	List<string []> tempStats = new List<string []> ();
+	// Stat headers                      0    1     2    3    4     5     6     7     8      9     10    11    12    13     14    15     16     17     18  19    20     21    22    23     24    25    26   27   28    29    30    31    32     33
+	private string [] headers = new string [] { "G", "AB", "R", "H", "2B", "3B", "HR", "TB", "RBI", "BB", "SO", "SB", "CS", "SAC", "BA", "OBP", "SLG", "OPS", "W", "L", "ERA", "GS", "SV", "SVO", "IP", "AB", "H", "R", "ER", "HR", "BB", "SO", "BAA", "WHIP" };
+	private string [] playerInfoHeaders = new string [] { "First Name", "Last Name", "Position", "Team" };	// Player info headers
+	private int currSortedStat = 10;																		// Current sorted stat
+	private bool ascending = true;																			// Whether it's sorted ascending or descending
+	private Team [] teams;																					// Teams
+	private int [] playerInfoLengths;																		// Lengths of the player info headers
+	private int [] headerLengths;																			// Lengths of the stat headers
+	private List<string []> tempStats = new List<string []> ();												// Stores all of the stats
 
 	void Start ()
 	{

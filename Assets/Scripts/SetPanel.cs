@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SetPanel : MonoBehaviour
 {
-	public GameObject panel;
+	public GameObject panel;	// Panel to set
 
 	void Start ()
 	{

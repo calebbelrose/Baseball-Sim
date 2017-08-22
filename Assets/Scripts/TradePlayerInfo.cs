@@ -5,12 +5,13 @@ using System.Collections;
 
 public class TradePlayerInfo : MonoBehaviour
 {
-	public int PlayerID, TeamID;				// The number of the player and their team
+	public int PlayerID;									// Player ID
+	public int TeamID;										// Team ID
 
-	private bool active = false;						// Whether the player is part of the trade or not
+	private bool active = false;							// Whether the player is part of the trade or not
 	private Color yellow = new Color (1.0f, 1.0f, 0.0f);	// The colour to change to if the player is part of the trade
-	private Trade trade;
-	private EventSystem eventSystem;
+	private Trade trade;									// Trade
+	private EventSystem eventSystem;						// Event System
 
 	public void Awake()
 	{
@@ -39,8 +40,8 @@ public class TradePlayerInfo : MonoBehaviour
 	public void Trade ()
 	{
 		if (active)
-			trade.AddPlayer (PlayerID, TeamID);
+			trade.TradeOffer.AddPlayer (PlayerID, TeamID);
 		else
-			trade.RemovePlayer (PlayerID, TeamID);
+			trade.TradeOffer.RemovePlayer (PlayerID, TeamID);
 	}
 }

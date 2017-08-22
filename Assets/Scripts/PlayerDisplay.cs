@@ -2,10 +2,13 @@
 
 public class PlayerDisplay
 {
-	UnityEngine.Transform teamList, header;
-	UnityEngine.RectTransform teamListRect, teamListParentRect;
-	int currSortedStat = 6;
-	bool ascending = true;
+	public UnityEngine.Transform teamList;					// Holds the header and player objects
+	public UnityEngine.Transform header;					// Header object
+	public UnityEngine.RectTransform teamListRect;			// RectTransform of the playerList
+	public UnityEngine.RectTransform teamListParentRect;	// RectTransform of the parent of the player list
+
+	private int currSortedStat = 6;							// Current sorted stat
+	private bool ascending = true;							// Whether it's sorted ascending or descending
 
 	// Displays players
 	public void Display ()

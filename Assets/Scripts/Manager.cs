@@ -1,43 +1,59 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System;
 using System.Linq;
 
 public class Manager : MonoBehaviour
 {
-	public string [] Skills = File.ReadAllLines ("Skills.txt");
-	public List<string> tradeList;
-	public List<string> injuries;
-	public int longestHitStreak, hitStreakYear, FYPDIndex;
-	public string hitStreakName, YourName;
-	public TradeDeadline tradeDeadline;
-	public List<int> hallOfFameCandidates;
-	public List<HallOfFameInductee> hallOfFameInductees = new List<HallOfFameInductee> ();
-	public Color TeamColour;
-	public Sprite TeamLogo;	// The logo for the player's team
+	public string [] Skills = File.ReadAllLines ("Skills.txt");								// Skills
+	public List<string> TradeList;															// List of all trades
+	public List<string> Injuries;															// Player index of all injured players
+	public int LongestHitStreak;															// Number of hits in the longest hit streak
+	public int HitStreakYear;																// Year of the longest hit streak
+	public int FYPDIndex;																	// Day index of the first year player draft
+	public string HitStreakName;															// Name of player with longest hit streak
+	public string YourName;																	// User's name
+	public TradeDeadline TradeDeadline;														// Trade deadline
+	public List<int> HallOfFameCandidates;													// Hall of fame candidates
+	public List<HallOfFameInductee> HallOfFameInductees = new List<HallOfFameInductee> ();	// Hall of fame inductees
+	public Color TeamColour;																// User's team colour
+	public Sprite TeamLogo;																	// Logo for the user's team
+	public List<Sprite> FrecklesSprites;													// All freckle sprites
+	public List<Sprite> EarSprites;															// All ear sprites
+	public List<Sprite> FaceSprites;														// All face sprites
+	public List<Sprite> EyeShapeSprites;													// All eye shape sprites
+	public List<Sprite> EyeColourSprites;													// All eye colour sprites
+	public List<Sprite> HairSprites;														// All hair sprites
+	public List<Sprite> MouthSprites;														// All mouth sprites
+	public List<Sprite> NoseSprites;														// All nose sprites
+	public Queue<Action> ExecuteOnMainThread = new Queue<Action> ();						// Used to move actions from another thread back to main thread
 
-	private Draft draft;
-	private PlayerDisplay playerDisplay;
-	private DraftedPlayerDisplay draftedPlayerDisplay;
-	private FreeAgentDisplay freeAgentDisplay;
-	private InternationalFreeAgentDisplay internationalFreeAgentDisplay;
-	private int year;
-	private List<Player> players;
-	private int [] finalsTeams = new int [8];
-	private List<int []> finalsRounds;
-	private List<int> cyWinners, mvpWinners, freeAgents, internationalFreeAgents;
-	private DateTime startOfYear;
-	private GameObject panel;
-	private List<Team> [] teams = new List<Team>[Enum.GetNames (typeof (TeamType)).Length];				// List of all teams
-	private List<WaiverPlayer> waivers = new List<WaiverPlayer> (0);
+	private Draft draft;																	// First year player draft
+	private PlayerDisplay playerDisplay;													// Displays user's players
+	private DraftedPlayerDisplay draftedPlayerDisplay;										// Displays drafted players
+	private FreeAgentDisplay freeAgentDisplay;												// Displays free agents
+	private InternationalFreeAgentDisplay internationalFreeAgentDisplay;					// Displays international free agents
+	private int year;																		// Current year
+	private List<Player> players;															// All players
+	private int [] finalsTeams = new int [8];												// Teams in world series
+	private List<int []> finalsRounds;														// Used to schedule world series games
+	private List<int> cyWinners;															// Cy Young Winners
+	private List<int> mvpWinners;															// MVP winners
+	private List<int> freeAgents;															// Free agents
+	private List<int> internationalFreeAgents;												// International free agents
+	private DateTime startOfYear;															// Date at the beginning of year
+	private GameObject panel;																// Panel
+	private List<Team> [] teams = new List<Team>[Enum.GetNames (typeof (TeamType)).Length];	// All teams
+	private List<WaiverPlayer> waivers = new List<WaiverPlayer> (0);						// Players on waivers
+	private System.Random randomGen;														// Random number generator required for off the main thread
 
-	private static List<Day> days;
-	private static int dayIndex;
-	private static Manager instance = null;
-	private static int numTeams = 30;							// Number of teams
+	private static List<Day> days;															// Days
+	private static int dayIndex;															// Index of the current day
+	private static Manager instance = null;													// Instance of class
+	private static int numTeams = 30;														// Number of teams
 
 	// Use this for initialization
 	void Awake ()
@@ -52,21 +68,29 @@ public class Manager : MonoBehaviour
 		}
 	}
 
+	void Update ()
+	{
+		while (ExecuteOnMainThread.Count > 0)
+			ExecuteOnMainThread.Dequeue ().Invoke ();
+	}
+
 	// Loads the game
 	public void Load ()
 	{
+		randomGen = new System.Random ();
+
 		for (int i = 0; i < teams.Length; i++)
 			teams [i] = new List<Team> ();
 
 		teams [2].Add (new Team (TeamType.Futures, 0));
 		teams [2].Add (new Team (TeamType.Futures, 1));
-		Manager.Instance.Teams [2] [0].Shortform = "USA";
-		Manager.Instance.Teams [2] [1].Shortform = "WLD";
+		teams [2] [0].Shortform = "USA";
+		teams [2] [1].Shortform = "WLD";
 
 		teams [3].Add (new Team (TeamType.AllStar, 0));
 		teams [3].Add (new Team (TeamType.AllStar, 1));
-		Manager.Instance.Teams [3] [0].Shortform = "A.L.";
-		Manager.Instance.Teams [3] [1].Shortform = "N.L.";
+		teams [3] [0].Shortform = "A.L.";
+		teams [3] [1].Shortform = "N.L.";
 		finalsRounds = new List<int []> ();
 		freeAgents = new List<int> ();
 		internationalFreeAgents = new List<int> ();
@@ -81,7 +105,7 @@ public class Manager : MonoBehaviour
 			PlayerPrefs.Save ();
 		}
 
-		// Loads the player's name
+		// Loads the user's name
 		if (PlayerPrefs.HasKey ("Your Name"))
 			YourName = PlayerPrefs.GetString ("Your Name");
 
@@ -95,9 +119,9 @@ public class Manager : MonoBehaviour
 
 			year = PlayerPrefs.GetInt ("Year");
 			dayIndex = PlayerPrefs.GetInt ("DayIndex");
-			longestHitStreak = PlayerPrefs.GetInt ("LongestHitStreak");
-			hitStreakYear = PlayerPrefs.GetInt ("HitStreakYear");
-			hitStreakName = PlayerPrefs.GetString ("HitStreakName");
+			LongestHitStreak = PlayerPrefs.GetInt ("LongestHitStreak");
+			HitStreakYear = PlayerPrefs.GetInt ("HitStreakYear");
+			HitStreakName = PlayerPrefs.GetString ("HitStreakName");
 
 			CreateDays ();
 
@@ -194,14 +218,14 @@ public class Manager : MonoBehaviour
 		players = new List<Player> ();
 		year = DateTime.Now.Year;
 		PlayerPrefs.SetInt ("Year", year);
-		longestHitStreak = 0;
-		hitStreakYear = year;
-		hitStreakName = "Nobody";
+		LongestHitStreak = 0;
+		HitStreakYear = year;
+		HitStreakName = "Nobody";
 		PlayerPrefs.SetInt ("LongestHitStreak", 0);
-		PlayerPrefs.SetInt ("HitStreakYear", hitStreakYear);
+		PlayerPrefs.SetInt ("HitStreakYear", HitStreakYear);
 		PlayerPrefs.SetString ("HitStreakName", "Nobody");
 		CreateDays ();
-		tradeList = new List<string> ();
+		TradeList = new List<string> ();
 		Player.MinSalary = 535000.00;
 		PlayerPrefs.SetFloat ("MinSalary", 535000);
 
@@ -334,6 +358,8 @@ public class Manager : MonoBehaviour
 		}
 
 		parentRect.sizeDelta = new Vector2 (newWidth, 0.0f);
+		parentsParentRect.gameObject.SetActive (false);
+		parentsParentRect.gameObject.SetActive (true);
 	}
 
 	// Displays the players
@@ -546,7 +572,7 @@ public class Manager : MonoBehaviour
 		playerDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect);
 	}
 
-	// Dispplays the team's players
+	// Displays the team's players
 	public void DisplayPlayers ()
 	{
 		playerDisplay.Display ();
@@ -604,13 +630,81 @@ public class Manager : MonoBehaviour
 	// Simulates the day
 	public void SimulateDay ()
 	{
-		days [dayIndex].SimulateDay ();
+		while (days [dayIndex].ScheduledGames.Count > 0)
+			SimulateGame ();
+				
+		for (int i = 0; i < days [dayIndex].Events.Count; i++)
+			days [dayIndex].Events [i].Action ();
+
+		for (int j = 0; j < teams [0] [0].Players.Count; j++)
+			if (players [teams [0] [0].Players [j]].Skills [9] != players [teams [0] [0].Players [j]].Skills [10] && (players [teams [0] [0].Players [j]].Skills [9] += 20) > players [teams [0] [0].Players [j]].Skills [10])
+				players [teams [0] [0].Players [j]].Skills [9] = players [teams [0] [0].Players [j]].Skills [10];
+
+		for (int thisTeam = 0; thisTeam < teams [0].Count; thisTeam++)
+			teams [0] [thisTeam].SetRoster ();
+
+		for (int thisTeam = 1; thisTeam < teams [0].Count; thisTeam++)
+		{
+			List<int> bestOptions = new List<int> ();
+
+			for (int j = 0; j < teams [0] [thisTeam].LookingFor.Count; j++)
+				bestOptions.Add (-1);
+
+			for (int j = 0; j < teams [0] [thisTeam].Players.Count; j++)
+				if (players [teams [0] [thisTeam].Players [j]].Skills [9] != players [teams [0] [thisTeam].Players [j]].Skills [10] && (players [teams [0] [thisTeam].Players [j]].Skills [9] += 20) > players [teams [0] [thisTeam].Players [j]].Skills [10])
+						players [teams [0] [thisTeam].Players [j]].Skills [9] = players [teams [0] [thisTeam].Players [j]].Skills [10];
+
+			for (int otherTeam = 1; otherTeam < teams [0].Count; otherTeam++)
+				if (otherTeam != thisTeam)
+					for (int k = 0; k < teams [0] [thisTeam].LookingFor.Count; k++)
+					{
+						int index = 0;
+						bool notFound = true;
+
+						while (index < teams [0] [otherTeam].TradeBlock.Count && notFound)
+							if (players [teams [0] [otherTeam].TradeBlock [index]].Position == teams [0] [thisTeam].LookingFor [k])
+							{
+								notFound = false;
+
+								if (bestOptions [k] == -1 || players [teams [0] [otherTeam].TradeBlock [index]].Overall > players [bestOptions [k]].Overall)
+									bestOptions [k] = teams [0] [otherTeam].TradeBlock [index];
+							}
+							else
+								index++;
+					}
+			
+			for (int j = 0; j < bestOptions.Count; j++)
+				if (bestOptions [j] != -1)
+				{
+					TradeOffer tradeOffer = new TradeOffer (thisTeam, players [bestOptions [j]].Team);
+					int currentOffer = teams [0] [thisTeam].TradeBlock.Count - 1;
+					float targetValue = players [bestOptions [j]].TradeValue * 0.9f, maxValue = players [bestOptions [j]].TradeValue * 1.1f;
+					bool needMatch = true;
+
+					tradeOffer.AddPlayer (bestOptions [j], tradeOffer.TheirTeam);
+					tradeOffer.CalculateTheirValue ();
+
+					while (currentOffer >= 0 && players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue <= maxValue && needMatch)
+						if ((teams [0] [players [teams [0] [thisTeam].TradeBlock [currentOffer]].Team].LookingFor.Contains (players [teams [0] [thisTeam].TradeBlock [currentOffer]].Position) && players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue >= targetValue) || players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue >= tradeOffer.TheirValue)
+						{
+							needMatch = false;
+							tradeOffer.AddPlayer (players [teams [0] [thisTeam].TradeBlock [currentOffer]].ID, thisTeam);
+						}
+						else
+							currentOffer--;
+
+					if (tradeOffer.HaveOffer)
+						teams [0] [tradeOffer.TheirTeam].NewTradeOffer (tradeOffer);
+				}
+		}
+
+		for (int i = 1; i < teams [0].Count; i++)
+			teams [0] [i].AcceptTrades ();
 
 		for (int i = 0; i < waivers.Count; i++)
 			waivers [i].AdvanceDay ();
 
-		for(int i = 0; i < freeAgents.Count; )
-		{
+		for (int i = 0; i < freeAgents.Count;)
 			if (players [freeAgents [i]].OfferTime > 0 && --players [freeAgents [i]].OfferTime == 0)
 			{
 				teams [0] [players [freeAgents [i]].Team].AddPlayer (players [freeAgents [i]].ID);
@@ -618,10 +712,8 @@ public class Manager : MonoBehaviour
 			}
 			else
 				i++;
-		}
 
-		for(int i = 0; i < internationalFreeAgents.Count; )
-		{
+		for (int i = 0; i < internationalFreeAgents.Count;)
 			if (players [internationalFreeAgents [i]].OfferTime > 0 && --players [internationalFreeAgents [i]].OfferTime == 0)
 			{
 				teams [0] [players [internationalFreeAgents [i]].Team].AddPlayer (players [internationalFreeAgents [i]].ID);
@@ -629,11 +721,27 @@ public class Manager : MonoBehaviour
 			}
 			else
 				i++;
-		}
 
 		dayIndex++;
+
+		ExecuteOnMainThread.Enqueue (() => {
+			SaveDayIndexAndHitStreak ();
+		});
+	}
+
+	void SaveDayIndexAndHitStreak()
+	{
+		PlayerPrefs.SetInt ("LongestHitStreak", Manager.Instance.LongestHitStreak);
+		PlayerPrefs.SetInt ("HitStreakYear", Manager.Instance.HitStreakYear);
+		PlayerPrefs.SetString ("HitStreakName", Manager.Instance.HitStreakName);
 		PlayerPrefs.SetInt ("DayIndex", dayIndex);
 		PlayerPrefs.Save ();
+	}
+
+	void SimulateGame ()
+	{
+		days [dayIndex].SimulatedGames.Add (days [dayIndex].ScheduledGames [0].PlayGame ());
+		days [dayIndex].ScheduledGames.RemoveAt (0);
 	}
 
 	// Creates all of the days for the current year
@@ -668,7 +776,9 @@ public class Manager : MonoBehaviour
 		for (int i = 0; i < teams [0].Count; i++)
 		{
 			if (teams [0] [i].Cash < 0)
-				teams [0] [i].Bankrupt ();
+				ExecuteOnMainThread.Enqueue (() =>{
+						teams [0] [i].Bankrupt ();
+				});
 			
 			teams [0] [i].NewYear ();
 		}
@@ -751,8 +861,8 @@ public class Manager : MonoBehaviour
 	// Adds a new player
 	public void NewPlayer (Player newPlayer)
 	{
-		teams [1] [(int)newPlayer.Country].AddPlayer (newPlayer.ID);
 		players.Add (newPlayer);
+		teams [1] [(int)newPlayer.Country].AddPlayer (newPlayer.ID);
 	}
 
 	public int NewInternationalFreeAgent ()
@@ -847,6 +957,14 @@ public class Manager : MonoBehaviour
 		get
 		{
 			return days;
+		}
+	}
+
+	public System.Random RandomGen
+	{
+		get
+		{
+			return randomGen;
 		}
 	}
 

@@ -2,11 +2,14 @@
 
 public class DraftedPlayerDisplay
 {
-	UnityEngine.Transform playerList, header;
-	UnityEngine.RectTransform playerListRect, playerListParentRect;
-	UnityEngine.GameObject panel;
-	int currSortedStat = 6;
-	bool ascending = true;
+	public UnityEngine.Transform playerList;				// Holds the header and player objects
+	public UnityEngine.Transform header;					// Header object
+	public UnityEngine.RectTransform playerListRect;		// RectTransform of the playerList
+	public UnityEngine.RectTransform playerListParentRect;	// RectTransform of the parent of the player list
+	public UnityEngine.GameObject panel;					// Panel used for displaying a selected player
+
+	private int currSortedStat = 6;							// Current sorted stat
+	private bool ascending = true;							// Whether it's sorted ascending or descending
 
 	// Displays the drafted players
 	public void Display ()

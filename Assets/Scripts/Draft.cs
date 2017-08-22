@@ -6,14 +6,19 @@ using System.IO;
 
 public class Draft
 {
-	List<int> [] newPlayers;
-	public static List<int> draftPlayers;
-	GameObject manager;
-	Transform draftList, header;
-	RectTransform draftListRect, draftListParentRect;
-	int currSortedStat = 0, currIndex = 0, initialPlayers;
-	bool ascending = true;
-	List<int> pickascending;
+	public Transform draftList;					// Holds the header and player objects
+	public Transform header;					// Header object
+	public RectTransform draftListRect;			// RectTransform of the playerList
+	public RectTransform draftListParentRect;	// RectTransform of the parent of the player list
+
+	private int currSortedStat = 6;				// Current sorted stat
+	private int currIndex = 0;					// Index of the current picking team
+	private int initialPlayers;					// Number of players at the start of the draft
+	private bool ascending = true;				// Whether it's sorted ascending or descending
+	private List<int> pickAscending;			// List of team IDs sorted by pick order
+	private List<int> [] newPlayers;			// New players for each team
+
+	public static List<int> draftPlayers;		// All draft players
 
 	// Use this for initialization
 	public Draft ()
@@ -64,26 +69,26 @@ public class Draft
 	// Makes the first selections for the draft
 	public void StartDraft ()
 	{
-		SetPickascending ();
+		SetPickAscending ();
 		Sort (6);
 		Display ();
 
-		while (pickascending [currIndex] != 0)
+		while (pickAscending [currIndex] != 0)
 			DraftPlayer (GameObject.Find ("player" + currIndex), 0);
 		
 		Manager.Instance.DisplayPlayers (draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 	}
 
 	// Sets the pick ascending
-	public void SetPickascending ()
+	public void SetPickAscending ()
 	{
-		pickascending = new List<int> ();
+		pickAscending = new List<int> ();
 		Team [] teams;
 
 		teams = Manager.Instance.Teams [0].OrderBy (teamX => teamX.Pick).ToArray ();
 
 		for (int i = 0; i < teams.Length; i++)
-			pickascending.Add (teams [i].ID);
+			pickAscending.Add (teams [i].ID);
 	}
 
 	// Sorts the players by the selected stat
@@ -148,7 +153,7 @@ public class Draft
 	// Drafts a player
 	public void DraftPlayer (GameObject player, int playerNum)
 	{
-		newPlayers [pickascending[currIndex]].Add (draftPlayers [playerNum]);
+		newPlayers [pickAscending[currIndex]].Add (draftPlayers [playerNum]);
 		draftPlayers.RemoveAt (playerNum);
 
 		if (draftPlayers.Count == 0)

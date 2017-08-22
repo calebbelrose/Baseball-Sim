@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class HallOfFameInductee
 {
-	int year, playerID;
+	private int year;		// Year inducted
+	private int playerID;	// Player ID
 
 	public HallOfFameInductee (int _year, int _playerID)
 	{

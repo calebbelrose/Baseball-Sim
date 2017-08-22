@@ -5,14 +5,16 @@ using UnityEngine;
 
 public class SimulatedGame
 {
-	private int [] scores, teams = new int[2];
-	private string [] shortforms = new string [2];
-	private GameType gameType;
-	private int dayIndex, gameID;
-	List<string []> [] [] battingStats;
-	List<string []> [] pitchingStats;
+	private int [] scores = new int[2];				// Score for both teams
+	private int[] teams = new int[2];				// Both teams
+	private string [] shortforms = new string [2];	// Shortforms of both teams
+	private GameType gameType;						// Type of game
+	private int dayIndex;							// Index of the day the game was played on
+	private int gameID;								// Game ID
+	private List<string []> [] [] battingStats;		// Stats for the batters that played in the game
+	private List<string []> [] pitchingStats;		// Stats for the pitchers that played in the game
 
-	private static int id = 0;
+	private static int id = 0;						// Static ID of the game
 
 	// 1-Arg Constructor
 	public SimulatedGame (string game)
@@ -21,7 +23,6 @@ public class SimulatedGame
 
 		teams [0] = int.Parse (split [0]);
 		teams [1] = int.Parse (split [1]);
-		scores = new int[2];
 		scores [0] = int.Parse (split [2]);
 		scores [1] = int.Parse (split [3]);
 		shortforms [0] = split [4];
@@ -89,7 +90,7 @@ public class SimulatedGame
 		strBattingStats.CopyTo (battingStats, 0);
 		strPitchingStats.CopyTo (pitchingStats, 0);
 
-		/*sw = File.AppendText (@"Save\SimulatedGames.txt");
+		sw = File.AppendText (@"Save\SimulatedGames.txt");
 		sw.WriteLine (teams [0] + "," + teams [1] + "," + scores [0] + "," + scores [1] + "," + shortforms [0] + "," + shortforms [1] + "," + (int)gameType + "," + dayIndex);
 		sw.Close ();
 
@@ -108,7 +109,7 @@ public class SimulatedGame
 				sw.WriteLine (pitchingStats [i] [j] [0] + "," + pitchingStats [i] [j] [1] + "," + pitchingStats [i] [j] [2] + "," + pitchingStats [i] [j] [3] + "," + pitchingStats [i] [j] [4] + "," + pitchingStats [i] [j] [5] + "," + pitchingStats [i] [j] [6] + "," + pitchingStats [i] [j] [7] + "," + pitchingStats [i] [j] [8]);
 			
 			sw.Close ();
-		}*/
+		}
 	}
 
 	public override string ToString ()

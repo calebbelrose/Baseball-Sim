@@ -5,14 +5,16 @@ using UnityEngine.UI;
 
 public class LoadPitchers : MonoBehaviour
 {
-	public RectTransform viewport, content;
-	public Transform teamListHeader;
+	public RectTransform viewport;		// Viewport for the players
+	public RectTransform content;		// Holds the header and player objects
+	public Transform teamListHeader;	// Header object
+	public GameObject separator;		// Prefab to separate pitching positions
 
 	UnityEngine.Object playerButton;
 
 	void Start ()
 	{
-		float y = 320f;
+		GameObject newSeparator;
 
 		if (Manager.Instance.Teams [0] [0].SP.Count == 0)
 			Manager.Instance.Teams [0] [0].SetRoster ();
@@ -21,16 +23,22 @@ public class LoadPitchers : MonoBehaviour
 		DisplayHeader ();
 		playerButton = Resources.Load ("Pitcher", typeof (GameObject));
 
-		for (int i = 0; i < Manager.Instance.Teams [0] [0].SP.Count; i++)
-			DisplayPlayer (Manager.Instance.Teams [0] [0].SP [i], (y -= 20f));
+		newSeparator = Instantiate (separator, transform) as GameObject;
+		newSeparator.transform.GetChild (0).GetComponent<Text> ().text = "Starting Pitchers";
 
-		y -= 5f;
+		for (int i = 0; i < Manager.Instance.Teams [0] [0].SP.Count; i++)
+			DisplayPlayer (Manager.Instance.Teams [0] [0].SP [i]);
+
+		newSeparator = Instantiate (separator, transform) as GameObject;
+		newSeparator.transform.GetChild (0).GetComponent<Text> ().text = "Relief Pitchers";
 
 		for (int i = 0; i < Manager.Instance.Teams [0] [0].RP.Count; i++)
-			DisplayPlayer (Manager.Instance.Teams [0] [0].RP [i], (y -= 20f));
+			DisplayPlayer (Manager.Instance.Teams [0] [0].RP [i]);
 
-		y -= 5f;
-		DisplayPlayer (Manager.Instance.Teams [0] [0].CP, (y -= 20f));
+		newSeparator = Instantiate (separator, transform) as GameObject;
+		newSeparator.transform.GetChild (0).GetComponent<Text> ().text = "Closer";
+		
+		DisplayPlayer (Manager.Instance.Teams [0] [0].CP);
 		PitcherSlot.MaxIndex--;
 	}
 
@@ -64,12 +72,13 @@ public class LoadPitchers : MonoBehaviour
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
 			newWidth += currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
+			statHeader.GetComponent<Button> ().interactable = false;
 		}
 			
-		content.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].SP.Count + Manager.Instance.Teams [0] [0].RP.Count + 3) - viewport.rect.height);
+		content.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].SP.Count + Manager.Instance.Teams [0] [0].RP.Count + 4) - viewport.rect.height);
 	}
 
-	void DisplayPlayer (int index, float y)
+	void DisplayPlayer (int index)
 	{
 		GameObject newPlayer = Instantiate (playerButton) as GameObject;
 		string playerString = Manager.Instance.Players [index].FirstName;
@@ -125,7 +134,6 @@ public class LoadPitchers : MonoBehaviour
 		newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerString;
 		newPlayer.transform.SetParent (gameObject.transform);
 		newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-		newPlayer.transform.localPosition = new Vector3 (80f, y, 0.0f);
 	
 		playerString += " " + Manager.Instance.Players [index].Skills [Manager.Instance.Players [index].Skills.Length - 1];
 		pitcherSlot.PlayerID = index;

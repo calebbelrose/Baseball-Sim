@@ -5,8 +5,9 @@ using UnityEngine.UI;
 
 public class Lineup : MonoBehaviour
 {
-	public List<GameObject> batterSlots;
-	List<string> positions = new List<string> ();
+	public List<GameObject> batterSlots;					// Batter slots
+
+	private List<string> positions = new List<string> ();	// Available positions
 
 	// Use this for initialization
 	void Start ()

@@ -94,11 +94,11 @@ public class WorldBaseballClassic : Event
 
 		for (int i = 0; i < aTeams.Count; i++)
 		{
-			List<string> remainingPositions = Manager.Instance.Teams [1] [aTeams [i]].SetRoster ();
+			Manager.Instance.Teams [1] [aTeams [i]].SetRoster ();
 
-			for (int j = 0; j < remainingPositions.Count; j++)
+			for (int j = 0; j < Manager.Instance.Teams [1] [aTeams [i]].LookingFor.Count; j++)
 			{
-				Player newPlayer = new Player (remainingPositions [j], 16, 3, Manager.Instance.Players.Count);
+				Player newPlayer = new Player (Manager.Instance.Teams [1] [aTeams [i]].LookingFor [j], 16, 3, Manager.Instance.Players.Count);
 				newPlayer.Country = (Country)Manager.Instance.Teams [1] [aTeams [i]].ID;
 				Manager.Instance.NewPlayer (newPlayer);
 				Manager.Instance.Teams [1] [aTeams [i]].AddPlayer (newPlayer.ID);
@@ -366,8 +366,10 @@ public class FuturesGame : Event
 		List<string> [] positions = new List<string>[2];
 		int index = 0;
 
-		Manager.Instance.Teams [2] [0] = new Team (TeamType.Futures, 0);
-		Manager.Instance.Teams [2] [1] = new Team (TeamType.Futures, 1);
+		Manager.Instance.ExecuteOnMainThread.Enqueue (() => {
+			NewFutuesTeams ();
+		});
+
 		positions [0] = Player.Positions.ToList ();
 		positions [1] = Player.Positions.ToList ();
 
@@ -492,6 +494,12 @@ public class FuturesGame : Event
 
 		Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames.Add (new ScheduledGame (Manager.Instance.Teams [2] [0], Manager.Instance.Teams [2] [1], GameType.WorldBaseballClassic, TeamType.Futures, Manager.Instance.DayIndex).PlayGame ());
 		displayText = Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].ToString ();
+	}
+
+	void NewFutuesTeams ()
+	{
+		Manager.Instance.Teams [2] [0] = new Team (TeamType.Futures, 0);
+		Manager.Instance.Teams [2] [1] = new Team (TeamType.Futures, 1);
 	}
 
 	public override void Save (int dayIndex)
@@ -646,8 +654,10 @@ public class AllStarGame : Event
 		List<string> [] positions = new List<string>[2];
 		int index = 0;
 
-		Manager.Instance.Teams [3] [0] = new Team (TeamType.AllStar, 0);
-		Manager.Instance.Teams [3] [1] = new Team (TeamType.AllStar, 1);
+		Manager.Instance.ExecuteOnMainThread.Enqueue (() => {
+			NewAllStarTeams ();
+		});
+
 		positions [0] = Player.Positions.ToList ();
 		positions [1] = Player.Positions.ToList ();
 
@@ -713,6 +723,12 @@ public class AllStarGame : Event
 		displayText = Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].ToString ();
 	}
 
+	void NewAllStarTeams ()
+	{
+		Manager.Instance.Teams [3] [0] = new Team (TeamType.AllStar, 0);
+		Manager.Instance.Teams [3] [1] = new Team (TeamType.AllStar, 1);
+	}
+
 	public override void Save (int dayIndex)
 	{
 		StreamWriter sw = File.AppendText (@"Save\Events.txt");
@@ -759,19 +775,19 @@ public class HallOfFameInduction : Event
 		double bestScore = 0.0;
 		int bestIndex = 0;
 
-		for (int i = 0; i < Manager.Instance.hallOfFameCandidates.Count; i++)
+		for (int i = 0; i < Manager.Instance.HallOfFameCandidates.Count; i++)
 		{
 			double score;
 
-			if (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Position.Contains ("P"))
+			if (Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Position.Contains ("P"))
 			{
-				double era = Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [24] * 27 / (double)Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [20];
-				score = (6.0 - era) * 5 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [20] / (double)8;
+				double era = Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [24] * 27 / (double)Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [20];
+				score = (6.0 - era) * 5 + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [20] / (double)8;
 			}
 			else
 			{
-				double ops = (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [10]) / (double) (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [1] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [10] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [14]) + (Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [5] * 2 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [6] * 3 + Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [7] * 4) / (double)Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [1];
-				score = Manager.Instance.Players [Manager.Instance.hallOfFameCandidates [i]].Stats [0] [7] / 40.0 + ops * 25;
+				double ops = (Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [10]) / (double) (Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [1] + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [10] + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [14]) + (Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [3] + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [5] * 2 + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [6] * 3 + Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [7] * 4) / (double)Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [1];
+				score = Manager.Instance.Players [Manager.Instance.HallOfFameCandidates [i]].Stats [0] [7] / 40.0 + ops * 25;
 			}
 
 			if (score > bestScore)
@@ -781,10 +797,10 @@ public class HallOfFameInduction : Event
 			}
 		}
 
-		if (Manager.Instance.hallOfFameCandidates.Count > 0)
+		if (Manager.Instance.HallOfFameCandidates.Count > 0)
 		{
-			Manager.Instance.hallOfFameInductees.Add (new HallOfFameInductee (Manager.Instance.Year, Manager.Instance.hallOfFameCandidates [bestIndex]));
-			Manager.Instance.hallOfFameCandidates.RemoveAt (bestIndex);
+			Manager.Instance.HallOfFameInductees.Add (new HallOfFameInductee (Manager.Instance.Year, Manager.Instance.HallOfFameCandidates [bestIndex]));
+			Manager.Instance.HallOfFameCandidates.RemoveAt (bestIndex);
 		}
 	}
 
@@ -801,7 +817,7 @@ public class NonWaiverTradeDeadline : Event
 {
 	public override void Action ()
 	{
-		Manager.Instance.tradeDeadline = TradeDeadline.NonWaiver;
+		Manager.Instance.TradeDeadline = TradeDeadline.NonWaiver;
 	}
 
 	public override void Save (int dayIndex)
@@ -817,7 +833,7 @@ public class WaiverTradeDeadline : Event
 {
 	public override void Action ()
 	{
-		Manager.Instance.tradeDeadline = TradeDeadline.Waiver;
+		Manager.Instance.TradeDeadline = TradeDeadline.Waiver;
 	}
 
 	public override void Save (int dayIndex)
@@ -1093,21 +1109,19 @@ public class FinalsCheck : Event
 
 public class WorldChampion : Event
 {
-	int dayIndex;
-
 	public override void Action ()
 	{
-		dayIndex = Manager.Instance.DayIndex;
+		Manager.Instance.TradeDeadline = TradeDeadline.None;
 	}
 
 	public override string ToString ()
 	{
-		string displayText = Manager.Instance.Days [dayIndex].SimulatedGames [0].ToString () + "\n";
+		string displayText = Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].ToString () + "\n";
 
-		if (Manager.Instance.Days [dayIndex].SimulatedGames [0].Scores [0] > Manager.Instance.Days [dayIndex].SimulatedGames [0].Scores [1])
-			displayText += Manager.Instance.Days [dayIndex].SimulatedGames [0].Shortforms [0] + " Wins!";
+		if (Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].Scores [0] > Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].Scores [1])
+			displayText += Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].Shortforms [0] + " Wins!";
 		else
-			displayText += Manager.Instance.Days [dayIndex].SimulatedGames [0].Shortforms [1] + " Wins!";
+			displayText += Manager.Instance.Days [Manager.Instance.DayIndex].SimulatedGames [0].Shortforms [1] + " Wins!";
 
 		return displayText;
 	}
@@ -1116,7 +1130,7 @@ public class WorldChampion : Event
 	{
 		StreamWriter sw = File.AppendText (@"Save\Events.txt");
 
-		sw.WriteLine (dayIndex + ",18");
+		sw.WriteLine (Manager.Instance.DayIndex + ",18");
 		sw.Close ();
 	}
 }

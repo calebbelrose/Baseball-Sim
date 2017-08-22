@@ -6,12 +6,13 @@ using UnityEngine.EventSystems;
 
 public class Slot : MonoBehaviour, IPointerDownHandler
 {
-	public Text dayText, displayText;
+	public Text dayText;		// Shows the day of the month
+	public Text displayText;	// Shows the day's events
 
-	private int index;
-	private Day day;
-	private Calendar calendar;
-	private bool canSelect;
+	private int index;			// Day Index
+	private Day day;			// Day
+	private Calendar calendar;	// Calendar
+	private bool canSelect;		// Whether the slot can be selected (if it's in the current month) or not
 
 	// Displays the 
 	public void Display ()

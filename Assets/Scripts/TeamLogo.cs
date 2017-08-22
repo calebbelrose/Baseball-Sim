@@ -20,7 +20,7 @@ public class TeamLogo : MonoBehaviour
 	// Sets the team's logo
 	public void SetTeamLogo (UnityEngine.UI.Slider slider)
 	{
-		Manager.Instance.TeamLogo = Resources.Load<Sprite> ("team" + slider.value);
+		Manager.Instance.TeamLogo = Resources.Load<Sprite> ("Logos/team" + slider.value);
 		PlayerPrefs.SetString ("Logo", slider.value.ToString ());
 		PlayerPrefs.Save ();
 	}
