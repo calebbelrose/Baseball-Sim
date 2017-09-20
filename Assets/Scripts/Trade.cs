@@ -8,7 +8,7 @@ public class Trade : MonoBehaviour
 	public LoadYourPlayers loadYourPlayers;		// Used to load user's players
 	public LoadTheirPlayers loadTheirPlayers;	// Used to load the other team's players
 
-	TradeOffer tradeOffer;
+	TradeOffer tradeOffer = new TradeOffer (0, 1);
 
 	public void Clear (Dropdown dropdown)
 	{
@@ -20,7 +20,7 @@ public class Trade : MonoBehaviour
 	// Offers your players for their players
 	public void Offer ()
 	{
-		tradeOffer.Accept ();
+		tradeOffer.Consider ();
 		loadYourPlayers.Refresh ();
 		loadTheirPlayers.Refresh ();
 	}

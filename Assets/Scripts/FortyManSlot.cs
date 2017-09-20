@@ -80,6 +80,7 @@ public class FortyManSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 					InFortyMan = false;
 					Manager.Instance.Teams [0] [0].AddToFortyManRoster (droppedItem.PlayerID);
 					Manager.Instance.Teams [0] [0].FortyManRoster.Remove (PlayerID);
+					Manager.Instance.Teams [0] [0].SaveFortyManRoster ();
 				}
 			}
 			else if (droppedItem.InFortyMan)
@@ -88,6 +89,7 @@ public class FortyManSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 				droppedItem.InFortyMan = false;
 				Manager.Instance.Teams [0] [0].AddToFortyManRoster (PlayerID);
 				Manager.Instance.Teams [0] [0].FortyManRoster.Remove (droppedItem.PlayerID);
+				Manager.Instance.Teams [0] [0].SaveFortyManRoster ();
 			}
 		}
 		else

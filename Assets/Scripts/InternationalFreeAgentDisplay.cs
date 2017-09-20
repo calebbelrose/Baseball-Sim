@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
-public class InternationalFreeAgentDisplay
+public class InternationalFreeAgentDisplay : MonoBehaviour
 {
 	public UnityEngine.Transform playerList;				// Holds the header and player objects
 	public UnityEngine.Transform header;					// Header object
@@ -10,19 +12,35 @@ public class InternationalFreeAgentDisplay
 
 	private int currSortedStat = 6;							// Current sorted stat
 	private bool ascending = true;							// Whether it's sorted ascending or descending
+	private List<int> freeAgents;							// International free agents
+	Object playerButton;									// Player button
 
-	// Displays the International free agents
-	public void Display ()
+	void Start ()
 	{
-		Manager.Instance.DisplayHeaders (header, playerListRect, playerListParentRect, DisplayType.InternationalFreeAgent);
-		Sort (6);
+		playerButton = Resources.Load ("Player", typeof(GameObject));
+		freeAgents = new List<int> ();
+		playerListRect.sizeDelta = new Vector2 (Manager.DisplayHeaders ((GameObject) => StartSorting(GameObject), header), 20 * (Manager.Instance.InternationalFreeAgents.Count + 1) - playerListParentRect.rect.height);
+		freeAgents = Manager.Instance.Sort (currSortedStat, ascending, Manager.Instance.InternationalFreeAgents);
+		DisplayPlayers ();
 	}
 
-	// Sorts the International free agents
-	public void Sort (int headerNum)
+	// Displays players
+	public void DisplayPlayers ()
+	{
+		GameObject [] currPlayers = GameObject.FindGameObjectsWithTag ("Player");
+
+		for (int i = 0; i < currPlayers.Length; i++)
+			Destroy (currPlayers [i]);
+
+		for (int i = 0; i < freeAgents.Count; i++)
+			Manager.DisplayPlayer (playerButton, transform, freeAgents [i]).GetComponent<Button> ().onClick.AddListener (() => ShowInternationalFreeAgent (freeAgents [i]));
+	}
+
+	// Starts sorting players
+	public void StartSorting (GameObject other)
 	{
 		bool notString;
-		List<int> players;
+		int headerNum = int.Parse (other.name.Remove (0, 6));
 
 		if (headerNum <= 1)
 			notString = false;
@@ -36,8 +54,9 @@ public class InternationalFreeAgentDisplay
 		else
 			ascending = true;
 
-		players = Manager.Instance.Sort (headerNum, ascending, Manager.Instance.FreeAgents);
-		Manager.Instance.DisplayPlayers (players, playerList, playerListRect, playerListParentRect, DisplayType.InternationalFreeAgent);
+		currSortedStat = headerNum;
+		freeAgents = Manager.Instance.Sort (currSortedStat, ascending, Manager.Instance.InternationalFreeAgents);
+		DisplayPlayers ();
 	}
 
 	// Shows an International free agent's stats
@@ -45,15 +64,5 @@ public class InternationalFreeAgentDisplay
 	{
 		panel.SetActive (true);
 		panel.GetComponent<DisplayPlayer> ().SetPlayerID (id);
-	}
-
-	// Sets the objects to display the International free agents
-	public void SetPlayerDisplayObjects (UnityEngine.Transform _playerList, UnityEngine.Transform _header, UnityEngine.RectTransform _playerListRect, UnityEngine.RectTransform _playerListParentRect, UnityEngine.GameObject _panel)
-	{
-		playerList = _playerList;
-		header = _header;
-		playerListRect = _playerListRect;
-		playerListParentRect = _playerListParentRect;
-		panel = _panel;
 	}
 }

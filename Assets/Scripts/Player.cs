@@ -9,6 +9,8 @@ public class Player
 	public double Offer;																							// Salary offer
 	public int Team;																								// Team ID
 	public int OfferTime;																							// Time left to consider offer
+	public bool OnShortDisabledList;																				// Whether the player is on the short disabled list or not
+	public bool OnLongDisabledList;																					// Whether the player is on the long disabled list or not
 
 	private int playerID;																							// Player ID
 	private int age;																								// Age
@@ -30,6 +32,8 @@ public class Player
 	private char throws;																							// Hand to throw with
 	private float fieldingChance;																					// Chance to field
 	private float catchingChance;																					// Chance to catch
+	private float injuredFieldingChance;																			// Chance to field while injured
+	private float injuredCatchingChance;																			// Chance to catch while injured
 	private float offense;																							// Offense
 	private float defense;																							// Defense
 	private float overall;																							// Overall
@@ -51,13 +55,16 @@ public class Player
 	private List<int> pitchesAvailable;																				// Pitches available to learn
 	private bool isPitcher;																							// Whether the player is a pitcher or not
 	private bool onWaivers;																							// Whether the player is on waivers or not
+	private bool clearedWaivers;																					// Whether the player has cleared waivers this year or not
+	private bool firstTimeOnWaivers;																				// Whether it would be the player's first time on waivers this year or not (will be put on irrevocable waivers the 2nd time)
 
-	public static int longestFirstName = 10, longestLastName = 9;
-	public static double MinSalary;
+	public static int longestFirstName = 10;																		// Longest first name
+	public static int longestLastName = 9;																			// Longest last name
+	public static double MinSalary;																					// Minimum salary
 
-	private static string [] firstNames = File.ReadAllLines ("FirstNames.txt");
-	private static string [] lastNames = File.ReadAllLines ("LastNames.txt");
-	private static string [] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };	// 
+	private static string [] firstNames = File.ReadAllLines ("FirstNames.txt");										// Available first names
+	private static string [] lastNames = File.ReadAllLines ("LastNames.txt");										// Available last names
+	private static string [] positions = { "SP", "RP", "CP", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" };	// Available positions
 
 	// 0-Arg Conbstructor
 	public Player ()
@@ -96,6 +103,8 @@ public class Player
 		Team = _team;
 		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 6000.0f;
 		catchingChance = 0.95f + (skills [3] + skills [4]) / 4000.0f;
+		injuredFieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 12000.0f;
+		injuredCatchingChance = 0.95f + (skills [3] + skills [4]) / 8000.0f;
 		draftYear = Manager.Instance.Year;
 
 		random = Manager.Instance.RandomGen.NextDouble ();
@@ -340,6 +349,8 @@ public class Player
 		}
 
 		sw.Close ();
+
+		clearedWaivers = false;
 	}
 
 	public void CalculatePotential ()
@@ -374,7 +385,7 @@ public class Player
 		StreamWriter sw;
 
 		sw = new StreamWriter (@"Save\Player" + playerID + ".txt");
-		sw.Write (firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + skills [10] + "," + offense + "," + defense + "," + overall + "," + expectedSalary + "," + injuryLength + "," + (int)Country + "," + Team + "," + draftYear + "," + onWaivers + "," + contractYears.Count + "," + pitches.Count + "," + popularity + "," + personality);
+		sw.Write (firstName + "," + lastName + "," + position + "," + potential + "," + age + "," + skills [0] + "," + skills [1] + "," + skills [2] + "," + skills [3] + "," + skills [4] + "," + skills [5] + "," + skills [6] + "," + skills [7] + "," + skills [8] + "," + skills [9] + "," + skills [10] + "," + offense + "," + defense + "," + overall + "," + expectedSalary + "," + injuryLength + "," + (int)Country + "," + Team + "," + draftYear + "," + onWaivers + "," + contractYears.Count + "," + pitches.Count + "," + popularity + "," + personality + "," + bats + "," + throws + "," + clearedWaivers);
 		sw.Close ();
 	}
 
@@ -449,9 +460,14 @@ public class Player
 		numPitches = int.Parse (split [26]);
 		popularity = float.Parse (split [27]);
 		personality = float.Parse (split [28]);
+		bats = split [29] [0];
+		throws = split [30] [0];
+		clearedWaivers = bool.Parse (split [31]);
 
-		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 3.0f * 5;
-		catchingChance = 0.95f + (skills [3] + skills [4]) / 2.0f * 5;
+		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 6.0f * 5;
+		catchingChance = 0.95f + (skills [3] + skills [4]) / 4.0f * 5;
+		fieldingChance = 0.95f + (skills [3] + skills [5] + skills [6]) / 6.0f * 5;
+		catchingChance = 0.95f + (skills [3] + skills [4]) / 4.0f * 5;
 
 		for (int i = 0; i < Manager.Instance.Year - draftYear + 1; i++)
 		{
@@ -521,45 +537,48 @@ public class Player
 	// Injures player
 	public void Injure ()
 	{
-		float durability = 1 - (skills [8] / 100f);
-		float r1 = (Random.value * 10 + 1) * durability, r2 = (Random.value * 10 + 1) * durability, r3 = Random.value * 5 + 1;
-		int seriousness = (int) (r1 * r2), location = (int)r3;
-
-		if (seriousness > 80 && location == 5)
-			Debug.Log (firstName + " " + lastName + " Ended");
-		else
+		if (injuryLength == 0)
 		{
-			injuryLength = (int) (r3 * 2 / 3 * r1 * r2);
+			float durability = 1 - (skills [8] / 100f);
+			float r1 = (Random.value * 10 + 1) * durability, r2 = (Random.value * 10 + 1) * durability, r3 = Random.value * 5 + 1;
+			int seriousness = (int)(r1 * r2), location = (int)r3;
 
-			switch (location)
-			{
-			case 1:
-				injuryLocation = "Arm";
-				break;
-			case 2:
-				injuryLocation = "Leg";
-				break;
-			case 3:
-				injuryLocation = "Groin";
-				break;
-			case 4:
-				injuryLocation = "Neck";
-				break;
-			case 5:
-				injuryLocation = "Back";
-				break;
-			}
-
-			if (injuryLength <= 7)
-				injurySeriousness = "Very Minor";
-			else if (injuryLength<= 14)
-				injurySeriousness = "Minor";
-			else if (injuryLength <= 21)
-				injurySeriousness = "Moderate";
-			else if (injuryLength <= 30)
-				injurySeriousness = "Serious";
+			if (seriousness > 80 && location == 5)
+				Debug.Log (firstName + " " + lastName + " Ended");
 			else
-				injurySeriousness = "Very Serious";
+			{
+				injuryLength = (int)(r3 * 2 / 3 * r1 * r2);
+
+				switch (location)
+				{
+				case 1:
+					injuryLocation = "Arm";
+					break;
+				case 2:
+					injuryLocation = "Leg";
+					break;
+				case 3:
+					injuryLocation = "Groin";
+					break;
+				case 4:
+					injuryLocation = "Neck";
+					break;
+				case 5:
+					injuryLocation = "Back";
+					break;
+				}
+
+				if (injuryLength <= 7)
+					injurySeriousness = "Very Minor";
+				else if (injuryLength <= 14)
+					injurySeriousness = "Minor";
+				else if (injuryLength <= 21)
+					injurySeriousness = "Moderate";
+				else if (injuryLength <= 30)
+					injurySeriousness = "Serious";
+				else
+					injurySeriousness = "Very Serious";
+			}
 		}
 	}
 
@@ -827,9 +846,66 @@ public class Player
 			Country = Country.Aruba;
 	}
 
+	// Calculates trade balue
 	public void CalculateTradeValue ()
 	{
-		tradeValue = overall + potential / 7;
+		tradeValue = overall + potential / 7.0f;
+	}
+
+	// String used to display the player
+	public string DisplayString ()
+	{
+		string playerString = firstName;
+
+		for (int j = firstName.Length; j < Player.longestFirstName; j++)
+			playerString += " ";
+
+		playerString += " " + lastName;
+
+		for (int j = LastName.Length; j < Player.longestLastName; j++)
+			playerString += " ";
+
+		playerString += " " + position;
+
+		for (int k = Position.Length; k < Manager.Instance.Skills [2].Length; k++)
+			playerString += " ";
+
+		playerString += " " + overall;
+
+		for (int k = Overall.ToString ().Length; k < Manager.Instance.Skills [3].Length; k++)
+			playerString += " ";
+
+		playerString += " " + offense;
+
+		for (int k = Offense.ToString ().Length; k < Manager.Instance.Skills [4].Length; k++)
+			playerString += " ";
+
+		playerString += " " + defense;
+
+		for (int k = Defense.ToString ().Length; k < Manager.Instance.Skills [5].Length; k++)
+			playerString += " ";
+
+		playerString += " " + potential;
+
+		for (int k = Potential.ToString ().Length; k < Manager.Instance.Skills [6].Length; k++)
+			playerString += " ";
+
+		playerString += " " + age;
+
+		for (int k = Age.ToString ().Length; k < Manager.Instance.Skills [7].Length; k++)
+			playerString += " ";
+
+		for (int j = 0; j < skills.Length - 1; j++)
+		{
+			playerString += " " + skills [j];
+
+			for (int k = skills [j].ToString ().Length; k < Manager.Instance.Skills [j + 8].Length; k++)
+				playerString += " ";
+		}
+
+		playerString += " " + skills [skills.Length - 1];
+
+		return playerString;
 	}
 
 	// Considers the offer for a draft player to sign
@@ -851,6 +927,13 @@ public class Player
 	public void TakeOffWaivers ()
 	{
 		onWaivers = false;
+		firstTimeOnWaivers = false;
+	}
+
+	// Clears waivers
+	public void ClearWaivers ()
+	{
+		clearedWaivers = true;
 	}
 
 	// Reduces player's injury length
@@ -873,6 +956,14 @@ public class Player
 		get
 		{
 			return isPitcher;
+		}
+	}
+
+	public bool FirstTimeOnWaivers
+	{
+		get
+		{
+			return firstTimeOnWaivers;
 		}
 	}
 
@@ -969,6 +1060,12 @@ public class Player
 		get
 		{
 			return injuryLength;
+		}
+
+		set
+		{
+			if (value > injuryLength)
+				injuryLength = value;
 		}
 	}
 
@@ -1108,6 +1205,14 @@ public class Player
 		}
 	}
 
+	public bool ClearedWaivers 
+	{
+		get
+		{
+			return clearedWaivers;
+		}
+	}
+
 	public char Bats
 	{
 		get
@@ -1152,7 +1257,10 @@ public class Player
 	{
 		get
 		{
-			return fieldingChance;
+			if (injuryLength > 0)
+				return injuredFieldingChance;
+			else
+				return fieldingChance;
 		}
 	}
 
@@ -1160,7 +1268,10 @@ public class Player
 	{
 		get
 		{
-			return catchingChance;
+			if (injuryLength > 0)
+				return injuredCatchingChance;
+			else
+				return catchingChance;
 		}
 	}
 

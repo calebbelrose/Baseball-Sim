@@ -62,18 +62,62 @@ public class PitcherSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 			droppedItem.BlockRaycasts ();
 
 			if (droppedItem.Slot < 5)
+			{
 				Manager.Instance.Teams [0] [0].SP [droppedItem.Slot] = droppedItem.PlayerID;
+
+				if (Slot < 5)
+					Manager.Instance.Teams [0] [0].SP [Slot] = PlayerID;
+				else if (Slot == MaxIndex)
+				{
+					Manager.Instance.Teams [0] [0].CP = PlayerID;
+					PlayerPrefs.SetInt ("CP", PlayerID);
+				}
+				else
+				{
+					Manager.Instance.Teams [0] [0].RP [Slot - 5] = PlayerID;
+					Manager.Instance.Teams [0] [0].SaveRP ();
+				}
+
+				Manager.Instance.Teams [0] [0].SaveSP ();
+			}
 			else if (droppedItem.Slot == MaxIndex)
+			{
 				Manager.Instance.Teams [0] [0].CP = droppedItem.PlayerID;
+
+				if (Slot < 5)
+				{
+					Manager.Instance.Teams [0] [0].SP [Slot] = PlayerID;
+					Manager.Instance.Teams [0] [0].SaveSP ();
+				}
+				else
+				{
+					Manager.Instance.Teams [0] [0].RP [Slot - 5] = PlayerID;
+					Manager.Instance.Teams [0] [0].SaveRP ();
+				}
+
+				PlayerPrefs.SetInt ("CP", droppedItem.PlayerID);
+			}
 			else
+			{
 				Manager.Instance.Teams [0] [0].RP [droppedItem.Slot - 5] = droppedItem.PlayerID;
 
-			if (Slot < 5)
-				Manager.Instance.Teams [0] [0].SP [Slot] = PlayerID;
-			else if (Slot == MaxIndex)
-				Manager.Instance.Teams [0] [0].CP = PlayerID;
-			else
-				Manager.Instance.Teams [0] [0].RP [Slot - 5] = PlayerID;
+				if (Slot < 5)
+				{
+					Manager.Instance.Teams [0] [0].SP [Slot] = PlayerID;
+					Manager.Instance.Teams [0] [0].SaveSP ();
+				}
+				else if (Slot == MaxIndex)
+				{
+					Manager.Instance.Teams [0] [0].CP = PlayerID;
+					PlayerPrefs.SetInt ("CP", PlayerID);
+				}
+				else
+					Manager.Instance.Teams [0] [0].RP [Slot - 5] = PlayerID;
+
+				Manager.Instance.Teams [0] [0].SaveRP ();
+			}
+
+
 		}
 	}
 

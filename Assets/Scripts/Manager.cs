@@ -30,12 +30,8 @@ public class Manager : MonoBehaviour
 	public List<Sprite> MouthSprites;														// All mouth sprites
 	public List<Sprite> NoseSprites;														// All nose sprites
 	public Queue<Action> ExecuteOnMainThread = new Queue<Action> ();						// Used to move actions from another thread back to main thread
+	public bool MLRosterChanged = false;													// Whether a major league team has changed their roster or not
 
-	private Draft draft;																	// First year player draft
-	private PlayerDisplay playerDisplay;													// Displays user's players
-	private DraftedPlayerDisplay draftedPlayerDisplay;										// Displays drafted players
-	private FreeAgentDisplay freeAgentDisplay;												// Displays free agents
-	private InternationalFreeAgentDisplay internationalFreeAgentDisplay;					// Displays international free agents
 	private int year;																		// Current year
 	private List<Player> players;															// All players
 	private int [] finalsTeams = new int [8];												// Teams in world series
@@ -49,11 +45,18 @@ public class Manager : MonoBehaviour
 	private List<Team> [] teams = new List<Team>[Enum.GetNames (typeof (TeamType)).Length];	// All teams
 	private List<WaiverPlayer> waivers = new List<WaiverPlayer> (0);						// Players on waivers
 	private System.Random randomGen;														// Random number generator required for off the main thread
+	private List<int> shortDisabledList;													// Indexes of players on short disabled list
+	private List<int> longDisabledList;														// Indexes of players on long disabled list
+	private bool shortDisabledListChanged = false;											// Whether the short disabled list has changed
+	private bool longDisabledListChanged = false;											// Whether the long disabled list has changed
+	private bool rosterChange = false;														// Whether there has been a roster change (used to determine if teams should look to trade0
 
 	private static List<Day> days;															// Days
 	private static int dayIndex;															// Index of the current day
 	private static Manager instance = null;													// Instance of class
 	private static int numTeams = 30;														// Number of teams
+	private static int shortDisabledListTime;												// Minimum time a player can be on the short disabled list
+	private static int longDisabledListTime;												// Minimum time a player can be on the long disabled list
 
 	// Use this for initialization
 	void Awake ()
@@ -78,6 +81,8 @@ public class Manager : MonoBehaviour
 	public void Load ()
 	{
 		randomGen = new System.Random ();
+		shortDisabledList = new List<int> ();
+		longDisabledList = new List<int> ();
 
 		for (int i = 0; i < teams.Length; i++)
 			teams [i] = new List<Team> ();
@@ -97,10 +102,10 @@ public class Manager : MonoBehaviour
 
 		// Loads the logo if there is one, otherwise it sets the logo
 		if (PlayerPrefs.HasKey ("Logo"))
-			TeamLogo = Resources.Load<Sprite> ("team" + PlayerPrefs.GetString ("Logo"));
+			TeamLogo = Resources.Load<Sprite> ("Logos/team" + PlayerPrefs.GetString ("Logo"));
 		else
 		{
-			TeamLogo = Resources.Load<Sprite> ("team1");
+			TeamLogo = Resources.Load<Sprite> ("Logos/team1");
 			PlayerPrefs.SetString ("Logo", "1");
 			PlayerPrefs.Save ();
 		}
@@ -108,6 +113,19 @@ public class Manager : MonoBehaviour
 		// Loads the user's name
 		if (PlayerPrefs.HasKey ("Your Name"))
 			YourName = PlayerPrefs.GetString ("Your Name");
+		else
+		{
+			YourName = "Unknown";
+			PlayerPrefs.SetString ("Your Name", "Unknown");
+		}
+
+		//Loads team's colour
+		if (PlayerPrefs.HasKey ("Team Colour"))
+		{
+			string[] split = PlayerPrefs.GetString ("Team Colour").Split (',');
+
+			TeamColour = new Color (float.Parse (split [0]), float.Parse (split [1]), float.Parse (split [2]));
+		}
 
 		// Loads everything after starting the game after having already played
 		if (PlayerPrefs.HasKey ("Year"))
@@ -115,7 +133,8 @@ public class Manager : MonoBehaviour
 			int index = 0;
 
 			players = new List<Player> ();
-			string [] lines;
+			string[] lines;
+			string[] split;
 
 			year = PlayerPrefs.GetInt ("Year");
 			dayIndex = PlayerPrefs.GetInt ("DayIndex");
@@ -167,7 +186,7 @@ public class Manager : MonoBehaviour
 
 			for (int i = 0; i < lines.Length; i++)
 			{
-				string [] split = lines [i].Split (',');
+				split = lines [i].Split (',');
 				int dayIndex = int.Parse (split [0]);
 
 				days [dayIndex].Events.Add (Event.Load (split));
@@ -179,16 +198,49 @@ public class Manager : MonoBehaviour
 			lines = File.ReadAllLines (@"Save\FreeAgents.txt");
 
 			for (int i = 0; i < lines.Length; i++)
-				freeAgents.Add (int.Parse(lines [i]));
+			{
+				int id;
+
+				split = lines [i].Split(',');
+				id = int.Parse (split [0]);
+				freeAgents.Add (id);
+				players [id].OfferTime = int.Parse (split [1]);
+				players [id].Offer = double.Parse (split [2]);
+				players [id].Team= int.Parse (split [3]);
+			}
+			
 
 			lines = File.ReadAllLines (@"Save\InternationalFreeAgents.txt");
 
 			for (int i = 0; i < lines.Length; i++)
-				internationalFreeAgents.Add (int.Parse(lines [i]));
+			{
+				int id;
+
+				split = lines [i].Split(',');
+				id = int.Parse (split [0]);
+				internationalFreeAgents.Add (id);
+				players [id].OfferTime = int.Parse (split [1]);
+				players [id].Offer = double.Parse (split [2]);
+				players [id].Team= int.Parse (split [3]);
+			}
+
+			lines = File.ReadAllLines (@"Save\Waivers.txt");
+
+			for (int i = 0; i < lines.Length; i++)
+			{
+				int id;
+
+				split = lines [i].Split (',');
+				id = int.Parse (split [0]);
+				teams [0] [Manager.Instance.Players [id].Team].AddToWaivers (id);
+				waivers.Add (new WaiverPlayer (id, int.Parse (split [1]), int.Parse (split [2]), bool.Parse (split [3])));
+			}
 
 			Player.longestFirstName = PlayerPrefs.GetInt ("LongestFirstName");
 			Player.longestLastName = PlayerPrefs.GetInt ("LongestLastName");
 			Player.MinSalary = PlayerPrefs.GetFloat ("MinSalary");
+			shortDisabledListTime = PlayerPrefs.GetInt ("ShortDisabledListTime");
+			longDisabledListTime = PlayerPrefs.GetInt ("LongDisabledListTime");
 		}
 		// Creates a new game if it is the first time playing
 		else
@@ -196,11 +248,6 @@ public class Manager : MonoBehaviour
 
 		cyWinners = new List<int> ();
 		mvpWinners = new List<int> ();
-		draft = new Draft ();
-		playerDisplay = new PlayerDisplay ();
-		draftedPlayerDisplay = new DraftedPlayerDisplay ();
-		freeAgentDisplay = new FreeAgentDisplay ();
-		internationalFreeAgentDisplay = new InternationalFreeAgentDisplay ();
 	}
 
 	// Returns the number of teams
@@ -213,8 +260,10 @@ public class Manager : MonoBehaviour
 	void Restart ()
 	{
 		List<int> picksLeft = new List<int> ();	// List of picks left for the draft
-		StreamWriter sw = new StreamWriter (@"Save\FreeAgents.txt");
+		StreamWriter sw;
 
+		CreateFiles ();
+		sw = new StreamWriter (@"Save\FreeAgents.txt");
 		players = new List<Player> ();
 		year = DateTime.Now.Year;
 		PlayerPrefs.SetInt ("Year", year);
@@ -224,10 +273,15 @@ public class Manager : MonoBehaviour
 		PlayerPrefs.SetInt ("LongestHitStreak", 0);
 		PlayerPrefs.SetInt ("HitStreakYear", HitStreakYear);
 		PlayerPrefs.SetString ("HitStreakName", "Nobody");
+		PlayerPrefs.SetString ("AutomaticRoster", "true");
 		CreateDays ();
 		TradeList = new List<string> ();
 		Player.MinSalary = 535000.00;
 		PlayerPrefs.SetFloat ("MinSalary", 535000);
+		shortDisabledListTime = 15;
+		PlayerPrefs.SetInt ("ShortDisabledListTime", 15);
+		longDisabledListTime = 60;
+		PlayerPrefs.SetInt ("LongDisabledListTime", 60);
 
 		for (int i = 0; i < Enum.GetNames (typeof (Country)).Length; i++)
 		{
@@ -250,7 +304,7 @@ public class Manager : MonoBehaviour
 			newPlayer.SaveStats ();
 			NewPlayer (newPlayer);
 			freeAgents.Add (newPlayer.ID);
-			sw.WriteLine (newPlayer.ID);
+			sw.WriteLine (newPlayer.ID + ",0,0.0,-1");
 		}
 
 		sw.Close ();
@@ -300,6 +354,50 @@ public class Manager : MonoBehaviour
 			team.SaveWLHC ();
 			teams [0].Add (team);
 		}
+
+		teams [0] [0].AutomaticRoster = bool.Parse (PlayerPrefs.GetString ("AutomaticRoster"));
+		if (!teams [0] [0].AutomaticRoster)
+		{
+			string[] split;
+
+			split = File.ReadAllLines (@"Save\Batters.txt");
+
+			for (int i = 0; i < 9; i++)
+			{
+				teams [0] [0].Batters.Add (new List<int> ());
+				teams [0] [0].Batters [i].Add (int.Parse (split [i]));
+			}
+
+			split = File.ReadAllLines (@"Save\SP.txt");
+
+			for (int i = 0; i < split.Length - 1; i++)
+				teams [0] [0].SP.Add (int.Parse (split [i]));
+
+			split = File.ReadAllLines (@"Save\RP.txt");
+
+			for (int i = 0; i < split.Length - 1; i++)
+				teams [0] [0].RP.Add (int.Parse (split [i]));
+
+			teams [0] [0].CP = PlayerPrefs.GetInt ("CP");
+
+			split = File.ReadAllLines (@"Save\Substitutes.txt");
+
+			for (int i = 0; i < split.Length - 1; i++)
+			{
+				int playerID = int.Parse (split [i]);
+
+				teams [0] [0].OffensiveSubstitutes.Add (playerID);
+				teams [0] [0].DefensiveSubstitutes.Add (playerID);
+				teams [0] [0].PinchRunners.Add (playerID);
+			}
+
+			teams [0] [0].SortSubstitutes ();
+
+			split = File.ReadAllLines (@"Save\FortyManRoster.txt");
+
+			for (int i = 0; i < split.Length - 1; i++)
+				teams [0] [0].FortyManRoster.Add (int.Parse (split [i]));
+		}
 			
 		dayIndex = 0;
 		PlayerPrefs.SetInt ("DayIndex", dayIndex);
@@ -311,227 +409,128 @@ public class Manager : MonoBehaviour
 		PlayerPrefs.Save ();
 	}
 
-	// Displays the headers
-	public void DisplayHeaders (Transform headerTrans, RectTransform parentRect, RectTransform parentsParentRect, DisplayType displayType)
+	public static float DisplayHeaders (Action<GameObject> action, Transform parent)
 	{
-		int skillHeaderLength = 0;
-		float characterWidth = 8.03f;
+		int statHeaderLength = 0;
+		int [] headerLengths = new int [Manager.Instance.Skills.Length];
 		UnityEngine.Object header = Resources.Load ("Header", typeof (GameObject));
 		float newWidth = 0.0f;
 
-		skillHeaderLength += Player.longestFirstName + Player.longestLastName + 2;
+		for (int i = 2; i < Manager.Instance.Skills.Length; i++)
+		{
+			headerLengths [i] = Manager.Instance.Skills [i].Length + 1;
+			statHeaderLength += headerLengths [i];
+		}
 
-		for (int i = 2; i < Skills.Length; i++)
-			skillHeaderLength += Skills [i].Length + 1;
+		headerLengths [0] += Player.longestFirstName + 1;
+		headerLengths [1] += Player.longestLastName + 1;
 
-		for (int i = 0; i < Skills.Length; i++)
+		statHeaderLength += headerLengths [0];
+		statHeaderLength += headerLengths [1];
+
+		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
 		{
 			GameObject statHeader = Instantiate (header) as GameObject;
-			int headerNum = i;
+			float currWidth = (8.03f * headerLengths [i]);
 
 			statHeader.name = "header" + i.ToString ();
-			statHeader.transform.SetParent (headerTrans);
+			statHeader.transform.SetParent (parent);
 			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Skills [i];
+			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
 
-			if (displayType == DisplayType.Draft)
-				statHeader.GetComponent<Button> ().onClick.AddListener (() => draft.Sort (headerNum));
-			else if (displayType == DisplayType.Drafted)
-				statHeader.GetComponent<Button> ().onClick.AddListener (() => draftedPlayerDisplay.Sort (headerNum));
-			else if (displayType == DisplayType.FreeAgent)
-				statHeader.GetComponent<Button> ().onClick.AddListener (() => freeAgentDisplay.Sort (headerNum));
-			else if (displayType == DisplayType.InternationalFreeAgent)
-				statHeader.GetComponent<Button> ().onClick.AddListener (() => internationalFreeAgentDisplay.Sort (headerNum));
+			if (action != null)
+				statHeader.GetComponent<Button> ().onClick.AddListener (() => action (statHeader));
 			else
-				statHeader.GetComponent<Button> ().onClick.AddListener (() => playerDisplay.Sort (headerNum));
-
-			float currWidth;
-			if (i > 1)
-				currWidth = (characterWidth * (Skills [i].Length + 1));
-			else if (i == 1)
-				currWidth = (characterWidth * (Player.longestLastName + 1));
-			else
-				currWidth = (characterWidth * (Player.longestFirstName + 1));
-
+				statHeader.GetComponent<Button> ().interactable = false;
+			
 			newWidth += currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
 		}
 
-		parentRect.sizeDelta = new Vector2 (newWidth, 0.0f);
-		parentsParentRect.gameObject.SetActive (false);
-		parentsParentRect.gameObject.SetActive (true);
+		return newWidth;
 	}
 
-	// Displays the players
-	public void DisplayPlayers (List<int> playersToDisplay, Transform parentTrans, RectTransform parentRect, RectTransform parentsParentRect, DisplayType displayType)
+	public static GameObject DisplayPlayer (UnityEngine.Object playerButton, Transform transform, int playerID)
 	{
-		GameObject [] currPlayers;
-		UnityEngine.Object playerButton;
-		string playerName;
+		GameObject newPlayer = Instantiate (playerButton) as GameObject;
 
-		parentRect.sizeDelta = new Vector2 (parentRect.sizeDelta.x, 20 * (playersToDisplay.Count + 1) - parentsParentRect.rect.height);
+		newPlayer.transform.SetParent (transform);
+		newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Players [playerID].DisplayString ();
+		newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
+		newPlayer.AddComponent<CanvasGroup> ();
 
-		if (displayType == DisplayType.Draft)
-		{
-			playerButton= Resources.Load ("DraftPlayer", typeof (GameObject));
-			currPlayers = GameObject.FindGameObjectsWithTag ("DraftPlayer");
-			playerName = "draft";
-		}
-		else
-		{
-			playerButton = Resources.Load ("Player", typeof (GameObject));
-			currPlayers = GameObject.FindGameObjectsWithTag ("Player");
-			playerName = "player";
-		}
-
-		for (int i = 0; i < currPlayers.Length; i++)
-			Destroy (currPlayers [i]);
-
-		for (int i = 0; i < playersToDisplay.Count; i++)
-		{
-			GameObject newPlayer = Instantiate (playerButton) as GameObject;
-			string playerListing;
-
-			newPlayer.name = playerName + i.ToString ();
-			newPlayer.transform.SetParent (parentTrans);
-			playerListing = players [playersToDisplay[i]].FirstName;
-
-			for (int j = players [playersToDisplay[i]].FirstName.Length; j < Player.longestFirstName; j++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].LastName;
-
-			for (int j = players [playersToDisplay[i]].LastName.Length; j < Player.longestLastName; j++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].Position;
-
-			for (int k = players [playersToDisplay[i]].Position.Length; k < Skills [2].Length; k++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].Overall;
-
-			for (int k = players [playersToDisplay[i]].Overall.ToString ().Length; k < Skills [3].Length; k++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].Offense;
-
-			for (int k = players [playersToDisplay[i]].Offense.ToString ().Length; k < Skills [4].Length; k++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].Defense;
-
-			for (int k = players [playersToDisplay[i]].Defense.ToString ().Length; k < Skills [5].Length; k++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].Potential;
-
-			for (int k = players [playersToDisplay[i]].Potential.ToString ().Length; k < Skills [6].Length; k++)
-				playerListing += " ";
-
-			playerListing += " " + players [playersToDisplay[i]].Age;
-
-			for (int k = players [playersToDisplay[i]].Age.ToString ().Length; k < Skills [7].Length; k++)
-				playerListing += " ";
-
-			for (int j = 0; j < players [playersToDisplay[i]].Skills.Length - 1; j++)
-			{
-				playerListing += " " + players [playersToDisplay[i]].Skills [j];
-
-				for (int k = players [playersToDisplay [i]].Skills [j].ToString ().Length; k < Skills [j + 8].Length; k++)
-					playerListing += " ";
-			}
-
-			playerListing += " " + players [playersToDisplay[i]].Skills [players [playersToDisplay[i]].Skills.Length - 1]; 
-
-			newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerListing;
-			newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-
-			if (displayType == DisplayType.Draft)
-				newPlayer.GetComponent<Button> ().onClick.AddListener (() => draft.PlayerDraft (newPlayer, playerListing));
-			else
-			{
-				int id = playersToDisplay [i];
-
-				if (displayType == DisplayType.Drafted)
-					newPlayer.GetComponent<Button> ().onClick.AddListener (() => draftedPlayerDisplay.ShowDraftedPlayer (id));
-				else if (displayType == DisplayType.FreeAgent)
-					newPlayer.GetComponent<Button> ().onClick.AddListener (() => freeAgentDisplay.ShowFreeAgent (id));
-				else if (displayType == DisplayType.InternationalFreeAgent)
-					newPlayer.GetComponent<Button> ().onClick.AddListener (() => internationalFreeAgentDisplay.ShowInternationalFreeAgent (id));
-				else
-					newPlayer.GetComponent<Button> ().onClick.AddListener (() => DisplayPlayer (id));
-			}
-		}
+		return newPlayer;
 	}
 
 	// Sorts the players
 	public List<int> Sort (int headerNum, bool ascending, List<int> playersToSort)
 	{
+		List <int> sortedPlayers = new List<int> ();
+
 		if (ascending)
 			switch (headerNum)
 			{
 			case 0:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].FirstName).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].FirstName).ToList ();
 				break;
 			case 1:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].LastName).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].LastName).ToList ();
 				break;
 			case 2:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Position).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Position).ToList ();
 				break;
 			case 3:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Overall).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Overall).ToList ();
 				break;
 			case 4:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Offense).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Offense).ToList ();
 				break;
 			case 5:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Defense).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Defense).ToList ();
 				break;
 			case 6:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Potential).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Potential).ToList ();
 				break;
 			case 7:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Age).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Age).ToList ();
 				break;
 			default:
-				playersToSort = playersToSort.OrderBy (playerX => players [playerX].Skills [headerNum - 8]).ToList ();
+				sortedPlayers = playersToSort.OrderBy (playerX => players [playerX].Skills [headerNum - 8]).ToList ();
 				break;
 			}
 		else
 			switch (headerNum)
 			{
 			case 0:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].FirstName).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].FirstName).ToList ();
 				break;
 			case 1:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].LastName).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].LastName).ToList ();
 				break;
 			case 2:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Position).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Position).ToList ();
 				break;
 			case 3:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Overall).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Overall).ToList ();
 				break;
 			case 4:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Offense).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Offense).ToList ();
 				break;
 			case 5:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Defense).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Defense).ToList ();
 				break;
 			case 6:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Potential).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Potential).ToList ();
 				break;
 			case 7:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Age).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Age).ToList ();
 				break;
 			default:
-				playersToSort = playersToSort.OrderByDescending (playerX => players [playerX].Skills [headerNum - 8]).ToList ();
+				sortedPlayers = playersToSort.OrderByDescending (playerX => players [playerX].Skills [headerNum - 8]).ToList ();
 				break;
 			}
 
-		return playersToSort;
+		return sortedPlayers;
 	}
 
 	// Creates a starting player
@@ -543,7 +542,7 @@ public class Manager : MonoBehaviour
 			else if (UnityEngine.Random.value > 0.5f)
 				newPlayer.ContractYears.Add (new ContractYear (ContractType.NoOption, Math.Round(newPlayer.ExpectedSalary * 0.9, 2)));
 			else
-				newPlayer.ContractYears.Add (new ContractYear ((ContractType) (int) (UnityEngine.Random.value * 2), Math.Round(newPlayer.ExpectedSalary * 1.1, 2)));
+				newPlayer.ContractYears.Add (new ContractYear ((ContractType) (int) (UnityEngine.Random.value * 3 + 1), Math.Round(newPlayer.ExpectedSalary * 1.1, 2)));
 
 		newPlayer.RandomCountry ();
 		newPlayer.SavePlayer ();
@@ -552,66 +551,6 @@ public class Manager : MonoBehaviour
 		NewPlayer (newPlayer);
 
 		return newPlayer.ID;
-	}
-
-	// Sets the objects for displaying the draft players
-	public void SetDraftPlayerObjects (Transform draftList, Transform header, RectTransform draftListRect, RectTransform draftListParentRect)
-	{
-		draft.SetDraftPlayerObjects (draftList, header, draftListRect, draftListParentRect);
-	}
-
-	// Starts the draft
-	public void StartDraft ()
-	{
-		draft.StartDraft ();
-	}
-
-	// Sets the objects for displaying the team's players
-	public void SetPlayerDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect)
-	{
-		playerDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect);
-	}
-
-	// Displays the team's players
-	public void DisplayPlayers ()
-	{
-		playerDisplay.Display ();
-	}
-
-	// Sets the objects for displaying the drafted players
-	public void SetDraftedPlayerDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
-	{
-		draftedPlayerDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect, panel);
-	}
-
-	// Displays the drafted players
-	public void DisplayDraftedPlayers ()
-	{
-		draftedPlayerDisplay.Display ();
-	}
-
-	// Sets the objects for displaying the drafted players
-	public void SetFreeAgentsDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
-	{
-		freeAgentDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect, panel);
-	}
-
-	// Displays the drafted players
-	public void DisplayFreeAgents ()
-	{
-		freeAgentDisplay.Display ();
-	}
-
-	// Sets the objects for displaying the drafted players
-	public void SetInternationalFreeAgentsDisplayObjects (Transform teamList, Transform header, RectTransform teamListRect, RectTransform teamListParentRect, GameObject panel)
-	{
-		internationalFreeAgentDisplay.SetPlayerDisplayObjects (teamList, header, teamListRect, teamListParentRect, panel);
-	}
-
-	// Displays the drafted players
-	public void DisplayInternationalFreeAgents ()
-	{
-		internationalFreeAgentDisplay.Display ();
 	}
 
 	// Displays the player
@@ -630,6 +569,8 @@ public class Manager : MonoBehaviour
 	// Simulates the day
 	public void SimulateDay ()
 	{
+		StreamWriter sw;
+
 		while (days [dayIndex].ScheduledGames.Count > 0)
 			SimulateGame ();
 				
@@ -654,55 +595,90 @@ public class Manager : MonoBehaviour
 				if (players [teams [0] [thisTeam].Players [j]].Skills [9] != players [teams [0] [thisTeam].Players [j]].Skills [10] && (players [teams [0] [thisTeam].Players [j]].Skills [9] += 20) > players [teams [0] [thisTeam].Players [j]].Skills [10])
 						players [teams [0] [thisTeam].Players [j]].Skills [9] = players [teams [0] [thisTeam].Players [j]].Skills [10];
 
-			for (int otherTeam = 1; otherTeam < teams [0].Count; otherTeam++)
-				if (otherTeam != thisTeam)
-					for (int k = 0; k < teams [0] [thisTeam].LookingFor.Count; k++)
-					{
-						int index = 0;
-						bool notFound = true;
-
-						while (index < teams [0] [otherTeam].TradeBlock.Count && notFound)
-							if (players [teams [0] [otherTeam].TradeBlock [index]].Position == teams [0] [thisTeam].LookingFor [k])
-							{
-								notFound = false;
-
-								if (bestOptions [k] == -1 || players [teams [0] [otherTeam].TradeBlock [index]].Overall > players [bestOptions [k]].Overall)
-									bestOptions [k] = teams [0] [otherTeam].TradeBlock [index];
-							}
-							else
-								index++;
-					}
-			
-			for (int j = 0; j < bestOptions.Count; j++)
-				if (bestOptions [j] != -1)
+			if(rosterChange)
+			{
+				if (Manager.Instance.TradeDeadline != TradeDeadline.Waiver)
 				{
-					TradeOffer tradeOffer = new TradeOffer (thisTeam, players [bestOptions [j]].Team);
-					int currentOffer = teams [0] [thisTeam].TradeBlock.Count - 1;
-					float targetValue = players [bestOptions [j]].TradeValue * 0.9f, maxValue = players [bestOptions [j]].TradeValue * 1.1f;
-					bool needMatch = true;
+					if (Manager.Instance.TradeDeadline == TradeDeadline.None)
+					{
+						for (int otherTeam = 1; otherTeam < teams [0].Count; otherTeam++)
+							if (otherTeam != thisTeam)
+								for (int k = 0; k < teams [0] [thisTeam].LookingFor.Count; k++)
+								{
+									int index = 0;
+									bool notFound = true;
 
-					tradeOffer.AddPlayer (bestOptions [j], tradeOffer.TheirTeam);
-					tradeOffer.CalculateTheirValue ();
+									while (index < teams [0] [otherTeam].TradeBlock.Count && notFound)
+										if (players [teams [0] [otherTeam].TradeBlock [index]].Position == teams [0] [thisTeam].LookingFor [k])
+										{
+											notFound = false;
 
-					while (currentOffer >= 0 && players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue <= maxValue && needMatch)
-						if ((teams [0] [players [teams [0] [thisTeam].TradeBlock [currentOffer]].Team].LookingFor.Contains (players [teams [0] [thisTeam].TradeBlock [currentOffer]].Position) && players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue >= targetValue) || players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue >= tradeOffer.TheirValue)
+											if (bestOptions [k] == -1 || players [teams [0] [otherTeam].TradeBlock [index]].Overall > players [bestOptions [k]].Overall)
+												bestOptions [k] = teams [0] [otherTeam].TradeBlock [index];
+										}
+										else
+											index++;
+								}
+					}
+					else
+						for (int otherTeam = 1; otherTeam < teams [0].Count; otherTeam++)
+							if (otherTeam != thisTeam)
+								for (int k = 0; k < teams [0] [thisTeam].LookingFor.Count; k++)
+								{
+									int index = 0;
+									bool notFound = true;
+
+									while (index < teams [0] [otherTeam].TradeBlock.Count && notFound)
+										if (players [teams [0] [otherTeam].TradeBlock [index]].FirstTimeOnWaivers && players [teams [0] [otherTeam].TradeBlock [index]].Position == teams [0] [thisTeam].LookingFor [k])
+										{
+											notFound = false;
+
+											if (bestOptions [k] == -1 || players [teams [0] [otherTeam].TradeBlock [index]].Overall > players [bestOptions [k]].Overall)
+												bestOptions [k] = teams [0] [otherTeam].TradeBlock [index];
+										}
+										else
+											index++;
+								}
+					
+					for (int j = 0; j < bestOptions.Count; j++)
+						if (bestOptions [j] != -1)
 						{
-							needMatch = false;
-							tradeOffer.AddPlayer (players [teams [0] [thisTeam].TradeBlock [currentOffer]].ID, thisTeam);
-						}
-						else
-							currentOffer--;
+							TradeOffer tradeOffer = new TradeOffer (thisTeam, players [bestOptions [j]].Team);
+							int currentOffer = teams [0] [thisTeam].TradeBlock.Count - 1;
+							float targetValue = players [bestOptions [j]].TradeValue * 0.9f, maxValue = players [bestOptions [j]].TradeValue * 1.1f;
+							bool needMatch = true;
 
-					if (tradeOffer.HaveOffer)
-						teams [0] [tradeOffer.TheirTeam].NewTradeOffer (tradeOffer);
+							tradeOffer.AddPlayer (bestOptions [j], tradeOffer.TheirTeam);
+							tradeOffer.CalculateTheirValue ();
+
+							while (currentOffer >= 0 && players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue <= maxValue && needMatch)
+								if ((teams [0] [players [teams [0] [thisTeam].TradeBlock [currentOffer]].Team].LookingFor.Contains (players [teams [0] [thisTeam].TradeBlock [currentOffer]].Position) && players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue >= targetValue) || players [teams [0] [thisTeam].TradeBlock [currentOffer]].TradeValue >= tradeOffer.TheirValue)
+								{
+									needMatch = false;
+									tradeOffer.AddPlayer (players [teams [0] [thisTeam].TradeBlock [currentOffer]].ID, thisTeam);
+								}
+								else
+									currentOffer--;
+
+							if (tradeOffer.HaveOffer)
+								teams [0] [tradeOffer.TheirTeam].NewTradeOffer (tradeOffer);
+						}
 				}
+			}
 		}
 
 		for (int i = 1; i < teams [0].Count; i++)
 			teams [0] [i].AcceptTrades ();
 
-		for (int i = 0; i < waivers.Count; i++)
-			waivers [i].AdvanceDay ();
+		if (waivers.Count > 0)
+		{
+			for (int i = 0; i < waivers.Count; i++)
+				waivers [i].AdvanceDay ();
+
+			SaveWaivers ();
+		}
+
+		sw = new StreamWriter (@"Save\FreeAgents.txt");
 
 		for (int i = 0; i < freeAgents.Count;)
 			if (players [freeAgents [i]].OfferTime > 0 && --players [freeAgents [i]].OfferTime == 0)
@@ -711,7 +687,13 @@ public class Manager : MonoBehaviour
 				freeAgents.RemoveAt (i);
 			}
 			else
+			{
+				sw.WriteLine (freeAgents [i] + "," + players [freeAgents [i]].OfferTime + "," + players[freeAgents [i]].Offer + "," + players [freeAgents [i]].Team);
 				i++;
+			}
+
+		sw.Close ();
+		sw = new StreamWriter (@"Save\InternationalFreeAgents.txt");
 
 		for (int i = 0; i < internationalFreeAgents.Count;)
 			if (players [internationalFreeAgents [i]].OfferTime > 0 && --players [internationalFreeAgents [i]].OfferTime == 0)
@@ -720,7 +702,18 @@ public class Manager : MonoBehaviour
 				internationalFreeAgents.RemoveAt (i);
 			}
 			else
+			{
+				sw.WriteLine (internationalFreeAgents [i] + "," + players [internationalFreeAgents [i]].OfferTime + "," + players[internationalFreeAgents [i]].Offer + "," + players [internationalFreeAgents [i]].Team);
 				i++;
+			}
+
+		sw.Close ();
+
+		if (shortDisabledListChanged)
+			SaveShortDisabledList ();
+
+		if (longDisabledListChanged)
+			SaveLongDisabledList ();
 
 		dayIndex++;
 
@@ -731,11 +724,39 @@ public class Manager : MonoBehaviour
 
 	void SaveDayIndexAndHitStreak()
 	{
-		PlayerPrefs.SetInt ("LongestHitStreak", Manager.Instance.LongestHitStreak);
-		PlayerPrefs.SetInt ("HitStreakYear", Manager.Instance.HitStreakYear);
-		PlayerPrefs.SetString ("HitStreakName", Manager.Instance.HitStreakName);
+		if (days [dayIndex - 1].SimulatedGames.Count > 0)
+		{
+			PlayerPrefs.SetInt ("LongestHitStreak", Manager.Instance.LongestHitStreak);
+			PlayerPrefs.SetInt ("HitStreakYear", Manager.Instance.HitStreakYear);
+			PlayerPrefs.SetString ("HitStreakName", Manager.Instance.HitStreakName);
+		}
+
 		PlayerPrefs.SetInt ("DayIndex", dayIndex);
 		PlayerPrefs.Save ();
+	}
+
+	public void SaveShortDisabledList ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\ShortDisabledList.txt");
+
+		for (int i = 0; i < shortDisabledList.Count; i++)
+			sw.WriteLine (shortDisabledList [i]);
+
+		sw.Close ();
+
+		shortDisabledListChanged = false;
+	}
+
+	public void SaveLongDisabledList ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\LongDisabledList.txt");
+
+		for (int i = 0; i < longDisabledList.Count; i++)
+			sw.WriteLine (longDisabledList [i]);
+
+		sw.Close ();
+
+		longDisabledListChanged = false;
 	}
 
 	void SimulateGame ()
@@ -794,9 +815,9 @@ public class Manager : MonoBehaviour
 	}
 
 	// Puts a player on waivers
-	public void PutOnWaivers (int id)
+	public void PutOnWaivers (int id, bool trade)
 	{
-		waivers.Add (new WaiverPlayer (id));
+		waivers.Add (new WaiverPlayer (id, trade));
 	}
 
 	// Takes a player off waivers
@@ -809,6 +830,15 @@ public class Manager : MonoBehaviour
 
 		if (waivers [index].ID == id)
 			waivers.RemoveAt (index);
+	}
+
+	// Saves waiver players
+	public void SaveWaivers ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\Waivers.txt");
+
+		for (int i = 0; i < waivers.Count; i++)
+			sw.WriteLine (waivers [i].ToString ());
 	}
 
 	public void ScheduleFinalsGames (int team1, int team2, int offset, int round)
@@ -865,7 +895,8 @@ public class Manager : MonoBehaviour
 		teams [1] [(int)newPlayer.Country].AddPlayer (newPlayer.ID);
 	}
 
-	public int NewInternationalFreeAgent ()
+	// Creates a new International free agent
+	public string NewInternationalFreeAgent ()
 	{
 		Player newPlayer = new Player (Player.Positions [(int)(UnityEngine.Random.value * Player.Positions.Length)], 23, 22, players.Count);
 
@@ -876,7 +907,66 @@ public class Manager : MonoBehaviour
 		NewPlayer (newPlayer);
 		internationalFreeAgents.Add (newPlayer.ID);
 
-		return newPlayer.ID;
+		return newPlayer.ID + ",0,0.0,-1";
+	}
+
+	// Adds a player to the short disabled list
+	public void AddToShortDisabledList (int index)
+	{
+		shortDisabledList.Add (index);
+		shortDisabledListChanged = true;
+		teams [0] [players [index].Team].RemoveFromFortyManRoster (index);
+	}
+
+	// Removes a player from the short disabled list
+	public void RemoveFromShortDisabledList (int index)
+	{
+		shortDisabledList.Remove (index);
+		shortDisabledListChanged = true;
+		teams [0] [players [index].Team].AddToFortyManRoster (index);
+	}
+
+	// Removes a player from the short disabled list at an index
+	public void RemoveFromShortDisabledListAt (int index)
+	{
+		shortDisabledList.RemoveAt (index);
+		shortDisabledListChanged = true;
+	}
+
+	// Gets a player's index on the short disabled list
+	public int ShortDisabledListIndex (int index)
+	{
+		return shortDisabledList.IndexOf(index);
+	}
+
+	// Adds a player to the long disabled list
+	public void AddToLongDisabledList (int index)
+	{
+		longDisabledList.Add (index);
+		longDisabledListChanged = true;
+		teams [0] [players [index].Team].RemoveFromMajorLeague (index);
+		teams [0] [players [index].Team].RemoveFromFortyManRoster (index);
+	}
+
+	// Removes a player from the long disabled list
+	public void RemoveFromLongDisabledList (int index)
+	{
+		longDisabledList.Remove (index);
+		longDisabledListChanged = true;
+		teams [0] [players [index].Team].AddToFortyManRoster (index);
+	}
+
+	// Removes a player from the long disabled list at an index
+	public void RemoveFromLongDisabledListAt (int index)
+	{
+		longDisabledList.RemoveAt (index);
+		longDisabledListChanged = true;
+	}
+
+	// Gets a player's index on the long disabled list
+	public int LongDisabledListIndex (int index)
+	{
+		return longDisabledList.IndexOf(index);
 	}
 
 	// Getters
@@ -928,6 +1018,14 @@ public class Manager : MonoBehaviour
 		}
 	}
 
+	public bool RosterChange
+	{
+		set
+		{
+			rosterChange = value;
+		}
+	}
+
 	public List<Player> Players
 	{
 		get
@@ -976,6 +1074,22 @@ public class Manager : MonoBehaviour
 		}
 	}
 
+	public static int ShortDisabledListTime
+	{
+		get
+		{
+			return shortDisabledListTime;
+		}
+	}
+
+	public static int LongDisabledListTime
+	{
+		get
+		{
+			return longDisabledListTime;
+		}
+	}
+
 	// Changes to the specified scene
 	public static void ChangeToScene (int sceneToChangeTo)
 	{
@@ -990,16 +1104,19 @@ public class Manager : MonoBehaviour
 		if (Directory.Exists ("Save"))
 			Directory.Delete ("Save", true);
 
+		CreateFiles ();
+	}
+
+	// Creates files
+	public static void CreateFiles ()
+	{
 		Directory.CreateDirectory ("Save");
 		File.Create (@"Save\SimulatedGames.txt").Close ();
+		File.Create (@"Save\FreeAgents.txt").Close ();
+		File.Create (@"Save\InternationalFreeAgents.txt").Close ();
+		File.Create (@"Save\ShortDisabledList.txt").Close ();
+		File.Create (@"Save\LongDisabledList.txt").Close ();
+		File.Create (@"Save\Events.txt").Close ();
+		File.Create (@"Save\Waivers.txt").Close ();
 	}
-}
-
-public enum DisplayType
-{
-	Team,
-	Draft,
-	Drafted,
-	FreeAgent,
-	InternationalFreeAgent
 }

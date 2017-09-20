@@ -46,10 +46,10 @@ public class ContractYear
 
 public enum ContractType
 {
-	ClubOption = 0,
+	NoOption = 0,
 	PlayerOption = 1,
-	MutualOption = 2,
-	VestingOption = 3,
-	NoOption = 4,
+	ClubOption = 2,
+	MutualOption = 3,
+	VestingOption = 4,
 	MinorLeague = 5
 }

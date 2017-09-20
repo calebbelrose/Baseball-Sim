@@ -6,16 +6,17 @@ using System.Linq;
 
 public class GetStandings : MonoBehaviour
 {
-	public RectTransform viewport;																	// Viewport for the standings
-	public RectTransform content;																	// Holds the header and standing objects
-	public RectTransform scrollRect;																// ScrollRect for the standings
-	public Transform teamListHeader;																// Holds the headers
+	public RectTransform viewport;					// Viewport for the standings
+	public RectTransform content;					// Holds the header and standing objects
+	public RectTransform scrollRect;				// ScrollRect for the standings
+	public Transform teamListHeader;				// Holds the headers
 
-	private string [] headers = new string [] { "Team Name", "Wins", "Losses", "Games Behind" };	// Headers
-	private int currSortedStat = 3;																	// Current sorted stat
-	private int longestTeamName = 0;																// Length of the longest team name
-	private bool ascending = true;																	// Whether it's sorted ascending or descending
-	private List<Team> teams = new List<Team> ();													// List of all teams
+	// Headers
+	private string [] headers = new string [] { "Team Name", "Wins", "Losses", "Percent", "GB    ", "Last 10", "Streak", "Home ", "Away ", "AVG  ", "ERA" };
+	private int currSortedStat = 3;					// Current sorted stat
+	private int longestTeamName = 0;				// Length of the longest team name
+	private bool ascending = true;					// Whether it's sorted ascending or descending
+	private List<Team> teams = new List<Team> ();	// List of all teams
 
 	void Start ()
 	{
@@ -50,10 +51,10 @@ public class GetStandings : MonoBehaviour
 			statHeader = Instantiate (header) as GameObject;
 			currWidth = (8.03f * (headerLengths [i]));
 			statHeader.name = "header" + i.ToString ();
-			statHeader.transform.SetParent (teamListHeader.transform);
+			statHeader.transform.SetParent (teamListHeader);
 			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
 			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = headers [i];
-			statHeader.GetComponent<Button> ().onClick.AddListener (() => StartSorting (statHeader.name));
+			statHeader.GetComponent<Button> ().interactable = false;
 			newWidth += currWidth;
 			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
 		}
@@ -138,27 +139,121 @@ public class GetStandings : MonoBehaviour
 					Object teamButton = Resources.Load ("Team", typeof (GameObject));
 					GameObject newTeam = Instantiate (teamButton) as GameObject;
 					string teamListing = teams [i].CityName + " " + teams [i].TeamName;
+					string thisStat;
+					int hits = 0, abs = 0, earnedRuns = 0, innings = 0, wins = 0, losses = 0;
 
 					newTeam.name = "team" + i.ToString ();
 					newTeam.transform.SetParent (transform);
 					teams [i].SetStats ();
-					teams [i].GamesBehind = ((leaderWins - teams [i].Wins) + (teams [i].Losses - leaderLosses)) / 2.0f;
+					teams [i].GamesBehind = -((leaderWins - teams [i].Wins) + (teams [i].Losses - leaderLosses)) / 2.0f;
 
 					for (int j = teamListing.Length - 1; j < longestTeamName; j++)
 						teamListing += " ";
 
-					for (int j = 1; j < headers.Length - 1; j++)
-					{
-						teamListing += " " + teams [i].GetStats () [j];
+					thisStat = teams [i].Wins.ToString ();
+					teamListing += " " + thisStat;
 
-						for (int k = teams [i].GetStats () [j].Length; k < headers [j].Length; k++)
-							teamListing += " ";
-					}
+					for (int j = thisStat.Length; j < headers [1].Length; j++)
+						teamListing += " ";
+
+					thisStat = teams [i].Losses.ToString ();
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [2].Length; j++)
+						teamListing += " ";
+
+					if (teams [i].Wins == 0)
+						thisStat = "0.000";
+					else if (teams [i].Losses == 0)
+						thisStat = "1.000";
+					else
+						thisStat = (teams [i].Wins / (float)teams [i].Losses).ToString ("N3");
+					
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [3].Length; j++)
+						teamListing += " ";
 
 					if (teams [i].GamesBehind == 0)
-						teamListing += " -";
+						thisStat = "-";
 					else
-						teamListing += " " + teams [i].GamesBehind.ToString ("0.0");
+						thisStat = teams [i].GamesBehind.ToString ("0.0");
+
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [4].Length; j++)
+						teamListing += " ";
+
+					for (int k = 0; k < teams [i].Players.Count; k++)
+					{
+						hits += Manager.Instance.Players [teams [i].Players [k]].Stats [0] [3];
+						abs += Manager.Instance.Players [teams [i].Players [k]].Stats [0] [1];
+						earnedRuns += Manager.Instance.Players [teams [i].Players [k]].Stats [0] [24];
+						innings += Manager.Instance.Players [teams [i].Players [k]].Stats [0] [20];
+					}
+
+					for (int k = 0; k < teams [i].LastTen.Count; k++)
+						if (teams [i].LastTen [k])
+							wins++;
+						else
+							losses++;
+
+					thisStat = wins + "-" + losses;
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [5].Length; j++)
+						teamListing += " ";
+
+					if (teams [i].Streak == 0)
+						thisStat = "0";
+					else
+					{
+						if (teams [i].WinStreak)
+							thisStat = "W";
+						else
+							thisStat = "L";
+						
+						thisStat += teams [i].Streak;
+					}
+
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [6].Length; j++)
+						teamListing += " ";
+
+					thisStat = teams [i].HomeWins + "-" + teams [i].HomeLosses;
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [7].Length; j++)
+						teamListing += " ";
+
+					thisStat = teams [i].AwayWins + "-" + teams [i].AwayLosses;
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [8].Length; j++)
+						teamListing += " ";
+
+					if (hits == 0 || abs == 0)
+						thisStat = "0.000";
+					else
+						thisStat = (hits / (float)abs).ToString ("N3");
+					
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [9].Length; j++)
+						teamListing += " ";
+
+					if (innings == 0)
+						thisStat = "0.00";
+					else
+						thisStat = (earnedRuns / (float)innings).ToString ("N");
+
+					teamListing += " " + thisStat;
+
+					for (int j = thisStat.Length; j < headers [10].Length; j++)
+						teamListing += " ";
+
+					//0"Team Name", 1"Wins", 2"Losses", 3"Pct", 4"Games Behind", 5"L10", 6"Streak", 7"Home", 8"Away", 9"AVG", 10"ERA"
 
 					newTeam.transform.GetChild (0).gameObject.GetComponent<Text> ().text = teamListing;
 					newTeam.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
@@ -175,7 +270,7 @@ public class GetStandings : MonoBehaviour
 			}
 		}
 
-		content.sizeDelta = new Vector2 (viewport.rect.width, 20.0f * (teams.Count + 8));
+		content.sizeDelta = new Vector2 (viewport.rect.width, 20.0f * (teams.Count + 9));
 	}
 
 	// Sorts the teams based on the specified stat

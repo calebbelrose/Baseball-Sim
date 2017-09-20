@@ -1,10 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
 using System.IO;
 
-public class Draft
+public class Draft : MonoBehaviour
 {
 	public Transform draftList;					// Holds the header and player objects
 	public Transform header;					// Header object
@@ -17,14 +17,16 @@ public class Draft
 	private bool ascending = true;				// Whether it's sorted ascending or descending
 	private List<int> pickAscending;			// List of team IDs sorted by pick order
 	private List<int> [] newPlayers;			// New players for each team
+	Object playerButton;						// Player button
 
 	public static List<int> draftPlayers;		// All draft players
 
 	// Use this for initialization
-	public Draft ()
+	void Start ()
 	{
 		string [] lines;
 
+		playerButton = Resources.Load ("Player", typeof(GameObject));
 		newPlayers = new List<int>[Manager.Instance.GetNumTeams ()];
 		draftPlayers = new List<int> ();
 
@@ -66,17 +68,34 @@ public class Draft
 		}
 	}
 
+	// Displays players
+	public void DisplayPlayers ()
+	{
+		GameObject [] currPlayers = GameObject.FindGameObjectsWithTag ("Player");
+
+		for (int i = 0; i < currPlayers.Length; i++)
+			Destroy (currPlayers [i]);
+
+		for (int i = 0; i < draftPlayers.Count; i++)
+		{
+			GameObject newPlayer = Manager.DisplayPlayer (playerButton, transform, draftPlayers [i]);
+
+			newPlayer.GetComponent<Button> ().onClick.AddListener (() => PlayerDraft (newPlayer));
+		}
+	}
+
 	// Makes the first selections for the draft
 	public void StartDraft ()
 	{
 		SetPickAscending ();
-		Sort (6);
-		Display ();
+		draftPlayers = Manager.Instance.Sort (currSortedStat, ascending, draftPlayers);
+		DisplayPlayers ();
 
 		while (pickAscending [currIndex] != 0)
 			DraftPlayer (GameObject.Find ("player" + currIndex), 0);
 		
-		Manager.Instance.DisplayPlayers (draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
+		draftPlayers = Manager.Instance.Sort (currSortedStat, ascending, draftPlayers);
+		DisplayPlayers ();
 	}
 
 	// Sets the pick ascending
@@ -91,10 +110,11 @@ public class Draft
 			pickAscending.Add (teams [i].ID);
 	}
 
-	// Sorts the players by the selected stat
-	public void Sort (int headerNum)
+	// Starts sorting players
+	public void StartSorting (GameObject other)
 	{
 		bool notString;
+		int headerNum = int.Parse (other.name.Remove (0, 6));
 
 		if (headerNum <= 1)
 			notString = false;
@@ -102,19 +122,19 @@ public class Draft
 			notString = true;
 
 		if (currSortedStat == headerNum)
-				ascending = !ascending;
+			ascending = !ascending;
 		else if (notString)
 			ascending = false;
 		else
 			ascending = true;
 
-		draftPlayers = Manager.Instance.Sort (headerNum, ascending, draftPlayers);
-		Manager.Instance.DisplayPlayers (draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
 		currSortedStat = headerNum;
+		draftPlayers = Manager.Instance.Sort (currSortedStat, ascending, draftPlayers);
+		DisplayPlayers ();
 	}
 
 	// Drafts a player for each team, or until no players are left
-	public void PlayerDraft (GameObject player, string playerListing)
+	public void PlayerDraft (GameObject player)
 	{
 		int count;
 		int prevSortedStat = currSortedStat;
@@ -124,7 +144,9 @@ public class Draft
 
 		if (currSortedStat != 6 || ascending)
 		{
-			Sort (6);
+			draftPlayers = Manager.Instance.Sort (6, false, draftPlayers);
+			DisplayPlayers ();
+
 			if (Manager.Instance.Teams [0].Count > draftPlayers.Count)
 				count = draftPlayers.Count;
 			else
@@ -144,10 +166,10 @@ public class Draft
 				DraftPlayer (GameObject.Find ("draft" + i), 0);
 		}
 
-		do
-		{
-			Sort (prevSortedStat);
-		}while (currSortedStat != prevSortedStat && ascending != prevAscending);
+		currSortedStat = prevSortedStat;
+		ascending = prevAscending;
+		draftPlayers = Manager.Instance.Sort (currSortedStat, ascending, draftPlayers);
+		DisplayPlayers ();
 	}
 
 	// Drafts a player
@@ -189,22 +211,6 @@ public class Draft
 
 		currIndex = (currIndex + 1) % Manager.Instance.Teams [0].Count;
 		Object.Destroy (player);
-	}
-
-	// Displays the draft players
-	public void Display ()
-	{
-		Manager.Instance.DisplayHeaders (header, draftListRect, draftListParentRect, DisplayType.Draft);
-		Manager.Instance.DisplayPlayers (draftPlayers, draftList, draftListRect, draftListParentRect, DisplayType.Draft);
-	}
-
-	// Sets the objects to display the draft players
-	public void SetDraftPlayerObjects (Transform _draftList, Transform _header, RectTransform _draftListRect, RectTransform _draftListParentRect)
-	{
-		draftList = _draftList;
-		header = _header;
-		draftListRect = _draftListRect;
-		draftListParentRect = _draftListParentRect;
 	}
 
 	// Returns an unsigned player to the draft

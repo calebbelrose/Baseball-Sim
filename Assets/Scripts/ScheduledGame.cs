@@ -78,10 +78,10 @@ public class ScheduledGame
             games += 2;
 
 		if (teams [0].AutomaticRoster)
-			teams  [0].SetRoster ();
+			teams  [0].ResetLineup ();
 
 		if (teams [1].AutomaticRoster)
-			teams  [1].SetRoster ();
+			teams  [1].ResetLineup ();
         
         if (teamType == TeamType.MLB && teams [1].League == League.National)
             designatedHitter = false;
@@ -989,7 +989,7 @@ public class ScheduledGame
         }
 
         //Home team gains revenue and pays expenses
-		Manager.Instance.ExecuteOnMainThread.Enqueue (() =>{
+		Manager.Instance.ExecuteOnMainThread.Enqueue (() => {
 			RevenuesAndExpenses ();
 		});
 
@@ -1001,13 +1001,13 @@ public class ScheduledGame
 
 		if (winningTeam == 0)
         {
-            teams [0].Win ();
-            teams [1].Loss ();
+            teams [0].Win (false);
+            teams [1].Loss (true);
         }
         else
         {
-            teams [1].Win ();
-            teams [0].Loss ();
+            teams [1].Win (true);
+            teams [0].Loss (false);
         }
 
         for (int j = 0; j < 2; j++)
@@ -1108,7 +1108,7 @@ public class ScheduledGame
 		sw.WriteLine (teams [0].ID + "," + teams [1].ID + "," + (int)gameType + "," + (int)teamType + "," + dayIndex + "," + false);
 		sw.Close ();
 
-		return new SimulatedGame (scores, teams [0].ID, teams [1].ID, teams [0].Shortform, teams [1].Shortform, gameType, dayIndex, strBattingStats, strPitchingStats);
+		return new SimulatedGame (scores, teams [0].ID, teams [1].ID, teams [0].Shortform, teams [1].Shortform, gameType, teamType, dayIndex, strBattingStats, strPitchingStats);
     }
 
 	void UseStarters ()
@@ -1122,24 +1122,6 @@ public class ScheduledGame
 		teams [1].AddRevenue (teams [0].Hype);
 		teams [0].SubtractExpenses ();
 	}
-
-	// Determines whether the game contained a team
-    public bool ContainsTeam (int team)
-    {
-        if (team == teams [0].ID || team == teams [1].ID)
-            return true;
-        else
-            return false;
-    }
-
-	// Determines whether a team was playing at home
-    public bool IsHomeGame (int team)
-    {
-        if (team == teams [0].ID)
-            return false;
-        else
-            return true;
-    }
 
 	// Selects a random outfielder
     string RandomOutfielder ()
@@ -1238,6 +1220,14 @@ public class ScheduledGame
 		get
 		{
 			return teams [1];
+		}
+	}
+
+	public TeamType TeamType
+	{
+		get
+		{
+			return teamType;
 		}
 	}
 }

@@ -200,6 +200,11 @@ public class WBCR2A : Event
 		sw.WriteLine (dayIndex + ",1");
 		sw.Close ();
 	}
+
+	public override string ToString ()
+	{
+		return "";
+	}
 }
 
 public class WBCR2B : Event

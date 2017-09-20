@@ -79,11 +79,30 @@ public class BatterSlot : MonoBehaviour, IPointerDownHandler, IPointerUpHandler,
 			otherText.text = prevString;
 
 			if (droppedItem.Slot != -1)
+			{
 				Manager.Instance.Teams [0] [0].Batters [droppedItem.Slot] [0] = droppedItem.PlayerID;
-		
-			if (Slot != -1)
+
+				if (Slot != -1)
+				{
+					Manager.Instance.Teams [0] [0].Batters [Slot] [0] = PlayerID;
+					Placeholder.SetActive (false);
+				}
+				else
+				{
+					Manager.Instance.Teams [0] [0].RemoveSub (droppedItem.PlayerID);
+					Manager.Instance.Teams [0] [0].AddSub (PlayerID);
+					Manager.Instance.Teams [0] [0].SaveSubstitutes ();
+				}
+
+				Manager.Instance.Teams [0] [0].SaveBatters ();
+			}
+			else if (Slot != -1)
 			{
 				Manager.Instance.Teams [0] [0].Batters [Slot] [0] = PlayerID;
+				Manager.Instance.Teams [0] [0].RemoveSub (PlayerID);
+				Manager.Instance.Teams [0] [0].AddSub (droppedItem.PlayerID);
+				Manager.Instance.Teams [0] [0].SaveBatters ();
+				Manager.Instance.Teams [0] [0].SaveSubstitutes ();
 				Placeholder.SetActive (false);
 			}
 		}

@@ -22,28 +22,31 @@ public class Slot : MonoBehaviour, IPointerDownHandler
 		dayText.text = day.Date.Day.ToString ();
 
 		for (int i = 0; i < day.ScheduledGames.Count; i++)
-			if (day.ScheduledGames [i].ContainsTeam (0))
+			if(day.ScheduledGames [i].TeamType == TeamType.MLB)
 			{
-				if (day.ScheduledGames [i].IsHomeGame (0))
+				if (day.ScheduledGames [i].Team2.ID == 0)
 					eventText.Add ("vs. " + day.ScheduledGames [i].Team1.Shortform);
-				else
+				else if (day.ScheduledGames [i].Team1.ID == 0)
 					eventText.Add ("@" + day.ScheduledGames [i].Team2.Shortform);
 			}
 
 		for (int i = 0; i < day.SimulatedGames.Count; i++)
-			if (day.SimulatedGames [i].Teams [0] == 0)
+			if(day.SimulatedGames [i].TeamType == TeamType.MLB)
 			{
-				if (day.SimulatedGames [i].Scores [0] > day.SimulatedGames [i].Scores [1])
-					eventText.Add ("Won " + day.SimulatedGames [i].Scores [0] + " - " + day.SimulatedGames [i].Scores [1] + " @" + day.SimulatedGames [i].Shortforms [1]);
-				else
-					eventText.Add ("Lost " + day.SimulatedGames [i].Scores [0] + " - " + day.SimulatedGames [i].Scores [1] + " @" + day.SimulatedGames [i].Shortforms [1]);
-			}
-			else if (day.SimulatedGames [i].Teams [1] == 0)
-			{
-				if (day.SimulatedGames [i].Scores [1] > day.SimulatedGames [i].Scores [0])
-					eventText.Add ("Won " + day.SimulatedGames [i].Scores [1] + " - " + day.SimulatedGames [i].Scores [0] + " vs. " + day.SimulatedGames [i].Shortforms [0]);
-				else
-						eventText.Add ("Lost " + day.SimulatedGames [i].Scores [1] + " - " + day.SimulatedGames [i].Scores [0] + " vs. " + day.SimulatedGames [i].Shortforms [0]);
+				if (day.SimulatedGames [i].Teams [0] == 0)
+				{
+					if (day.SimulatedGames [i].Scores [0] > day.SimulatedGames [i].Scores [1])
+						eventText.Add ("Won " + day.SimulatedGames [i].Scores [0] + " - " + day.SimulatedGames [i].Scores [1] + " @" + day.SimulatedGames [i].Shortforms [1]);
+					else
+						eventText.Add ("Lost " + day.SimulatedGames [i].Scores [0] + " - " + day.SimulatedGames [i].Scores [1] + " @" + day.SimulatedGames [i].Shortforms [1]);
+				}
+				else if (day.SimulatedGames [i].Teams [1] == 0)
+				{
+					if (day.SimulatedGames [i].Scores [1] > day.SimulatedGames [i].Scores [0])
+						eventText.Add ("Won " + day.SimulatedGames [i].Scores [1] + " - " + day.SimulatedGames [i].Scores [0] + " vs. " + day.SimulatedGames [i].Shortforms [0]);
+					else
+							eventText.Add ("Lost " + day.SimulatedGames [i].Scores [1] + " - " + day.SimulatedGames [i].Scores [0] + " vs. " + day.SimulatedGames [i].Shortforms [0]);
+				}
 			}
 
 		for (int i = 0; i < day.Events.Count; i++)

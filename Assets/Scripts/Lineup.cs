@@ -31,56 +31,9 @@ public class Lineup : MonoBehaviour
 		{
 			if (Manager.Instance.Teams [0] [0].Batters [i].Count > 0)
 			{
-				string playerString = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].FirstName;
 				BatterSlot batterSlot = batterSlots [i].GetComponent<BatterSlot> ();
 
-				for (int j = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].FirstName.Length; j < Player.longestFirstName; j++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].LastName;
-
-				for (int j = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].LastName.Length; j < Player.longestLastName; j++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Position;
-
-				for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Position.Length; k < Manager.Instance.Skills [2].Length; k++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Overall;
-
-				for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Overall.ToString ().Length; k < Manager.Instance.Skills [3].Length; k++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Offense;
-
-				for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Offense.ToString ().Length; k < Manager.Instance.Skills [4].Length; k++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Defense;
-
-				for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Defense.ToString ().Length; k < Manager.Instance.Skills [5].Length; k++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Potential;
-
-				for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Potential.ToString ().Length; k < Manager.Instance.Skills [6].Length; k++)
-					playerString += " ";
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Age;
-
-				for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Age.ToString ().Length; k < Manager.Instance.Skills [7].Length; k++)
-					playerString += " ";
-
-				for (int j = 0; j < Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Skills.Length - 1; j++) {
-					playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Skills [j];
-
-					for (int k = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Skills [j].ToString ().Length; k < Manager.Instance.Skills [j + 8].Length; k++)
-						playerString += " ";
-				}
-
-				playerString += " " + Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Skills [Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].Skills.Length - 1];
-				batterSlots [i].GetComponentInChildren<Text> ().text = playerString;
+				batterSlots [i].GetComponentInChildren<Text> ().text = Manager.Instance.Players [Manager.Instance.Teams [0] [0].Batters [i] [0]].DisplayString ();
 				batterSlot.PlayerID = Manager.Instance.Teams [0] [0].Batters [i] [0];
 				batterSlot.PositionDropdown.value = positions.IndexOf (Manager.Instance.Players [batterSlot.PlayerID].Position) + 1;
 				batterSlots [i].transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);

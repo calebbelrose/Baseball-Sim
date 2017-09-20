@@ -12,9 +12,9 @@ public class Team
 	public int Pick;															// Pick in first year player draft
 	public bool AutomaticRoster = true;											// Whether to automatically set the roster or not
 	public float GamesBehind;													// Number of games behind division leader
+	public Division Division;													// Division
+	public League League;														// League
 
-	private Division division;													// Division
-	private League league;														// League
 	private float [] overalls;													// Overalls
 	private double cash;														// Cash
 	private double revenues = 0.00;												// Revenues
@@ -37,7 +37,11 @@ public class Team
 	private int currStarter = 0;												// Index in SP of the current starter
 	private int wins;															// Wins
 	private int losses;															// Losses
-	private int streak = 0;														// Win streak
+	private int homeWins;														// Home Wins
+	private int homeLosses;														// Home Losses
+	private int awayWins;														// Away Wins
+	private int awayLosses;														// Away Losses
+	private int streak = 0;														// Streak
 	private int cp;																// Index of closing pitcher
 	private List<int> majorLeagueIndexes;										// Indexes of players in active roster
 	private List<int> minorLeagueIndexes;										// Indexes of players in minor league team
@@ -51,6 +55,8 @@ public class Team
 	private List<int> pinchRunners;												// Indexes of pinch runners
 	private List<int> draftPicks = new List<int> ();							// Indexes of players picked in the first year player draft
 	private List<int> tradeBlock = new List<int> ();							// Indexes of players on trade block
+	private List<bool> lastTen = new List<bool> ();								// Whether the team won each of the last 10 games
+	private bool winStreak;														// Whether the team is on a winning or losing streak
 	private string [] stats;													// Stats
 	private List<string> positions;												// Positions of batters
 	private List<string> lookingFor = new List<string> ();						// Positions to trade for
@@ -102,8 +108,8 @@ public class Team
 		if (TeamName.Length > longestTeamName)
 			longestTeamName = TeamName.Length;
 		
-		league = sLeague;
-		division = sDivision;
+		League = sLeague;
+		Division = sDivision;
 
 		if (sLeague == League.American)
 			sLeague = League.National;
@@ -140,9 +146,100 @@ public class Team
 		batters = batters.OrderByDescending (playerX => Manager.Instance.Players [playerX[0]].Offense).ToList ();
 		sp = sp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList ();
 		rp = rp.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [5]).ToList ();
+		SortSubstitutes ();		
+	}
+
+	// Sorts substitute players
+	public void SortSubstitutes ()
+	{
 		offensiveSubstitutes = offensiveSubstitutes.OrderByDescending (playerX => Manager.Instance.Players [playerX].Offense).ToList ();
 		defensiveSubstitutes = defensiveSubstitutes.OrderByDescending (playerX => Manager.Instance.Players [playerX].Defense).ToList ();
-		pinchRunners = pinchRunners.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [3]).ToList ();
+		pinchRunners = pinchRunners.OrderByDescending (playerX => Manager.Instance.Players [playerX].Skills [3]).ToList ();	
+	}
+
+	// Saves batters
+	public void SaveBatters ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\Batters.txt");
+
+		for (int i = 0; i < batters.Count; i++)
+			sw.WriteLine (batters [i] [0]);
+
+		sw.Close ();
+	}
+
+	// Saves starting pitchers
+	public void SaveSP ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\SP.txt");
+
+		for (int i = 0; i < sp.Count; i++)
+			sw.WriteLine (sp [i]);
+
+		sw.Close ();
+	}
+
+	// Saves relief pitchers
+	public void SaveRP ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\RP.txt");
+
+		for (int i = 0; i < rp.Count; i++)
+			sw.WriteLine (rp [i]);
+
+		sw.Close ();
+	}
+
+	// Saves substitutes
+	public void SaveSubstitutes ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\OffensiveSubs.txt");
+
+		for (int i = 0; i < offensiveSubstitutes.Count; i++)
+			sw.WriteLine (offensiveSubstitutes [i]);
+
+		sw.Close ();
+
+		sw = new StreamWriter (@"Save\DefensiveSubs.txt");
+
+		for (int i = 0; i < defensiveSubstitutes.Count; i++)
+			sw.WriteLine (defensiveSubstitutes [i]);
+
+		sw.Close ();
+
+		sw = new StreamWriter (@"Save\Substitutes.txt");
+
+		for (int i = 0; i < offensiveSubstitutes.Count; i++)
+			sw.WriteLine (offensiveSubstitutes [i]);
+
+		sw.Close ();
+	}
+
+	// Saves batters
+	public void SaveFortyManRoster ()
+	{
+		StreamWriter sw = new StreamWriter (@"Save\FortyManRoster.txt");
+
+		for (int i = 0; i < fortyManRoster.Count; i++)
+			sw.WriteLine (fortyManRoster [0]);
+
+		sw.Close ();
+	}
+
+	// Removes a player to the list of substitutes
+	public void RemoveSub (int playerID)
+	{
+		offensiveSubstitutes.Remove (playerID);
+		defensiveSubstitutes.Remove (playerID);
+		pinchRunners.Remove (playerID);
+	}
+
+	// Adds a player to the list of substitutes
+	public void AddSub (int playerID)
+	{
+		offensiveSubstitutes.Add (playerID);
+		defensiveSubstitutes.Add (playerID);
+		pinchRunners.Add (playerID);
 	}
 
 	// Saves the team's Wins, Losses, Hype and Cash
@@ -150,7 +247,14 @@ public class Team
 	{
 		StreamWriter sw = new StreamWriter (@"Save\WLHC" + (int)teamType + "-" + id + ".txt");
 
-		sw.Write (wins + "," + losses + "," + hype + "," + cash);
+		sw.Write (wins + "," + losses + "," + homeWins + "," + homeLosses + "," + awayWins + "," + awayLosses + "," + streak + "," + winStreak + "," + hype + "," + cash);
+		sw.Close ();
+
+		sw = new StreamWriter (@"Save\LastTen" + (int)teamType + "-" + id + ".txt");
+
+		for (int i = 0; i < lastTen.Count; i++)
+			sw.WriteLine (lastTen [i]);
+		
 		sw.Close ();
 	}
 
@@ -164,8 +268,15 @@ public class Team
 	}
 
 	// Adds a win
-	public void Win ()
+	public void Win (bool home)
 	{
+		if (winStreak)
+			streak = 1;
+		else
+			streak++;
+
+		winStreak = true;
+
 		if (streak < 0)
 			streak = 1;
 		else
@@ -178,12 +289,29 @@ public class Team
 		
 		wins++;
 
+		if (home)
+			homeWins++;
+		else
+			awayWins++;
+
+		lastTen.Add (true);
+
+		if (lastTen.Count > 10)
+			lastTen.RemoveAt (0);
+
 		SaveWLHC ();
 	}
 
 	// Adds a loss
-	public void Loss ()
+	public void Loss (bool home)
 	{
+		if (!winStreak)
+			streak = 1;
+		else
+			streak++;
+
+		winStreak = false;
+
 		if (streak > 0)
 			streak = -1;
 		else
@@ -194,6 +322,11 @@ public class Team
 			hype = 0;
 		
 		losses++;
+
+		if (home)
+			homeLosses++;
+		else
+			awayLosses++;
 
 		SaveWLHC ();
 	}
@@ -277,6 +410,13 @@ public class Team
 		minorLeagueIndexes.Clear ();
 		lookingFor.Clear ();
 		tradeBlock.Clear ();
+		batters.Clear ();
+		positions.Clear ();
+		sp.Clear ();
+		rp.Clear ();
+		offensiveSubstitutes.Clear ();
+		defensiveSubstitutes.Clear ();
+		pinchRunners.Clear ();
 
 		lookingFor.Add ("SP");
 		lookingFor.Add ("SP");
@@ -299,20 +439,11 @@ public class Team
 
 		benchSpace = Team.RosterSize - lookingFor.Count;
 
-		batters.Clear ();
-		positions.Clear ();
-		sp.Clear ();
-		rp.Clear ();
-		offensiveSubstitutes.Clear ();
-		defensiveSubstitutes.Clear ();
-		pinchRunners.Clear ();
-
 		result = players.OrderBy (playerX => Manager.Instance.Players [playerX].InjuryLength).ThenByDescending (playerX => Manager.Instance.Players [playerX].Position).ThenByDescending (playerX => Manager.Instance.Players [playerX].Overall).ToList<int> ();
 
 		for (int j = 0; j < result.Count; j++)
 		{
-			if (lookingFor.Contains (Manager.Instance.Players [result [j]].Position) && AddToMajors (Manager.Instance.Players [result [j]].ID))
-			{
+			if (lookingFor.Contains (Manager.Instance.Players [result [j]].Position) && AddToMajors (Manager.Instance.Players [result [j]].ID)) {
 				if (Manager.Instance.Players [result [j]].Position == "SP")
 				{
 					sp.Add (Manager.Instance.Players [result [j]].ID);
@@ -342,13 +473,11 @@ public class Team
 				if (Manager.Instance.Players [result [j]].IsPitcher)
 					rp.Add (Manager.Instance.Players [result [j]].ID);
 				else
-				{
-					offensiveSubstitutes.Add (Manager.Instance.Players [result [j]].ID);
-					defensiveSubstitutes.Add (Manager.Instance.Players [result [j]].ID);
-					pinchRunners.Add (Manager.Instance.Players [result [j]].ID);
-				}
+					AddSub (Manager.Instance.Players [result [j]].ID);
 
-				tradeBlock.Add (Manager.Instance.Players [result [j]].ID);
+				if (Manager.Instance.Players [result [j]].FirstTimeOnWaivers)
+					tradeBlock.Add (Manager.Instance.Players [result [j]].ID);
+			
 				benchSpace--;
 			}
 			else
@@ -356,7 +485,197 @@ public class Team
 		}
 
 		ascendingLineup ();
+		minorLeagueIndexes = minorLeagueIndexes.OrderBy (playerX => Manager.Instance.Players [playerX].Overall).ToList ();
 		CalculateOveralls ();
+		Manager.Instance.RosterChange = true;
+	}
+
+	public void ResetLineup ()
+	{
+		List<int> tempRPs = new List<int> ();
+		bool needReplacement;
+		int index, count, playerIndex;
+
+		for (int i = 0; i < 9; i++)
+			while (batters [i].Count > 1)
+			{
+				AddSub (batters [i] [1]);
+				batters [i].RemoveAt (1);
+			}
+
+		for (int i = 0; i < 9; i++)
+		{
+			if (Manager.Instance.Players [batters [i] [0]].InjuryLength > 0)
+			{
+				needReplacement = true;
+				index = 0;
+
+				if (Manager.Instance.Players [batters [i] [0]].InjuryLength > 0 && !(Manager.Instance.Players [batters [i] [0]].OnShortDisabledList || Manager.Instance.Players [batters [i] [0]].OnShortDisabledList))
+				{
+					if (Manager.Instance.Players [batters [i] [0]].InjuryLength >= Manager.LongDisabledListTime)
+					{
+						Manager.Instance.AddToLongDisabledList (batters [i] [0]);
+					}
+					else if (Manager.Instance.Players [batters [i] [0]].InjuryLength >= Manager.ShortDisabledListTime)
+					{
+						Manager.Instance.AddToShortDisabledList (batters [i] [0]);
+						majorLeagueIndexes.Remove (batters [i] [0]);
+					}
+				}
+
+				while (index < offensiveSubstitutes.Count && needReplacement)
+				{
+					if (Manager.Instance.Players [offensiveSubstitutes [index]].Position == Positions [i] && Manager.Instance.Players [offensiveSubstitutes [index]].InjuryLength == 0)
+					{
+						batters [i] [0] = offensiveSubstitutes [index];
+						RemoveSub (offensiveSubstitutes [index]);
+						needReplacement = false;
+					}
+
+					index++;
+				}
+
+				if (needReplacement)
+				{
+					if (offensiveSubstitutes.Count > 0)
+					{
+						batters [i] [0] = offensiveSubstitutes [0];
+						RemoveSub (offensiveSubstitutes [0]);
+					}
+					else
+					{
+						index = 0;
+
+						while (index < minorLeagueIndexes.Count && needReplacement)
+						{
+							playerIndex = minorLeagueIndexes [index];
+
+							if (Manager.Instance.Players [playerIndex].Position == Positions [i] && Manager.Instance.Players [playerIndex].InjuryLength == 0 && AddToFortyManRoster(playerIndex))
+							{
+								batters [i] [0] = playerIndex;
+								needReplacement = false;
+							}
+
+							index++;
+						}
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < sp.Count; i++)
+			if (Manager.Instance.Players [sp [i]].InjuryLength > 0)
+			{
+				needReplacement = true;
+				index = 0;
+
+				if (Manager.Instance.Players [sp [i]].InjuryLength >= Manager.LongDisabledListTime)
+				{
+					Manager.Instance.AddToLongDisabledList (sp [i]);
+					majorLeagueIndexes.Remove (sp [i]);
+					fortyManRoster.Remove (sp [i]);
+				}
+				else if (Manager.Instance.Players [sp [i]].InjuryLength >= Manager.ShortDisabledListTime)
+				{
+					Manager.Instance.AddToShortDisabledList (sp [i]);
+					majorLeagueIndexes.Remove (sp [i]);
+				}
+
+				if (tempRPs.Count == 0)
+					tempRPs = rp.OrderBy (playerX => Manager.Instance.Players [playerX].InjuryLength).ThenByDescending (playerX => Manager.Instance.Players [playerX].Skills [10]).ToList ();
+
+				if (tempRPs.Count > 0)
+				{
+					sp [i] = tempRPs [0];
+					rp.Remove (tempRPs [0]);
+					tempRPs.RemoveAt (0);
+					needReplacement = false;
+				}
+				else
+				{
+					index = 0;
+
+					while (index < minorLeagueIndexes.Count && needReplacement)
+					{
+						playerIndex = minorLeagueIndexes [index];
+
+						if (Manager.Instance.Players [playerIndex].IsPitcher && Manager.Instance.Players [playerIndex].InjuryLength == 0 && AddToFortyManRoster(playerIndex))
+						{
+							sp [i] = playerIndex;
+							needReplacement = false;
+						}
+
+						index++;
+					}
+				}
+			}
+
+		if (Manager.Instance.Players [cp].InjuryLength > 0)
+		{
+			if (Manager.Instance.Players [cp].InjuryLength >= Manager.LongDisabledListTime)
+			{
+				Manager.Instance.AddToLongDisabledList (cp);
+				majorLeagueIndexes.Remove (cp);
+				fortyManRoster.Remove (cp);
+			}
+			else if (Manager.Instance.Players [cp].InjuryLength >= Manager.ShortDisabledListTime)
+			{
+				Manager.Instance.AddToShortDisabledList (cp);
+				majorLeagueIndexes.Remove (cp);
+			}
+
+			if (rp.Count > 0)
+			{
+				cp = rp [0];
+				rp.RemoveAt (0);
+			}
+			else
+			{
+				needReplacement = true;
+				index = 0;
+
+				while (index < minorLeagueIndexes.Count && needReplacement)
+				{
+					playerIndex = minorLeagueIndexes [index];
+
+					if (Manager.Instance.Players [playerIndex].IsPitcher && Manager.Instance.Players [playerIndex].InjuryLength == 0 && AddToFortyManRoster(playerIndex))
+					{
+						cp = playerIndex;
+						needReplacement = false;
+					}
+
+					index++;
+				}
+			}
+		}
+
+		index = 0;
+		count = 15 + rp.Count + offensiveSubstitutes.Count;
+
+		while (count < rosterSize && index < minorLeagueIndexes.Count)
+		{
+			playerIndex = minorLeagueIndexes [index];
+
+			if (AddToFortyManRoster (playerIndex))
+			{
+				if (Manager.Instance.Players [playerIndex].IsPitcher)
+					rp.Add (playerIndex);
+				else
+					AddSub (playerIndex);
+
+				count++;
+			}
+
+			index++;
+		}
+
+		if (count < rosterSize)
+		{
+			Manager.Instance.Players [Manager.Instance.FreeAgents [0]].Offer = Player.MinSalary;
+			AddPlayer (Manager.Instance.FreeAgents [0]);
+			Manager.Instance.Players [Manager.Instance.FreeAgents [0]].SavePlayer ();
+			Manager.Instance.FreeAgents.RemoveAt (0);
+		}
 	}
 
 	// Adds a new year to the team
@@ -378,7 +697,7 @@ public class Team
 				{
 					Manager.Instance.Players [players [i]].Team = -1;
 					Manager.Instance.Players [players [i]].Offer = 0;
-					Manager.Instance.Teams [0] [Manager.Instance.Players [players [i]].Team].RemovePlayer (players [i]);
+					Manager.Instance.Teams [0] [id].RemovePlayer (players [i]);
 					Manager.Instance.FreeAgents.Add (players [i]);
 				}
 			}
@@ -444,6 +763,7 @@ public class Team
 			return false;
 	}
 
+	// Adds a player to the forty man roster if there's room and they aren't already on it
 	public bool AddToFortyManRoster (int index)
 	{
 		if (fortyManRoster.Contains (index))
@@ -457,14 +777,24 @@ public class Team
 			return false;
 	}
 
+	public void RemoveFromMajorLeague (int index)
+	{
+		majorLeagueIndexes.Remove (index);
+	}
+
+	public void RemoveFromFortyManRoster (int index)
+	{
+		fortyManRoster.Remove (index);
+	}
+
 	// Adds a player to the minor leagues
 	public void AddToMinors (int index)
 	{
-		if (majorLeagueIndexes.IndexOf (index) != -1)
-			majorLeagueIndexes.Remove (index);
-
+		majorLeagueIndexes.Remove (index);
 		minorLeagueIndexes.Add (index);
-		tradeBlock.Add (index);
+
+		if (Manager.Instance.Players [index].FirstTimeOnWaivers)
+			tradeBlock.Add (index);
 	}
 
 	// Uses the current starter
@@ -485,7 +815,7 @@ public class Team
 	{
 		StreamWriter sw = new StreamWriter (@"Save\Team" + (int)teamType + "-" + id + ".txt");
 
-		sw.Write (CityName + "," + TeamName + "," + Pick + "," + cash);
+		sw.Write (CityName + "," + TeamName + "," + Pick + "," + (int)Division + "," + (int)League);
 		sw.Close ();
 	}
 
@@ -497,13 +827,14 @@ public class Team
 		CityName = teamInfoSplit [0];
 		TeamName = teamInfoSplit [1];
 		Pick = int.Parse (teamInfoSplit [2]);
-		cash = double.Parse (teamInfoSplit [3]);
+		Division = (Division)int.Parse (teamInfoSplit [3]);
+		League = (League)int.Parse (teamInfoSplit [4]);
 	}
 
 	// Loads the team
 	public void LoadTeam ()
 	{
-		string [] split = File.ReadAllLines (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
+		string[] split = File.ReadAllLines (@"Save\TeamPlayers" + (int)teamType + "-" + id + ".txt");
 
 		LoadTeamInfo ();
 
@@ -517,14 +848,25 @@ public class Team
 		split = (CityName + " " + TeamName).Split (' ');
 
 		for (int i = 0; i < split.Length; i++)
-			if (System.Char.IsLetter (split[i] [0]) && System.Char.IsUpper (split [i] [0]))
+			if (System.Char.IsLetter (split [i] [0]) && System.Char.IsUpper (split [i] [0]))
 				Shortform += split [i] [0];
 
 		split = File.ReadAllLines (@"Save\WLHC" + (int)teamType + "-" + id + ".txt") [0].Split (',');
 		wins = int.Parse (split [0]);
 		losses = int.Parse (split [1]);
-		hype = double.Parse (split [2]);
-		cash = double.Parse (split [3]);
+		homeWins = int.Parse (split [2]);
+		homeLosses = int.Parse (split [3]);
+		awayWins = int.Parse (split [4]);
+		awayLosses = int.Parse (split [5]);
+		streak = int.Parse (split [6]);
+		winStreak = bool.Parse (split [7]);
+		hype = double.Parse (split [8]);
+		cash = double.Parse (split [9]);
+
+		split = File.ReadAllLines (@"Save\LastTen" + (int)teamType + "-" + id + ".txt");
+
+		for (int i = 0; i < split.Length - 1; i++)
+			lastTen.Add (bool.Parse (split [i]));
 	}
 
 	// Determines whether a player is currently in the batting ascending
@@ -579,11 +921,10 @@ public class Team
 	}
 
 	// Puts a player on waivers
-	public void PutOnWaivers (int id)
+	public void PutOnWaivers (int id, bool trade)
 	{
 		waivers.Add (id);
-		Manager.Instance.PutOnWaivers (id);
-		Manager.Instance.Players [id].PutOnWaivers ();
+		Manager.Instance.PutOnWaivers (id, trade);
 	}
 
 	// Takes a player off waivers
@@ -592,6 +933,11 @@ public class Team
 		waivers.Remove (playerID);
 		Manager.Instance.TakeOffWaivers (playerID);
 		Manager.Instance.Players [playerID].TakeOffWaivers ();
+	}
+
+	public void AddToWaivers(int id)
+	{
+		waivers.Add (id);
 	}
 
 	// Gets the index of player with the worst overall
@@ -678,7 +1024,7 @@ public class Team
 
 		while (tradeOffers.Count > 0)
 		{
-			tradeOffers [0].Accept ();
+			tradeOffers [0].Consider ();
 			tradeOffers.RemoveAt (0);
 		}
 	}
@@ -778,22 +1124,6 @@ public class Team
 		}
 	}
 
-	public Division Division
-	{
-		get
-		{
-			return division;
-		}
-	}
-
-	public League League
-	{
-		get
-		{
-			return league;
-		}
-	}
-
 	public float [] Overalls
 	{
 		get
@@ -839,6 +1169,38 @@ public class Team
 		get
 		{
 			return losses;
+		}
+	}
+
+	public int HomeWins
+	{
+		get
+		{
+			return homeWins;
+		}
+	}
+
+	public int HomeLosses
+	{
+		get
+		{
+			return homeLosses;
+		}
+	}
+
+	public int AwayWins
+	{
+		get
+		{
+			return awayWins;
+		}
+	}
+
+	public int AwayLosses
+	{
+		get
+		{
+			return awayLosses;
 		}
 	}
 
@@ -994,6 +1356,30 @@ public class Team
 		}
 	}
 
+	public int Streak
+	{
+		get
+		{
+			return streak;
+		}
+	}
+
+	public List<bool> LastTen
+	{
+		get
+		{
+			return lastTen;
+		}
+	}
+
+	public bool WinStreak 
+	{
+		get
+		{
+			return winStreak;
+		}
+	}
+
 	public TeamType Type
 	{
 		get
@@ -1036,9 +1422,9 @@ public enum League
 
 public enum Division
 {
+	Central,
 	East,
 	West,
-	Central
 }
 
 public enum TeamType

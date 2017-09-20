@@ -9,6 +9,7 @@ public class SimulatedGame
 	private int[] teams = new int[2];				// Both teams
 	private string [] shortforms = new string [2];	// Shortforms of both teams
 	private GameType gameType;						// Type of game
+	private TeamType teamType;						// Type of team
 	private int dayIndex;							// Index of the day the game was played on
 	private int gameID;								// Game ID
 	private List<string []> [] [] battingStats;		// Stats for the batters that played in the game
@@ -28,7 +29,8 @@ public class SimulatedGame
 		shortforms [0] = split [4];
 		shortforms [1] = split [5];
 		gameType = (GameType)int.Parse (split [6]);
-		dayIndex = int.Parse (split [7]);
+		teamType = (TeamType)int.Parse (split [7]);
+		dayIndex = int.Parse (split [8]);
 
 		battingStats = new List<string []> [2] [];
 		pitchingStats = new List<string []> [2];
@@ -73,7 +75,7 @@ public class SimulatedGame
 	}
 
 	// 9-Arg Constructor
-	public SimulatedGame (int [] _scores, int team1, int team2, string shortform1, string shortform2, GameType _gameType, int _dayIndex, List<string []> [] [] strBattingStats, List<string []> [] strPitchingStats)
+	public SimulatedGame (int [] _scores, int team1, int team2, string shortform1, string shortform2, GameType _gameType, TeamType _teamType, int _dayIndex, List<string []> [] [] strBattingStats, List<string []> [] strPitchingStats)
 	{
 		StreamWriter sw;
 
@@ -84,6 +86,7 @@ public class SimulatedGame
 		shortforms [0] = shortform1;
 		shortforms [1] = shortform2;
 		gameType = _gameType;
+		teamType = _teamType;
 		dayIndex = _dayIndex;
 		battingStats = new List<string []>[2] [];
 		pitchingStats = new List<string []>[2];
@@ -91,7 +94,7 @@ public class SimulatedGame
 		strPitchingStats.CopyTo (pitchingStats, 0);
 
 		sw = File.AppendText (@"Save\SimulatedGames.txt");
-		sw.WriteLine (teams [0] + "," + teams [1] + "," + scores [0] + "," + scores [1] + "," + shortforms [0] + "," + shortforms [1] + "," + (int)gameType + "," + dayIndex);
+		sw.WriteLine (teams [0] + "," + teams [1] + "," + scores [0] + "," + scores [1] + "," + shortforms [0] + "," + shortforms [1] + "," + (int)gameType + "," + (int)TeamType + "," + dayIndex);
 		sw.Close ();
 
 		for (int i = 0; i < 2; i++)
@@ -134,6 +137,14 @@ public class SimulatedGame
 		get
 		{
 			return teams;
+		}
+	}
+
+	public TeamType TeamType
+	{
+		get
+		{
+			return teamType;
 		}
 	}
 

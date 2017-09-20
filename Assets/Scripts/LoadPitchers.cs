@@ -10,7 +10,7 @@ public class LoadPitchers : MonoBehaviour
 	public Transform teamListHeader;	// Header object
 	public GameObject separator;		// Prefab to separate pitching positions
 
-	UnityEngine.Object playerButton;
+	private Object playerButton;		// Player button
 
 	void Start ()
 	{
@@ -20,7 +20,7 @@ public class LoadPitchers : MonoBehaviour
 			Manager.Instance.Teams [0] [0].SetRoster ();
 
 		PitcherSlot.MaxIndex = 0;
-		DisplayHeader ();
+		content.sizeDelta = new Vector2 (Manager.DisplayHeaders (null, teamListHeader.transform), 20 * (Manager.Instance.Teams [0] [0].SP.Count + Manager.Instance.Teams [0] [0].RP.Count + 4) - viewport.rect.height);
 		playerButton = Resources.Load ("Pitcher", typeof (GameObject));
 
 		newSeparator = Instantiate (separator, transform) as GameObject;
@@ -42,102 +42,11 @@ public class LoadPitchers : MonoBehaviour
 		PitcherSlot.MaxIndex--;
 	}
 
-	// Displays header
-	void DisplayHeader ()
-	{
-		int statHeaderLength = 0;
-		int [] headerLengths = new int [Manager.Instance.Skills.Length];
-		Object header = Resources.Load ("Header", typeof (GameObject));
-		float newWidth = 0.0f;
-
-		for (int i = 2; i < Manager.Instance.Skills.Length; i++)
-		{
-			headerLengths [i] = Manager.Instance.Skills [i].Length + 1;
-			statHeaderLength += headerLengths [i];
-		}
-
-		headerLengths [0] += Player.longestFirstName + 1;
-		headerLengths [1] += Player.longestLastName + 1;
-		statHeaderLength += headerLengths [0];
-		statHeaderLength += headerLengths [1];
-
-		for (int i = 0; i < Manager.Instance.Skills.Length; i++)
-		{
-			GameObject statHeader = Instantiate (header) as GameObject;
-			float currWidth = (8.03f * headerLengths [i]);
-
-			statHeader.name = "header" + i.ToString ();
-			statHeader.transform.SetParent (teamListHeader.transform);
-			statHeader.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-			statHeader.transform.GetChild (0).gameObject.GetComponent<Text> ().text = Manager.Instance.Skills [i];
-			newWidth += currWidth;
-			statHeader.GetComponent<RectTransform> ().sizeDelta = new Vector2 (currWidth, 20.0f);
-			statHeader.GetComponent<Button> ().interactable = false;
-		}
-			
-		content.sizeDelta = new Vector2 (newWidth, 20 * (Manager.Instance.Teams [0] [0].SP.Count + Manager.Instance.Teams [0] [0].RP.Count + 4) - viewport.rect.height);
-	}
-
 	void DisplayPlayer (int index)
 	{
-		GameObject newPlayer = Instantiate (playerButton) as GameObject;
-		string playerString = Manager.Instance.Players [index].FirstName;
-		PitcherSlot pitcherSlot = newPlayer.AddComponent<PitcherSlot> ();
+		PitcherSlot pitcherSlot = Manager.DisplayPlayer (playerButton, transform, Manager.Instance.Players [index].ID).AddComponent<PitcherSlot> ();
 
-		newPlayer.name = "pitcher" + PitcherSlot.MaxIndex.ToString ();
-
-		for (int j = Manager.Instance.Players [index].FirstName.Length; j < Player.longestFirstName; j++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].LastName;
-
-		for (int j = Manager.Instance.Players [index].LastName.Length; j < Player.longestLastName; j++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].Position;
-
-		for (int k = Manager.Instance.Players [index].Position.Length; k < Manager.Instance.Skills [2].Length; k++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].Overall;
-
-		for (int k = Manager.Instance.Players [index].Overall.ToString ().Length; k < Manager.Instance.Skills [3].Length; k++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].Offense;
-
-		for (int k = Manager.Instance.Players [index].Offense.ToString ().Length; k < Manager.Instance.Skills [4].Length; k++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].Defense;
-
-		for (int k = Manager.Instance.Players [index].Defense.ToString ().Length; k < Manager.Instance.Skills [5].Length; k++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].Potential;
-
-		for (int k = Manager.Instance.Players [index].Potential.ToString ().Length; k < Manager.Instance.Skills [6].Length; k++)
-			playerString += " ";
-
-		playerString += " " + Manager.Instance.Players [index].Age;
-
-		for (int k = Manager.Instance.Players [index].Age.ToString ().Length; k < Manager.Instance.Skills [7].Length; k++)
-			playerString += " ";
-
-		for (int j = 0; j < Manager.Instance.Players [index].Skills.Length - 1; j++) {
-			playerString += " " + Manager.Instance.Players [index].Skills [j];
-
-			for (int k = Manager.Instance.Players [index].Skills [j].ToString ().Length; k < Manager.Instance.Skills [j + 8].Length; k++)
-				playerString += " ";
-		}
-
-		newPlayer.transform.GetChild (0).gameObject.GetComponent<Text> ().text = playerString;
-		newPlayer.transform.SetParent (gameObject.transform);
-		newPlayer.transform.localScale = new Vector3 (1.0f, 1.0f, 1.0f);
-	
-		playerString += " " + Manager.Instance.Players [index].Skills [Manager.Instance.Players [index].Skills.Length - 1];
 		pitcherSlot.PlayerID = index;
 		pitcherSlot.Slot = PitcherSlot.MaxIndex++;
-		newPlayer.AddComponent<CanvasGroup> ();
 	}
 }

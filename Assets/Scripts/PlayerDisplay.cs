@@ -1,27 +1,46 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
-public class PlayerDisplay
+public class PlayerDisplay : MonoBehaviour
 {
-	public UnityEngine.Transform teamList;					// Holds the header and player objects
-	public UnityEngine.Transform header;					// Header object
-	public UnityEngine.RectTransform teamListRect;			// RectTransform of the playerList
-	public UnityEngine.RectTransform teamListParentRect;	// RectTransform of the parent of the player list
+	public Transform playerList;				// Holds the header and player objects
+	public Transform header;					// Header object
+	public RectTransform playerListRect;		// RectTransform of the playerList
+	public RectTransform playerListParentRect;	// RectTransform of the parent of the player list
+	public GameObject panel;					// Panel to display player
 
-	private int currSortedStat = 6;							// Current sorted stat
-	private bool ascending = true;							// Whether it's sorted ascending or descending
+	private int currSortedStat = 6;				// Current sorted stat
+	private bool ascending = true;				// Whether it's sorted ascending or descending
+	private List<int> yourPlayers;				// Your players
+	Object playerButton;						// Player button
 
-	// Displays players
-	public void Display ()
+	void Start ()
 	{
-		Manager.Instance.DisplayHeaders (header, teamListRect, teamListParentRect, DisplayType.Team);
-		Sort (6);
+		playerButton = Resources.Load ("Player", typeof(GameObject));
+		yourPlayers = new List<int> ();
+		playerListRect.sizeDelta = new Vector2 (Manager.DisplayHeaders ((GameObject) => StartSorting(GameObject), header), 20 * (Manager.Instance.Teams [0] [0].Players.Count + 1) - playerListParentRect.rect.height);
+		yourPlayers = Manager.Instance.Sort (currSortedStat, ascending, Manager.Instance.Teams [0] [0].Players);
+		DisplayPlayers ();
 	}
 
-	// Sorts players
-	public void Sort (int headerNum)
+	// Displays players
+	public void DisplayPlayers ()
+	{
+		GameObject [] currPlayers = GameObject.FindGameObjectsWithTag ("Player");
+
+		for (int i = 0; i < currPlayers.Length; i++)
+			Destroy (currPlayers [i]);
+
+		for (int i = 0; i < yourPlayers.Count; i++)
+			Manager.DisplayPlayer (playerButton, transform, yourPlayers [i]).GetComponent<Button> ().onClick.AddListener (() => DisplayPlayer (yourPlayers [i]));
+	}
+
+	// Starts sorting players
+	public void StartSorting (GameObject other)
 	{
 		bool notString;
-		List<int> players;
+		int headerNum = int.Parse (other.name.Remove (0, 6));
 
 		if (headerNum <= 1)
 			notString = false;
@@ -35,17 +54,15 @@ public class PlayerDisplay
 		else
 			ascending = true;
 
-		players = Manager.Instance.Sort (headerNum, ascending, Manager.Instance.Teams [0] [0].Players);
-		Manager.Instance.DisplayPlayers (players, teamList, teamListRect, teamListParentRect, DisplayType.Team);
 		currSortedStat = headerNum;
+		yourPlayers = Manager.Instance.Sort (currSortedStat, ascending, Manager.Instance.Teams [0] [0].Players);
+		DisplayPlayers ();
 	}
 
-	// Sets objects for displaying players
-	public void SetPlayerDisplayObjects (UnityEngine.Transform _teamList, UnityEngine.Transform _header, UnityEngine.RectTransform _teamListRect, UnityEngine.RectTransform _teamListParentRect)
+	// Displays the player
+	public void DisplayPlayer (int id)
 	{
-		teamList = _teamList;
-		header = _header;
-		teamListRect = _teamListRect;
-		teamListParentRect = _teamListParentRect;
+		panel.SetActive (true);
+		panel.GetComponent<DisplayPlayer> ().SetPlayerID (id);
 	}
 }

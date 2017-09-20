@@ -1,13 +1,14 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\TeamLogo.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\BatterDropdown.cs">
     <Files>
-      <File FileName="Assets\Scripts\Team.cs" Line="9" Column="59" />
-      <File FileName="Assets\Scripts\BatterDropdown.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\BatterSlot.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Calendar.cs" Line="40" Column="3" />
-      <File FileName="Assets\Scripts\ChangeTeamColour.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\TeamLogo.cs" Line="23" Column="62" />
+      <File FileName="Assets\Scripts\InternationalFreeAgentDisplay.cs" Line="22" Column="1" />
+      <File FileName="Assets\Scripts\Manager.cs" Line="280" Column="46" />
+      <File FileName="Assets\Scripts\Draft.cs" Line="109" Column="41" />
+      <File FileName="Assets\Scripts\FreeAgentDisplay.cs" Line="22" Column="43" />
+      <File FileName="Assets\Scripts\LoadYourPlayers.cs" Line="76" Column="21" />
+      <File FileName="Assets\Scripts\BatterSlot.cs" Line="76" Column="36" />
+      <File FileName="Assets\Scripts\BatterDropdown.cs" Line="16" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

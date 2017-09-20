@@ -1,28 +1,46 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
-public class DraftedPlayerDisplay
+public class DraftedPlayerDisplay : MonoBehaviour
 {
-	public UnityEngine.Transform playerList;				// Holds the header and player objects
-	public UnityEngine.Transform header;					// Header object
-	public UnityEngine.RectTransform playerListRect;		// RectTransform of the playerList
-	public UnityEngine.RectTransform playerListParentRect;	// RectTransform of the parent of the player list
-	public UnityEngine.GameObject panel;					// Panel used for displaying a selected player
+	public Transform playerList;				// Holds the header and player objects
+	public Transform header;					// Header object
+	public RectTransform playerListRect;		// RectTransform of the playerList
+	public RectTransform playerListParentRect;	// RectTransform of the parent of the player list
+	public GameObject panel;					// Panel used for displaying a selected player
 
-	private int currSortedStat = 6;							// Current sorted stat
-	private bool ascending = true;							// Whether it's sorted ascending or descending
+	private int currSortedStat = 6;				// Current sorted stat
+	private bool ascending = true;				// Whether it's sorted ascending or descending
+	private List <int> yourPlayers;				// Your draft players
+	Object playerButton;						// Player button
 
-	// Displays the drafted players
-	public void Display ()
+	void Start ()
 	{
-		Manager.Instance.DisplayHeaders (header, playerListRect, playerListParentRect, DisplayType.Drafted);
-		Sort (6);
+		playerButton = Resources.Load ("Player", typeof(GameObject));
+		yourPlayers = new List<int> ();
+		playerListRect.sizeDelta = new Vector2 (Manager.DisplayHeaders ((GameObject) => StartSorting(GameObject), header), 20 * (Manager.Instance.Teams [0] [0].DraftPicks.Count + 1) - playerListParentRect.rect.height);
+		yourPlayers = Manager.Instance.Sort (currSortedStat, ascending, Manager.Instance.Teams [0] [0].DraftPicks);
+		DisplayPlayers ();
 	}
 
-	// Sorts the drafted players
-	public void Sort (int headerNum)
+	// Displays players
+	public void DisplayPlayers ()
+	{
+		GameObject [] currPlayers = GameObject.FindGameObjectsWithTag ("Player");
+
+		for (int i = 0; i < currPlayers.Length; i++)
+			Destroy (currPlayers [i]);
+
+		for (int i = 0; i < yourPlayers.Count; i++)
+			Manager.DisplayPlayer (playerButton, transform, yourPlayers [i]).GetComponent<Button> ().onClick.AddListener (() => ShowDraftedPlayer (yourPlayers [i]));
+	}
+
+	// Starts sorting players
+	public void StartSorting (GameObject other)
 	{
 		bool notString;
-		List<int> players;
+		int headerNum = int.Parse (other.name.Remove (0, 6));
 
 		if (headerNum <= 1)
 			notString = false;
@@ -36,8 +54,9 @@ public class DraftedPlayerDisplay
 		else
 			ascending = true;
 
-		players = Manager.Instance.Sort (headerNum, ascending, Manager.Instance.Teams [0] [0].DraftPicks);
-		Manager.Instance.DisplayPlayers (players, playerList, playerListRect, playerListParentRect, DisplayType.Drafted);
+		currSortedStat = headerNum;
+		yourPlayers = Manager.Instance.Sort (currSortedStat, ascending, Manager.Instance.Teams [0] [0].DraftPicks);
+		DisplayPlayers ();
 	}
 
 	// Shows a drafted player's stats
@@ -45,15 +64,5 @@ public class DraftedPlayerDisplay
 	{
 		panel.SetActive (true);
 		panel.GetComponent<DisplayPlayer> ().SetPlayerID (id);
-	}
-
-	// Sets the objects to display the drafted players
-	public void SetPlayerDisplayObjects (UnityEngine.Transform _playerList, UnityEngine.Transform _header, UnityEngine.RectTransform _playerListRect, UnityEngine.RectTransform _playerListParentRect, UnityEngine.GameObject _panel)
-	{
-		playerList = _playerList;
-		header = _header;
-		playerListRect = _playerListRect;
-		playerListParentRect = _playerListParentRect;
-		panel = _panel;
 	}
 }

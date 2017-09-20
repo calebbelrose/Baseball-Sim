@@ -19,6 +19,16 @@ public class SetAutomaticRoster : MonoBehaviour
 		bool active = !toggle.isOn;
 
 		Manager.Instance.Teams [0] [0].AutomaticRoster = toggle.isOn;
+		PlayerPrefs.SetString ("AutomaticRoster", Manager.Instance.Teams [0] [0].AutomaticRoster.ToString ());
+
+		if (!Manager.Instance.Teams [0] [0].AutomaticRoster)
+		{
+			Manager.Instance.Teams [0] [0].SetRoster ();
+			Manager.Instance.Teams [0] [0].SaveBatters ();
+			Manager.Instance.Teams [0] [0].SaveSP ();
+			Manager.Instance.Teams [0] [0].SaveRP ();
+			Manager.Instance.Teams [0] [0].SaveSubstitutes ();
+		}
 		pitchers.SetActive (active);
 		batters.SetActive (active);
 	}

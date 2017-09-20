@@ -45,53 +45,83 @@ public class TradeOffer
 			theirTrades.Remove (playerNum);
 	}
 
-	// Accepts the offer
-	public bool Accept ()
+	// Considers the offer
+	public bool Consider ()
 	{
-		if (!CalculateValues ())
-		{
-			Debug.Log (yourTrades [0] + " " + theirTrades [0]);
-			Debug.Log (false);
+		if (Manager.Instance.TradeDeadline == TradeDeadline.NonWaiver)
 			return false;
-		}
 		else
 		{
-			Debug.Log (yourValue + " " + theirValue);
-			// If your players' values is higher than theirs, they will trade
-			if (yourValue >= theirValue)
-			{
-				string trade = Manager.Instance.Teams [0] [yourTeam].CityName + " " + Manager.Instance.Teams [0] [yourTeam].TeamName + " has traded ";					// String format of the trade
-
-				// Adds your new players to your team
-				while (yourTrades.Count != 0)
-				{
-					trade += Manager.Instance.Teams [0] [yourTeam].Transfer (yourTrades [0], theirTeam);
-					yourTrades.RemoveAt (0);
-				}
-
-				trade = trade.Remove (trade.Length - 2) + " to" + Manager.Instance.Teams [0] [theirTeam].CityName + " " + Manager.Instance.Teams [0] [theirTeam].TeamName + " for ";
-
-				// Adds their new players to their team
-				while (theirTrades.Count != 0)
-				{
-					trade += Manager.Instance.Teams [0] [theirTeam].Transfer (theirTrades [0], 0);
-					theirTrades.RemoveAt (0);
-				}
-
-				trade = trade.Remove (trade.Length - 2) + ".";
-				Manager.Instance.TradeList.Add (trade);
-				Manager.Instance.Teams [0] [yourTeam].SavePlayers ();
-				Manager.Instance.Teams [0] [theirTeam].SavePlayers ();
-
-				Debug.Log (true);
-				return true;
-			}
+			if (!CalculateValues ())
+				return false;
 			else
 			{
-				Debug.Log (false);
-				return false;
+				// If your players' values is higher than theirs, they will trade
+				if (yourValue >= theirValue)
+				{
+					if (Manager.Instance.TradeDeadline == TradeDeadline.None)
+						Accept ();
+					else if(Manager.Instance.TradeDeadline == TradeDeadline.NonWaiver)
+					{
+						bool clearedWaivers = true;
+
+						for (int i = 0; i < yourTrades.Count; i++)
+							if (!Manager.Instance.Players [yourTrades [i]].ClearedWaivers)
+							{
+								if (!Manager.Instance.Players [yourTrades [i]].OnWaivers)
+									Manager.Instance.Teams [0] [yourTeam].PutOnWaivers (yourTrades [i], true);
+								
+								clearedWaivers = false;
+							}
+
+						for (int i = 0; i < theirTrades.Count; i++)
+							if (!Manager.Instance.Players [theirTrades [i]].ClearedWaivers)
+							{
+								if (!Manager.Instance.Players [theirTrades [i]].OnWaivers)
+									Manager.Instance.Teams [0] [theirTeam].PutOnWaivers (theirTrades [i], true);
+								
+								clearedWaivers = false;
+							}
+
+						if (clearedWaivers)
+							Accept ();
+					}
+
+					return true;
+				}
+				else
+					return false;
 			}
 		}
+	}
+
+	// Accepts the offer
+	void Accept ()
+	{
+		string trade = Manager.Instance.Teams [0] [yourTeam].CityName + " " + Manager.Instance.Teams [0] [yourTeam].TeamName + " has traded ";					// String format of the trade
+
+		// Adds your new players to your team
+		while (yourTrades.Count != 0)
+		{
+			trade += Manager.Instance.Teams [0] [yourTeam].Transfer (yourTrades [0], theirTeam);
+			yourTrades.RemoveAt (0);
+		}
+
+		trade = trade.Remove (trade.Length - 2) + " to" + Manager.Instance.Teams [0] [theirTeam].CityName + " " + Manager.Instance.Teams [0] [theirTeam].TeamName + " for ";
+
+		// Adds their new players to their team
+		while (theirTrades.Count != 0)
+		{
+			trade += Manager.Instance.Teams [0] [theirTeam].Transfer (theirTrades [0], 0);
+			theirTrades.RemoveAt (0);
+		}
+
+		trade = trade.Remove (trade.Length - 2) + ".";
+		Manager.Instance.TradeList.Add (trade);
+		Manager.Instance.Teams [0] [yourTeam].SavePlayers ();
+		Manager.Instance.Teams [0] [theirTeam].SavePlayers ();
+
+		Debug.Log (true);
 	}
 
 	public bool CalculateValues ()
